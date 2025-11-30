@@ -13,6 +13,8 @@ public class InputSys : AbstractSystem
     public bool FireHold { get; private set; }
     public bool AimHold { get; private set; }
 
+    public bool Mouse2Pressed { get; private set; }
+
     public bool ReloadPressed { get; private set; }
     public bool Jump { get; private set; }
     public bool Crouch { get; private set; }
@@ -47,6 +49,7 @@ public class InputSys : AbstractSystem
         // -------- Buttons --------
         FirePressed = Input.GetMouseButtonDown(0);
         FireHold = Input.GetMouseButton(0);
+        Mouse2Pressed = Input.GetMouseButtonDown(2);
 
         AimHold = Input.GetMouseButton(1);
 

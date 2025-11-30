@@ -181,7 +181,7 @@ public class ThirdPersonController : MonoBehaviour, IController,ICanSendEvent
     {
         if (_inputSys.Look2D.sqrMagnitude >= _threshold)
         {
-            float deltaTimeMultiplier = Time.deltaTime;
+            float deltaTimeMultiplier = 1f;
             _cinemachineTargetYaw += _inputSys.Look2D.x * deltaTimeMultiplier * ViewingAngleSensitivity;
             _cinemachineTargetPitch -= _inputSys.Look2D.y * deltaTimeMultiplier * ViewingAngleSensitivity;
         }
@@ -191,7 +191,7 @@ public class ThirdPersonController : MonoBehaviour, IController,ICanSendEvent
     {
         if (_inputSys.Look2D.sqrMagnitude >= _threshold)
         {
-            float deltaTimeMultiplier = Time.deltaTime;
+            float deltaTimeMultiplier = 1f;
 
             // 这两个值只影响 CinemachineCameraTarget
             _cinemachineTargetYaw += _inputSys.Look2D.x * deltaTimeMultiplier * ViewingAngleSensitivity;
@@ -240,7 +240,7 @@ public class ThirdPersonController : MonoBehaviour, IController,ICanSendEvent
 
 
         // 只有在没有移动输入 & 非自由视角时，自动对准摄像机方向
-        if (!_inputSys.FreeLookHold && _inputSys.Move2D == Vector2.zero)
+        if (!_inputSys.FreeLookHold )
         {
             Vector3 cameraForward = _mainCamera.transform.forward;
             cameraForward = Quaternion.Euler(0f, CameraRotYOffst, 0f) * cameraForward;

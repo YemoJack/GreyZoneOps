@@ -19,6 +19,7 @@ public class GameController : MonoBehaviour,IController
     void Update()
     {
         inputSys.UpdateInput();
+
     }
 
     public IArchitecture GetArchitecture()

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using QFramework;
+using System.Collections;
 
 
 public struct EventPlayerChangeMoveState
@@ -45,12 +46,19 @@ public class ThirdPersonController : MonoBehaviour, IController,ICanSendEvent
 
     [Header("Cinemachine")]
     public GameObject CinemachineCameraTarget;
+
+    public float ViewingAngleSensitivity = 1f;
+
     public float TopClamp = 70.0f;
     public float BottomClamp = -30.0f;
     public float CameraAngleOverride = 0.0f;
     public float CameraRotYOffst = 0.0f;
     public bool LockCameraPosition = false;
+    private bool isFreeLook = false;
+    private float savedYaw;
+    private float savedPitch;
 
+    public float CameraResetSpeed = 6.0f;  // 回正速度
     // cinemachine
     private float _cinemachineTargetYaw;
     private float _cinemachineTargetPitch;
@@ -127,13 +135,36 @@ public class ThirdPersonController : MonoBehaviour, IController,ICanSendEvent
 
     private void CameraRotation()
     {
-        if (_inputSys.Look2D.sqrMagnitude >= _threshold && !LockCameraPosition)
+
+        //----- 按住 Alt：启动自由视角 -----
+        if (_inputSys.FreeLookHold)
         {
-            float deltaTimeMultiplier = 1.0f;
-            _cinemachineTargetYaw += _inputSys.Look2D.x * deltaTimeMultiplier;
-            _cinemachineTargetPitch -= _inputSys.Look2D.y * deltaTimeMultiplier;
+            if (!isFreeLook)
+            {
+                isFreeLook = true;
+                savedYaw = _cinemachineTargetYaw;
+                savedPitch = _cinemachineTargetPitch;
+            }
+
+            FreeLookCameraRotate();
+        }
+        //----- 松开 Alt：自动回到保存位置 -----
+        else
+        {
+            if (isFreeLook)
+            {
+                isFreeLook = false;
+                _cinemachineTargetYaw = savedYaw;
+                _cinemachineTargetPitch = savedPitch;
+            }
+
+            NormalCameraRotate();
         }
 
+
+        float deltaTimeMultiplier = Time.deltaTime;
+
+        // 限制 pitch yaw
         _cinemachineTargetYaw = ClampAngle(_cinemachineTargetYaw, float.MinValue, float.MaxValue);
         _cinemachineTargetPitch = ClampAngle(_cinemachineTargetPitch, BottomClamp, TopClamp);
 
@@ -143,6 +174,29 @@ public class ThirdPersonController : MonoBehaviour, IController,ICanSendEvent
             0.0f);
 
 
+    }
+
+  
+    private void NormalCameraRotate()
+    {
+        if (_inputSys.Look2D.sqrMagnitude >= _threshold)
+        {
+            float deltaTimeMultiplier = Time.deltaTime;
+            _cinemachineTargetYaw += _inputSys.Look2D.x * deltaTimeMultiplier * ViewingAngleSensitivity;
+            _cinemachineTargetPitch -= _inputSys.Look2D.y * deltaTimeMultiplier * ViewingAngleSensitivity;
+        }
+    }
+
+    private void FreeLookCameraRotate()
+    {
+        if (_inputSys.Look2D.sqrMagnitude >= _threshold)
+        {
+            float deltaTimeMultiplier = Time.deltaTime;
+
+            // 这两个值只影响 CinemachineCameraTarget
+            _cinemachineTargetYaw += _inputSys.Look2D.x * deltaTimeMultiplier * ViewingAngleSensitivity;
+            _cinemachineTargetPitch -= _inputSys.Look2D.y * deltaTimeMultiplier * ViewingAngleSensitivity;
+        }
     }
 
     private void Move()
@@ -169,15 +223,13 @@ public class ThirdPersonController : MonoBehaviour, IController,ICanSendEvent
 
         Vector3 inputDirection = new Vector3(_inputSys.Move2D.x, 0f, _inputSys.Move2D.y).normalized;
 
-        if (_inputSys.Move2D != Vector2.zero)
+        if (_inputSys.Move2D != Vector2.zero && !_inputSys.FreeLookHold)
         {
             _targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg +
                               _mainCamera.transform.eulerAngles.y;
             float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity,
                 RotationSmoothTime);
             transform.rotation = Quaternion.Euler(0f, rotation, 0f);
-
-            
         }
 
 
@@ -186,11 +238,16 @@ public class ThirdPersonController : MonoBehaviour, IController,ICanSendEvent
         _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) +
                          new Vector3(0f, _verticalVelocity, 0f) * Time.deltaTime);
 
-        Vector3 cameraForward = _mainCamera.transform.forward;
-        cameraForward = Quaternion.Euler(0f, CameraRotYOffst, 0f) * cameraForward;
-        cameraForward.y = 0f; // 保持水平旋转
-        transform.rotation = Quaternion.LookRotation(cameraForward);
 
+        // 只有在没有移动输入 & 非自由视角时，自动对准摄像机方向
+        if (!_inputSys.FreeLookHold && _inputSys.Move2D == Vector2.zero)
+        {
+            Vector3 cameraForward = _mainCamera.transform.forward;
+            cameraForward = Quaternion.Euler(0f, CameraRotYOffst, 0f) * cameraForward;
+            cameraForward.y = 0f;
+
+            transform.rotation = Quaternion.LookRotation(cameraForward);
+        }
 
 
         if (!Grounded) return;

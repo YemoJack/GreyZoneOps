@@ -18,6 +18,7 @@ public class InputSys : AbstractSystem
     public bool Crouch { get; private set; }
     public bool Sprint { get; private set; }
 
+    public bool FreeLookHold { get; private set; }
 
 
     // 辅助：返回常用 Vector2 用于移动或旋转
@@ -53,5 +54,7 @@ public class InputSys : AbstractSystem
         Jump = Input.GetKeyDown(KeyCode.Space);
         Sprint = Input.GetKey(KeyCode.LeftShift);
         Crouch = Input.GetKey(KeyCode.LeftControl);
+
+        FreeLookHold = Input.GetKey(KeyCode.LeftAlt);
     }
 }

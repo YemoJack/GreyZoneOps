@@ -664,6 +664,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: MainCamera
       objectReference: {fileID: 0}
+    - target: {fileID: 8944336655422409498, guid: f6d148d888ffbf54b9afe9936dfaec1f,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8944336655422409503, guid: f6d148d888ffbf54b9afe9936dfaec1f,
         type: 3}
       propertyPath: m_RootOrder
@@ -740,6 +745,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: PlayerFollowCamera
+      objectReference: {fileID: 0}
+    - target: {fileID: 2070925441746177671, guid: a1a802ecaf6775746bb2a929fb554ad8,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2070925441746177912, guid: a1a802ecaf6775746bb2a929fb554ad8,
         type: 3}
@@ -8357,11 +8367,13 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   CinemachineCameraTarget: {fileID: 8338988565591873048}
+  ViewingAngleSensitivity: 70
   TopClamp: 70
   BottomClamp: -30
   CameraAngleOverride: 0
   CameraRotYOffst: 10
   LockCameraPosition: 0
+  CameraResetSpeed: 6
 --- !u!143 &4416926083347132233
 CharacterController:
   m_ObjectHideFlags: 0

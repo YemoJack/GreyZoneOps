@@ -1,13 +1,13 @@
-using QFramework;
+ï»¿using QFramework;
 
 public class GameArchitecture : Architecture<GameArchitecture>
 {
     protected override void Init()
     {
-        // ×¢²á Models
+        // æ³¨å†Œ Models
         RegisterModel(new WeaponInventoryModel());
 
-        // ×¢²á Systems
+        // æ³¨å†Œ Systems
         RegisterSystem(new PlayerSystem());
         RegisterSystem(new InputSys());
         RegisterSystem(new WeaponSystem());

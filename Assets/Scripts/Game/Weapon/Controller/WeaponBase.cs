@@ -1,4 +1,4 @@
-using QFramework;
+﻿using QFramework;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -17,13 +17,10 @@ public abstract class WeaponBase : MonoBehaviour, IWeapon,IController
 
     protected virtual void Start()
     {
-        this.RegisterEvent<EventAttackInput>(OnAttack);
+        
     }
 
-    protected void OnAttack(EventAttackInput e)
-    {
-        TryFire();
-    }
+
 
 
 
@@ -38,12 +35,11 @@ public abstract class WeaponBase : MonoBehaviour, IWeapon,IController
     }
 
 
-    public virtual void Tick()
-    {
-        
-    }
 
-    public virtual void TryFire()
+    /// <summary>
+    /// 表现层开火
+    /// </summary>
+    public virtual void TryAttack()
     {
         
     }

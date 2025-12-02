@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using QFramework;
@@ -11,16 +11,31 @@ public enum PlayerAnimState
     Walk,
     Run,
 }
+public struct EventPlayerChangeMoveState
+{
+    public EPlayerMoveState PreviousState;
+    public EPlayerMoveState CurrentState;
+}
+
+
+public enum EPlayerMoveState
+{
+    Idle = 0,
+    Walk = 1,
+    Run = 2,
+    Jump = 3,
+    Fall = 4,
+}
 
 
 
 
-public class PlayerController : MonoBehaviour,IController,ICanSendEvent
+
+public class PlayerController : MonoBehaviour,IController
 {
 
-    public Animator Animator;
+    //public Animator Animator;
 
-    private PlayerSystem playerSystem;
     private InputSys inputSys;
 
     private WeaponSystem weaponSystem;
@@ -35,11 +50,11 @@ public class PlayerController : MonoBehaviour,IController,ICanSendEvent
 
     void Start()
     {
-        playerSystem = this.GetSystem<PlayerSystem>();
+        LockCursor(true);
         inputSys = this.GetSystem<InputSys>();
         weaponSystem = this.GetSystem<WeaponSystem>();
 
-        this.RegisterEvent<EventPlayerChangeMoveState>(OnPlayerMoveStateChanged).UnRegisterWhenGameObjectDestroyed(this);
+        //this.RegisterEvent<EventPlayerChangeMoveState>(OnPlayerMoveStateChanged).UnRegisterWhenGameObjectDestroyed(this);
 
         this.RegisterEvent<EventPlayerChangeWeapon>(OnPlayerChangeWeapon).UnRegisterWhenGameObjectDestroyed(this);
 
@@ -50,7 +65,7 @@ public class PlayerController : MonoBehaviour,IController,ICanSendEvent
     {
         if (inputSys.FirePressed)
         {
-            this.SendEvent<EventAttackInput>();
+            this.SendCommand<CmdStartAttack>();
         }
 
         if(inputSys.Mouse2Pressed)
@@ -76,11 +91,11 @@ public class PlayerController : MonoBehaviour,IController,ICanSendEvent
 
 
 
-    private void OnPlayerMoveStateChanged(EventPlayerChangeMoveState e)
-    {
-        //print(e.CurrentState);
-        Animator.SetInteger("AnimState", (int)e.CurrentState);
-    }
+    //private void OnPlayerMoveStateChanged(EventPlayerChangeMoveState e)
+    //{
+    //    //print(e.CurrentState);
+    //    Animator.SetInteger("AnimState", (int)e.CurrentState);
+    //}
 
     private void OnPlayerChangeWeapon(EventPlayerChangeWeapon weapon)
     {
@@ -112,6 +127,19 @@ public class PlayerController : MonoBehaviour,IController,ICanSendEvent
     }
 
 
+    public void LockCursor(bool isLocked)
+    {
+        if (isLocked)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+    }
 
 
 

@@ -1,4 +1,4 @@
-using UnityEngine;
+Ôªøusing UnityEngine;
 using QFramework;
 
 public class InputSys : AbstractSystem
@@ -20,10 +20,10 @@ public class InputSys : AbstractSystem
     public bool Crouch { get; private set; }
     public bool Sprint { get; private set; }
 
-    public bool FreeLookHold { get; private set; }
+    public bool LeftAltHold { get; private set; }
 
 
-    // ∏®÷˙£∫∑µªÿ≥£”√ Vector2 ”√”⁄“∆∂ØªÚ–˝◊™
+    // ËæÖÂä©ÔºöËøîÂõûÂ∏∏Áî® Vector2 Áî®‰∫éÁßªÂä®ÊàñÊóãËΩ¨
     public Vector2 Move2D => new Vector2(MoveAxis.x, MoveAxis.z);
     public Vector2 Look2D => new Vector2(LookAxis.x, LookAxis.y);
 
@@ -35,7 +35,7 @@ public class InputSys : AbstractSystem
         // -------- Movement input (x,z) --------
         MoveAxis = new Vector3(
             Input.GetAxisRaw("Horizontal"),  // X
-            0f,                               // Y “ª∞„≤ª”√
+            0f,                               // Y ‰∏ÄËà¨‰∏çÁî®
             Input.GetAxisRaw("Vertical")      // Z
         );
 
@@ -43,7 +43,7 @@ public class InputSys : AbstractSystem
         LookAxis = new Vector3(
             Input.GetAxis("Mouse X"),     // yaw
             Input.GetAxis("Mouse Y"),     // pitch
-            0f                            // roll - ‘›≤ª π”√
+            0f                            // roll - ÊöÇ‰∏ç‰ΩøÁî®
         );
 
         // -------- Buttons --------
@@ -58,6 +58,6 @@ public class InputSys : AbstractSystem
         Sprint = Input.GetKey(KeyCode.LeftShift);
         Crouch = Input.GetKey(KeyCode.LeftControl);
 
-        FreeLookHold = Input.GetKey(KeyCode.LeftAlt);
+        LeftAltHold = Input.GetKey(KeyCode.LeftAlt);
     }
 }

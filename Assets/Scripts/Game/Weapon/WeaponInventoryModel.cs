@@ -1,4 +1,4 @@
-using QFramework;
+ï»¿using QFramework;
 using System.Collections.Generic;
 using System;
 using UnityEngine;
@@ -11,7 +11,7 @@ public class WeaponInventoryModel : AbstractModel
 
     protected override void OnInit() { }
 
-    public WeaponBase CurrentConfig => (Weapons.Count > 0 && CurrentIndex >= 0 && CurrentIndex < Weapons.Count)
+    public WeaponBase CurrentWeapon => (Weapons.Count > 0 && CurrentIndex >= 0 && CurrentIndex < Weapons.Count)
         ? Weapons[CurrentIndex] : null;
 
 
@@ -31,22 +31,22 @@ public class WeaponInventoryModel : AbstractModel
 
         if (Weapons.Count > 1)
         {
-            if (CurrentConfig != null)
+            if (CurrentWeapon != null)
             {
-                CurrentConfig.OnUnEquip();
+                CurrentWeapon.OnUnEquip();
             }
 
             CurrentIndex = index;
 
-            CurrentConfig.OnEquip();
+            CurrentWeapon.OnEquip();
             this.SendEvent<EventPlayerChangeWeapon>(new EventPlayerChangeWeapon()
             {
-                Weapon = CurrentConfig
+                Weapon = CurrentWeapon
             });
         }
         else
         {
-            Debug.LogWarning("Ã»ÓĞÎäÆ÷¶àÓàµÄÎäÆ÷½øĞĞÇĞ»»");
+            Debug.LogWarning("æ²¡æœ‰æ­¦å™¨å¤šä½™çš„æ­¦å™¨è¿›è¡Œåˆ‡æ¢");
         }
 
     }
@@ -55,9 +55,9 @@ public class WeaponInventoryModel : AbstractModel
     {
         if (Weapons.Count > 1)
         {
-            if (CurrentConfig != null)
+            if (CurrentWeapon != null)
             {
-                CurrentConfig.OnUnEquip();
+                CurrentWeapon.OnUnEquip();
             }
 
             CurrentIndex++;
@@ -65,15 +65,15 @@ public class WeaponInventoryModel : AbstractModel
             if(CurrentIndex >= Weapons.Count)
                 CurrentIndex = 0;
 
-            CurrentConfig.OnEquip();
+            CurrentWeapon.OnEquip();
             this.SendEvent<EventPlayerChangeWeapon>(new EventPlayerChangeWeapon()
             {
-                Weapon = CurrentConfig
+                Weapon = CurrentWeapon
             });
         }
         else
         {
-            Debug.LogWarning("Ã»ÓĞÎäÆ÷¶àÓàµÄÎäÆ÷½øĞĞÇĞ»»");
+            Debug.LogWarning("æ²¡æœ‰æ­¦å™¨å¤šä½™çš„æ­¦å™¨è¿›è¡Œåˆ‡æ¢");
         }
 
     }

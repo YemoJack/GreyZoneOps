@@ -1,4 +1,4 @@
-using System.Collections;
+锘縰sing System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -20,11 +20,11 @@ public class SOWeaponConfigBase : ScriptableObject
     public GameObject WeaponPrefab;
 
     /// <summary>
-    /// 命中特效
+    /// 鍛戒腑鐗规晥
     /// </summary>
     public GameObject impactEffect;
     /// <summary>
-    /// 攻击特效
+    /// 鏀诲嚮鐗规晥
     /// </summary>
     public GameObject attackEffect;
 

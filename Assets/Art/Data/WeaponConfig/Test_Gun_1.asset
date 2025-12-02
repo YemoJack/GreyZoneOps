@@ -18,7 +18,39 @@ MonoBehaviour:
   Discription: "\u6D4B\u8BD5\u624B\u67AA1"
   WeaponPrefab: {fileID: 2780876524888379992, guid: 117a43dac40aa124cab7b4ceb3e1230e,
     type: 3}
-  MagazineSize: 7
-  FireRate: 207
-  Damage: 56
-  Range: 15
+  impactEffect: {fileID: 0}
+  attackEffect: {fileID: 0}
+  fireRate: 300
+  bulletSpeed: 100
+  GunshotRange: 200
+  availableFireModes: 5
+  currentFireMode: 1
+  magSize: 30
+  baseDamage: 30
+  armorDamage: 0
+  damageFalloffCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  range: 50
+  maxRange: 200
+  recoilControl: 40
+  recoilPattern: []
+  recoilRecoverySpeed: 8
+  recoilMulRange: {x: 0.4, y: 1.4}
+  verticalRecoilMul: 1
+  horizontalRecoilMul: 1
+  operatingSpeed: 0
+  reloadTime: 0
+  aimTime: 0.5
+  hipfireAccuracy: 0
+  MinHipfireAngle: {x: 0, y: 0, z: 0}
+  MaxHipfireAngle: {x: 0, y: 0, z: 0}
+  HipFireAddAngle: 0
+  aimPosOffset: {x: 0, y: 0, z: 0}
+  aimRotOffset: {x: 0, y: 0, z: 0}
+  zoomFactor: 1.25
+  projectilePrefab: {fileID: 0}
+  projectileEffect: {fileID: 0}

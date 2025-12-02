@@ -3,22 +3,6 @@ using QFramework;
 using System.Collections;
 
 
-public struct EventPlayerChangeMoveState
-{
-    public EPlayerMoveState PreviousState;
-    public EPlayerMoveState CurrentState;
-}
-
-
-public enum EPlayerMoveState
-{
-    Idle = 0,
-    Walk = 1,
-    Run = 2,
-    Jump = 3,
-    Fall = 4,
-}
-
 
 
 [RequireComponent(typeof(CharacterController))]
@@ -83,8 +67,7 @@ public class ThirdPersonController : MonoBehaviour, IController,ICanSendEvent
     private const float _threshold = 0.01f;
 
     private InputSys _inputSys;
-    private PlayerSystem _playerSystem;
-
+  
 
     private void Awake()
     {
@@ -97,7 +80,7 @@ public class ThirdPersonController : MonoBehaviour, IController,ICanSendEvent
     private void Start()
     {
         _inputSys = this.GetSystem<InputSys>();
-        _playerSystem = this.GetSystem<PlayerSystem>();
+      
         _cinemachineTargetYaw = CinemachineCameraTarget.transform.rotation.eulerAngles.y;
 
 
@@ -137,7 +120,7 @@ public class ThirdPersonController : MonoBehaviour, IController,ICanSendEvent
     {
 
         //----- 按住 Alt：启动自由视角 -----
-        if (_inputSys.FreeLookHold)
+        if (_inputSys.LeftAltHold)
         {
             if (!isFreeLook)
             {
@@ -223,7 +206,7 @@ public class ThirdPersonController : MonoBehaviour, IController,ICanSendEvent
 
         Vector3 inputDirection = new Vector3(_inputSys.Move2D.x, 0f, _inputSys.Move2D.y).normalized;
 
-        if (_inputSys.Move2D != Vector2.zero && !_inputSys.FreeLookHold)
+        if (_inputSys.Move2D != Vector2.zero && !_inputSys.LeftAltHold)
         {
             _targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg +
                               _mainCamera.transform.eulerAngles.y;
@@ -240,7 +223,7 @@ public class ThirdPersonController : MonoBehaviour, IController,ICanSendEvent
 
 
         // 只有在没有移动输入 & 非自由视角时，自动对准摄像机方向
-        if (!_inputSys.FreeLookHold )
+        if (!_inputSys.LeftAltHold )
         {
             Vector3 cameraForward = _mainCamera.transform.forward;
             cameraForward = Quaternion.Euler(0f, CameraRotYOffst, 0f) * cameraForward;

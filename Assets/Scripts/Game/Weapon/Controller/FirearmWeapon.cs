@@ -1,13 +1,16 @@
-using QFramework;
+﻿using QFramework;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class FirearmWeapon :  WeaponBase
 {
 
     public Transform FirePos;
+
+    private CmdFireamFire cmdFireamFire;
 
 
     public override void Init(SOWeaponConfigBase wepConfig)
@@ -20,6 +23,9 @@ public class FirearmWeapon :  WeaponBase
         {
             Debug.LogError($"FirearmWeapon WeaponConfig is null");
         }
+
+
+        cmdFireamFire = new CmdFireamFire(Config as SOFirearmConfig, FirePos.position, FirePos.forward);
     }
 
 
@@ -34,15 +40,16 @@ public class FirearmWeapon :  WeaponBase
         
     }
 
-    public override void Tick()
-    {
-        
-    }
-
-
-    public override void TryFire()
+    public override void TryAttack()
     {
         print($"Firearm Weapon {Config.WeaponName} {Config.WeaponType} Try Fire");
+        cmdFireamFire.startPos = FirePos.position;
+        cmdFireamFire.forward = this.GetSystem<WeaponSystem>().GetFireDirection(FirePos);
+        if(cmdFireamFire.forward == Vector3.zero)
+        {
+            return;
+        }
+        this.SendCommand<CmdFireamFire>(cmdFireamFire);
     }
 
     public void Reload()

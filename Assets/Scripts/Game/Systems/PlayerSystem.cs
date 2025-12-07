@@ -56,7 +56,18 @@ public partial class PlayerSystem : AbstractSystem, IUpdateSystem,ICanSendComman
 
     private void HandleWeaponInput()
     {
-        if (inputSys.FirePressed)
+        var currentWeapon = weaponSystem.GetCurrentWeapon() as FirearmWeapon;
+
+        if (currentWeapon != null && inputSys.FireModeSwitchPressed)
+        {
+            currentWeapon.SwitchFireMode();
+        }
+
+        bool shouldAutoFire = currentWeapon != null && currentWeapon.IsAutomatic && inputSys.FireHold;
+        bool shouldBurstFire = currentWeapon != null && currentWeapon.IsBurstMode && inputSys.FirePressed;
+        bool shouldSingleFire = currentWeapon != null && currentWeapon.IsSingleMode && inputSys.FirePressed;
+
+        if (shouldAutoFire || shouldBurstFire || shouldSingleFire)
         {
             this.SendCommand<CmdStartAttack>();
         }

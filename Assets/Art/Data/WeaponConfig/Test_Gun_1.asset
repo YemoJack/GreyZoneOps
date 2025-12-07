@@ -21,7 +21,7 @@ MonoBehaviour:
   fireRate: 300
   bulletSpeed: 600
   GunshotRange: 200
-  availableFireModes: 5
+  availableFireModes: 7
   currentFireMode: 1
   magSize: 30
   baseDamage: 30

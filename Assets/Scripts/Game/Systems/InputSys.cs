@@ -17,6 +17,8 @@ public class InputSys : AbstractSystem, IUpdateSystem
 
     public bool Mouse2Pressed { get; private set; }
 
+    public bool FireModeSwitchPressed { get; private set; }
+
     public bool ReloadPressed { get; private set; }
     public bool Jump { get; private set; }
     public bool Crouch { get; private set; }
@@ -59,6 +61,7 @@ public class InputSys : AbstractSystem, IUpdateSystem
         AimHold = Input.GetMouseButton(1);
 
         ReloadPressed = Input.GetKeyDown(KeyCode.R);
+        FireModeSwitchPressed = Input.GetKeyDown(KeyCode.B);
         Jump = Input.GetKeyDown(KeyCode.Space);
         Sprint = Input.GetKey(KeyCode.LeftShift);
         Crouch = Input.GetKey(KeyCode.LeftControl);

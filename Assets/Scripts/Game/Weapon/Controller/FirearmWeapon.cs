@@ -23,9 +23,14 @@ public class FirearmWeapon :  WeaponBase
     private int currentAmmo;
     private float nextFireTime;
     private bool isReloading;
+    private bool isBurstFiring;
 
     public int CurrentAmmo => currentAmmo;
     public int TotalAmmo => firearmConfig != null ? firearmConfig.magSize : 0;
+
+    public bool IsAutomatic => firearmConfig != null && firearmConfig.currentFireMode == FireMode.Auto;
+    public bool IsBurstMode => firearmConfig != null && firearmConfig.currentFireMode == FireMode.Burst;
+    public bool IsSingleMode => firearmConfig == null || firearmConfig.currentFireMode == FireMode.Single;
 
 
     protected override void Start()
@@ -64,26 +69,14 @@ public class FirearmWeapon :  WeaponBase
             return;
         }
 
-        if (Time.time < nextFireTime)
+        if (IsBurstMode)
         {
-            return;
+            TryStartBurstFire();
         }
-
-        if (currentAmmo <= 0)
+        else
         {
-            Debug.Log("Out of ammo, reload needed.");
-            return;
+            TryFireSingleShot();
         }
-
-        Vector3 dir = this.GetSystem<WeaponSystem>().GetFireDirection(FirePos);
-        if(dir == Vector3.zero)
-        {
-            return;
-        }
-        cmdFireamFire.Init(FirePos.position, dir);
-        this.SendCommand(cmdFireamFire);
-        nextFireTime = firearmConfig.fireRate > 0 ? Time.time + 1f / firearmConfig.fireRate : Time.time;
-        //print($"Firearm Weapon {Config.WeaponName} {Config.WeaponType} Try Fire");
     }
 
 
@@ -180,5 +173,105 @@ public class FirearmWeapon :  WeaponBase
             CurrentAmmo = currentAmmo,
             TotalAmmo = TotalAmmo
         });
+    }
+
+    public void SwitchFireMode()
+    {
+        if (firearmConfig == null)
+        {
+            Debug.LogWarning("FirearmWeapon: firearmConfig is null, cannot switch fire mode.");
+            return;
+        }
+
+        FireMode[] orderedModes = new[] { FireMode.Single, FireMode.Burst, FireMode.Auto };
+        var currentIndex = System.Array.IndexOf(orderedModes, firearmConfig.currentFireMode);
+        int attempts = orderedModes.Length;
+
+        while (attempts-- > 0)
+        {
+            currentIndex = (currentIndex + 1) % orderedModes.Length;
+            var candidate = orderedModes[currentIndex];
+
+            if (firearmConfig.availableFireModes.HasFlag(candidate))
+            {
+                firearmConfig.currentFireMode = candidate;
+                Debug.Log($"Switched fire mode to {candidate}");
+                return;
+            }
+        }
+    }
+
+    private void TryFireSingleShot()
+    {
+        if (!CanFire())
+        {
+            return;
+        }
+
+        FireOneRound();
+    }
+
+    private void TryStartBurstFire()
+    {
+        if (isBurstFiring)
+        {
+            return;
+        }
+
+        if (!CanFire())
+        {
+            return;
+        }
+
+        StartCoroutine(BurstFireRoutine());
+    }
+
+    private bool CanFire()
+    {
+        if (Time.time < nextFireTime)
+        {
+            return false;
+        }
+
+        if (currentAmmo <= 0)
+        {
+            Debug.Log("Out of ammo, reload needed.");
+            return false;
+        }
+
+        return true;
+    }
+
+    private void FireOneRound()
+    {
+        Vector3 dir = this.GetSystem<WeaponSystem>().GetFireDirection(FirePos);
+        if (dir == Vector3.zero)
+        {
+            return;
+        }
+
+        cmdFireamFire.Init(FirePos.position, dir);
+        this.SendCommand(cmdFireamFire);
+        nextFireTime = firearmConfig.fireRate > 0 ? Time.time + 1f / firearmConfig.fireRate : Time.time;
+        //print($"Firearm Weapon {Config.WeaponName} {Config.WeaponType} Try Fire");
+    }
+
+    private IEnumerator BurstFireRoutine()
+    {
+        isBurstFiring = true;
+        int burstCount = 3;
+
+        for (int i = 0; i < burstCount; i++)
+        {
+            if (!CanFire())
+            {
+                break;
+            }
+
+            FireOneRound();
+            yield return new WaitForSeconds(firearmConfig.fireRate > 0 ? 1f / firearmConfig.fireRate : 0f);
+        }
+
+        isBurstFiring = false;
     }
 }

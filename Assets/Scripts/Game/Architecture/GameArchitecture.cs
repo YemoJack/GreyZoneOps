@@ -4,6 +4,9 @@ public class GameArchitecture : Architecture<GameArchitecture>
 {
     protected override void Init()
     {
+        // 注册 Utilities
+        RegisterUtility(new SystemUpdateScheduler());
+
         // 注册 Models
         RegisterModel(new WeaponInventoryModel());
 

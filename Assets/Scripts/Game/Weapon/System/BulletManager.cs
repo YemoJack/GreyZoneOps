@@ -2,14 +2,17 @@ using QFramework;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BulletManager : AbstractSystem
+public class BulletManager : AbstractSystem, IUpdateSystem
 {
     private BulletPool bulletPool;
     private readonly List<GOBullet> bullets = new List<GOBullet>();
+    private SystemUpdateScheduler updateScheduler;
 
     protected override void OnInit()
     {
         bulletPool = new BulletPool(1000);
+        updateScheduler = this.GetUtility<SystemUpdateScheduler>();
+        updateScheduler.Register(this);
     }
 
     // 创建新子弹

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class WeaponBase : MonoBehaviour, IWeapon,IController
+public abstract class WeaponBase : MonoBehaviour, IWeapon,IController,ICanSendEvent
 {
 
     public int InstanceID { get; protected set; }

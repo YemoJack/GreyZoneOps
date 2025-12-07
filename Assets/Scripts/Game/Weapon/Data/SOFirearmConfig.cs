@@ -39,7 +39,7 @@ public class SOFirearmConfig : SOWeaponConfigBase
     /// <summary>
     /// 射击模式
     /// </summary>
-    public FireMode availableFireModes = FireMode.Single | FireMode.Auto; // 默认支持 单发 + 全自动
+    public FireMode availableFireModes = FireMode.Single | FireMode.Burst | FireMode.Auto; // 默认支持 单发 + 三连发 + 全自动
 
     /// <summary>
     /// 当前的射击模式

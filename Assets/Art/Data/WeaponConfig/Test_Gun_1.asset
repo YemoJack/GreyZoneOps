@@ -18,11 +18,11 @@ MonoBehaviour:
   Discription: "\u6D4B\u8BD5\u624B\u67AA1"
   impactEffect: {fileID: 2502049911153477929, guid: 55d0ea124313af549a73df885bdc8b0f,
     type: 3}
-  fireRate: 300
+  fireRate: 5
   bulletSpeed: 600
   GunshotRange: 200
   availableFireModes: 7
-  currentFireMode: 1
+  currentFireMode: 4
   magSize: 30
   baseDamage: 30
   armorDamage: 0

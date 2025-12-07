@@ -7,13 +7,13 @@ public class PlayerController : MonoBehaviour, IController
     public Transform WeaponRoot;
     public List<GameObject> weaponObjectList;
 
-    private PlayerSystem playerSystem;
+    private WeaponSystem weaponSystem;
 
     private void Start()
     {
         LockCursor(true);
-        playerSystem = this.GetSystem<PlayerSystem>();
-        playerSystem.InitializeLoadout(WeaponRoot, weaponObjectList);
+        weaponSystem = this.GetSystem<WeaponSystem>();
+        weaponSystem.InitializeLoadout(WeaponRoot, weaponObjectList);
     }
 
     public void LockCursor(bool isLocked)

@@ -16,12 +16,48 @@ public class WeaponSystem : AbstractSystem
 
     private WeaponInventoryModel weaponInventoryModel;
     private readonly Dictionary<int, WeaponBase> weaponInstances = new Dictionary<int, WeaponBase>();
+    private readonly List<WeaponBase> instantiatedWeapons = new List<WeaponBase>();
     private IAimRayProvider aimRayProvider;
 
 
     protected override void OnInit()
     {
        weaponInventoryModel = this.GetModel<WeaponInventoryModel>();
+    }
+
+    public void InitializeLoadout(Transform weaponRoot, IEnumerable<GameObject> weaponPrefabs)
+    {
+        if (weaponRoot == null || weaponPrefabs == null)
+        {
+            Debug.LogWarning("WeaponSystem InitializeLoadout called with null references.");
+            return;
+        }
+
+        instantiatedWeapons.Clear();
+
+        foreach (var weaponPrefab in weaponPrefabs)
+        {
+            if (weaponPrefab == null) continue;
+
+            var weaponObj = Object.Instantiate(weaponPrefab, weaponRoot);
+            weaponObj.transform.localPosition = Vector3.zero;
+            weaponObj.transform.localRotation = Quaternion.identity;
+
+            var weapon = weaponObj.GetComponent<WeaponBase>();
+            if (weapon != null)
+            {
+                RegisterWeaponInstance(weapon);
+                instantiatedWeapons.Add(weapon);
+                weapon.gameObject.SetActive(false);
+            }
+            else
+            {
+                Debug.LogWarning($"Prefab {weaponPrefab.name} does not contain a WeaponBase component.");
+                Object.Destroy(weaponObj);
+            }
+        }
+
+        EquipInitialWeapon();
     }
 
     /// <summary>
@@ -48,6 +84,10 @@ public class WeaponSystem : AbstractSystem
         }
 
         weaponInstances[entry.WeaponId] = weapon;
+        if (!instantiatedWeapons.Contains(weapon))
+        {
+            instantiatedWeapons.Add(weapon);
+        }
         return true;
     }
 
@@ -150,15 +190,26 @@ public class WeaponSystem : AbstractSystem
         if (previous != null && weaponInstances.TryGetValue(previous.WeaponId, out var previousWeapon)
             && previousWeapon != null && previousWeapon != weapon)
         {
+            previousWeapon.gameObject.SetActive(false);
             previousWeapon.OnUnEquip();
         }
 
+        UpdateWeaponActiveState(weapon);
         weapon.OnEquip();
         this.SendEvent(new EventPlayerChangeWeapon
         {
             Slot = entry,
             WeaponInstance = weapon
         });
+    }
+
+    private void UpdateWeaponActiveState(WeaponBase activeWeapon)
+    {
+        foreach (var weapon in instantiatedWeapons)
+        {
+            if (weapon == null) continue;
+            weapon.gameObject.SetActive(weapon == activeWeapon);
+        }
     }
 
 }

@@ -56,8 +56,11 @@ public class FirearmWeapon :  WeaponBase
             dis = distance;
         }
 
-        //ApplyDamage(hit);
-        //PlayHitSound();
+        var healthComponent = hit.collider.GetComponentInParent<HealthComponent>();
+        if (healthComponent != null)
+        {
+            healthComponent.ApplyDamage(Config is SOFirearmConfig firearmConfig ? firearmConfig.baseDamage : 0f);
+        }
 
         Debug.Log($"Firearm Weapon {Config.WeaponName} {Config.WeaponType} Hit Target \n time：{t} distance ：{dis}");
 

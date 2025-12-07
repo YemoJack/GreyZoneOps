@@ -24,7 +24,9 @@ public enum EPlayerMoveState
     Fall = 4,
 }
 
-public partial class PlayerSystem : AbstractSystem, IUpdateSystem
+
+public partial class PlayerSystem : AbstractSystem, IUpdateSystem,ICanSendCommand
+
 {
     private readonly List<WeaponBase> weaponInstances = new List<WeaponBase>();
 
@@ -70,6 +72,7 @@ public partial class PlayerSystem : AbstractSystem, IUpdateSystem
                 weapon.gameObject.SetActive(false);
                 weaponInstances.Add(weapon);
                 weaponSystem.RegisterWeaponInstance(weapon);
+
             }
             else
             {
@@ -78,7 +81,9 @@ public partial class PlayerSystem : AbstractSystem, IUpdateSystem
             }
         }
 
+
         weaponSystem.EquipInitialWeapon();
+
         initialized = true;
     }
 
@@ -139,7 +144,9 @@ public partial class PlayerSystem : AbstractSystem, IUpdateSystem
         foreach (var weapon in weaponInstances)
         {
             if (weapon == null) continue;
+
             weapon.gameObject.SetActive(weapon.InstanceID == evt.WeaponInstance?.InstanceID);
+
         }
     }
 }

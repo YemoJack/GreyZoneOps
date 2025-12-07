@@ -1,8 +1,10 @@
 ﻿using UnityEngine;
 using QFramework;
 
-public class InputSys : AbstractSystem
+public class InputSys : AbstractSystem, IUpdateSystem
 {
+
+    private SystemUpdateScheduler updateScheduler;
 
     // ------- Axis -------
     public Vector3 MoveAxis { get; private set; }
@@ -27,10 +29,13 @@ public class InputSys : AbstractSystem
     public Vector2 Move2D => new Vector2(MoveAxis.x, MoveAxis.z);
     public Vector2 Look2D => new Vector2(LookAxis.x, LookAxis.y);
 
+    protected override void OnInit()
+    {
+        updateScheduler = this.GetUtility<SystemUpdateScheduler>();
+        updateScheduler.Register(this);
+    }
 
-    protected override void OnInit() { }
-
-    public void UpdateInput()
+    public void OnUpdate(float deltaTime)
     {
         // -------- Movement input (x,z) --------
         MoveAxis = new Vector3(

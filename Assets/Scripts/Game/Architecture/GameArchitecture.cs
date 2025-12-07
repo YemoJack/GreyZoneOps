@@ -11,8 +11,8 @@ public class GameArchitecture : Architecture<GameArchitecture>
         RegisterModel(new WeaponInventoryModel());
 
         // 注册 Systems
-        RegisterSystem(new PlayerSystem());
         RegisterSystem(new InputSys());
+        RegisterSystem(new PlayerSystem());
         RegisterSystem(new WeaponSystem());
         RegisterSystem(new BulletManager());
 

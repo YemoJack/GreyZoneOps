@@ -1,6 +1,4 @@
 using QFramework;
-using System.Collections.Generic;
-using UnityEngine;
 
 public enum PlayerAnimState
 {
@@ -28,10 +26,7 @@ public enum EPlayerMoveState
 public partial class PlayerSystem : AbstractSystem, IUpdateSystem,ICanSendCommand
 
 {
-    private readonly List<WeaponBase> weaponInstances = new List<WeaponBase>();
-
     private WeaponSystem weaponSystem;
-    private WeaponInventoryModel weaponInventoryModel;
     private InputSys inputSys;
     private SystemUpdateScheduler updateScheduler;
 
@@ -41,49 +36,10 @@ public partial class PlayerSystem : AbstractSystem, IUpdateSystem,ICanSendComman
     protected override void OnInit()
     {
         weaponSystem = this.GetSystem<WeaponSystem>();
-        weaponInventoryModel = this.GetModel<WeaponInventoryModel>();
         inputSys = this.GetSystem<InputSys>();
 
         updateScheduler = this.GetUtility<SystemUpdateScheduler>();
         updateScheduler.Register(this);
-
-        this.RegisterEvent<EventPlayerChangeWeapon>(OnPlayerChangeWeapon);
-    }
-
-    public void InitializeLoadout(Transform weaponRoot, IEnumerable<GameObject> weaponPrefabs)
-    {
-        if (weaponRoot == null || weaponPrefabs == null)
-        {
-            Debug.LogWarning("PlayerSystem InitializeLoadout called with null references.");
-            return;
-        }
-
-        weaponInstances.Clear();
-        foreach (var weaponPrefab in weaponPrefabs)
-        {
-            if (weaponPrefab == null) continue;
-            var weaponObj = Object.Instantiate(weaponPrefab, weaponRoot);
-            weaponObj.transform.localPosition = Vector3.zero;
-            weaponObj.transform.localRotation = Quaternion.identity;
-
-            var weapon = weaponObj.GetComponent<WeaponBase>();
-            if (weapon != null)
-            {
-                weapon.gameObject.SetActive(false);
-                weaponInstances.Add(weapon);
-                weaponSystem.RegisterWeaponInstance(weapon);
-
-            }
-            else
-            {
-                Debug.LogWarning($"Prefab {weaponPrefab.name} does not contain a WeaponBase component.");
-                Object.Destroy(weaponObj);
-            }
-        }
-
-
-        weaponSystem.EquipInitialWeapon();
-
         initialized = true;
     }
 
@@ -136,17 +92,6 @@ public partial class PlayerSystem : AbstractSystem, IUpdateSystem,ICanSendComman
                 PreviousState = previous,
                 CurrentState = moveState
             });
-        }
-    }
-
-    private void OnPlayerChangeWeapon(EventPlayerChangeWeapon evt)
-    {
-        foreach (var weapon in weaponInstances)
-        {
-            if (weapon == null) continue;
-
-            weapon.gameObject.SetActive(weapon.InstanceID == evt.WeaponInstance?.InstanceID);
-
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using QFramework;
-using System;
+using System.Collections;
 using UnityEngine;
 
 
@@ -10,12 +10,19 @@ public class FirearmWeapon :  WeaponBase
 
     protected CmdFireamFire cmdFireamFire;
 
+    private SOFirearmConfig firearmConfig;
+    private int currentAmmo;
+    private float nextFireTime;
+    private bool isReloading;
+
 
     protected override void Start()
     {
 
         if (Config == null)
             Debug.LogError($"FirearmWeapon WeaponConfig is null");
+        firearmConfig = Config as SOFirearmConfig;
+        currentAmmo = firearmConfig != null ? firearmConfig.magSize : 0;
         cmdFireamFire = new CmdFireamFire(this);
     }
 
@@ -33,6 +40,28 @@ public class FirearmWeapon :  WeaponBase
 
     public override void TryAttack()
     {
+        if (firearmConfig == null)
+        {
+            Debug.LogWarning("FirearmWeapon: firearmConfig is null, cannot attack.");
+            return;
+        }
+
+        if (isReloading)
+        {
+            return;
+        }
+
+        if (Time.time < nextFireTime)
+        {
+            return;
+        }
+
+        if (currentAmmo <= 0)
+        {
+            Debug.Log("Out of ammo, reload needed.");
+            return;
+        }
+
         Vector3 dir = this.GetSystem<WeaponSystem>().GetFireDirection(FirePos);
         if(dir == Vector3.zero)
         {
@@ -40,6 +69,7 @@ public class FirearmWeapon :  WeaponBase
         }
         cmdFireamFire.Init(FirePos.position, dir);
         this.SendCommand(cmdFireamFire);
+        nextFireTime = firearmConfig.fireRate > 0 ? Time.time + 1f / firearmConfig.fireRate : Time.time;
         //print($"Firearm Weapon {Config.WeaponName} {Config.WeaponType} Try Fire");
     }
 
@@ -84,6 +114,39 @@ public class FirearmWeapon :  WeaponBase
 
     public void Reload()
     {
-        
+        if (firearmConfig == null)
+        {
+            Debug.LogWarning("FirearmWeapon: firearmConfig is null, cannot reload.");
+            return;
+        }
+
+        if (isReloading)
+        {
+            return;
+        }
+
+        if (currentAmmo >= firearmConfig.magSize)
+        {
+            Debug.Log("Magazine already full.");
+            return;
+        }
+
+        StartCoroutine(ReloadRoutine());
+    }
+
+    public void ConsumeAmmo()
+    {
+        currentAmmo = Mathf.Max(0, currentAmmo - 1);
+    }
+
+    private IEnumerator ReloadRoutine()
+    {
+        isReloading = true;
+        Debug.Log("Reloading... (placeholder animation/sound)");
+        yield return new WaitForSeconds(firearmConfig.reloadTime);
+        currentAmmo = firearmConfig.magSize;
+        isReloading = false;
+        Debug.Log("Reload complete.");
+
     }
 }

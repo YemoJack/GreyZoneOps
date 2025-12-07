@@ -61,6 +61,11 @@ public partial class PlayerSystem : AbstractSystem, IUpdateSystem,ICanSendComman
             this.SendCommand<CmdStartAttack>();
         }
 
+        if (inputSys.ReloadPressed)
+        {
+            this.SendCommand<CmdReloadWeapon>();
+        }
+
         if (inputSys.Mouse2Pressed)
         {
             weaponSystem.SwitchWeapon();

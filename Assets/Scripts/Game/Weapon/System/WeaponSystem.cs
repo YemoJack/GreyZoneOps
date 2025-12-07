@@ -114,6 +114,16 @@ public class WeaponSystem : AbstractSystem
         }
     }
 
+    public void ReloadCurrentWeapon()
+    {
+        var currentSlot = weaponInventoryModel.CurrentSlot;
+        if (currentSlot != null && weaponInstances.TryGetValue(currentSlot.WeaponId, out var weapon)
+            && weapon is FirearmWeapon firearmWeapon)
+        {
+            firearmWeapon.Reload();
+        }
+    }
+
 
 
     public Vector3 GetFireDirection(Transform firePos, float maxRange = 100f)

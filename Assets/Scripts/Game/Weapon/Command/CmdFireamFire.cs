@@ -39,6 +39,7 @@ public class CmdFireamFire : AbstractCommand
     protected override void OnExecute()
     {
         FireByDistance();
+        weapon?.ConsumeAmmo();
     }
 
 

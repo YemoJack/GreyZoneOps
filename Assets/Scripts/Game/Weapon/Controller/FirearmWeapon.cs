@@ -77,7 +77,7 @@ public class FirearmWeapon :  WeaponBase
 
             // 避免特效嵌入表面
             eff.transform.position += hit.normal * 0.01f;
-            GameObject.Destroy(eff, 5f);
+            GameObject.Destroy(eff, 1f);
         }
     }
 

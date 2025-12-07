@@ -57,6 +57,7 @@ public class HealthComponent : MonoBehaviour
         PlayDeathEffect();
 
         OnDeath?.Invoke(this);
+        Destroy(gameObject,1f);
     }
 
     private void DisableColliders()

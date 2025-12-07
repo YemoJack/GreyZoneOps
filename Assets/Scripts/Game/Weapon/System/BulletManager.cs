@@ -6,12 +6,12 @@ public class BulletManager : AbstractSystem, IUpdateSystem
 {
     private BulletPool bulletPool;
     private readonly List<GOBullet> bullets = new List<GOBullet>();
-    private SystemUpdateScheduler updateScheduler;
+    private IGameLoop updateScheduler;
 
     protected override void OnInit()
     {
         bulletPool = new BulletPool(1000);
-        updateScheduler = this.GetUtility<SystemUpdateScheduler>();
+        updateScheduler = this.GetUtility<IGameLoop>();
         updateScheduler.Register(this);
     }
 

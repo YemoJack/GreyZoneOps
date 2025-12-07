@@ -24,7 +24,7 @@ public enum EPlayerMoveState
     Fall = 4,
 }
 
-public partial class PlayerSystem : AbstractSystem, IUpdateSystem
+public partial class PlayerSystem : AbstractSystem, IUpdateSystem,ICanSendCommand
 {
     private readonly List<WeaponBase> weaponInstances = new List<WeaponBase>();
 

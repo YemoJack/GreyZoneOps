@@ -4,7 +4,7 @@ using QFramework;
 public class InputSys : AbstractSystem, IUpdateSystem
 {
 
-    private SystemUpdateScheduler updateScheduler;
+    private IGameLoop updateScheduler;
 
     // ------- Axis -------
     public Vector3 MoveAxis { get; private set; }
@@ -31,7 +31,7 @@ public class InputSys : AbstractSystem, IUpdateSystem
 
     protected override void OnInit()
     {
-        updateScheduler = this.GetUtility<SystemUpdateScheduler>();
+        updateScheduler = this.GetUtility<IGameLoop>();
         updateScheduler.Register(this);
     }
 

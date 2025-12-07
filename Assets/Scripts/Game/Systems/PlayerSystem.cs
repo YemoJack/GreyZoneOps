@@ -28,7 +28,7 @@ public partial class PlayerSystem : AbstractSystem, IUpdateSystem,ICanSendComman
 {
     private WeaponSystem weaponSystem;
     private InputSys inputSys;
-    private SystemUpdateScheduler updateScheduler;
+    private IGameLoop updateScheduler;
 
     private EPlayerMoveState moveState = EPlayerMoveState.Idle;
     private bool initialized;
@@ -38,7 +38,7 @@ public partial class PlayerSystem : AbstractSystem, IUpdateSystem,ICanSendComman
         weaponSystem = this.GetSystem<WeaponSystem>();
         inputSys = this.GetSystem<InputSys>();
 
-        updateScheduler = this.GetUtility<SystemUpdateScheduler>();
+        updateScheduler = this.GetUtility<IGameLoop>();
         updateScheduler.Register(this);
         initialized = true;
     }

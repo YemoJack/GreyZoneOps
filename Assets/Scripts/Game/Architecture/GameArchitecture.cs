@@ -5,7 +5,9 @@ public class GameArchitecture : Architecture<GameArchitecture>
     protected override void Init()
     {
         // 注册 Utilities
-        RegisterUtility(new SystemUpdateScheduler());
+        var gameLoop = new SystemUpdateScheduler();
+        RegisterUtility(gameLoop);
+        RegisterUtility<IGameLoop>(gameLoop);
 
         // 注册 Models
         RegisterModel(new WeaponInventoryModel());

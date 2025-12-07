@@ -5,13 +5,13 @@ using QFramework;
 
 public class GameController : MonoBehaviour,IController
 {
-    private SystemUpdateScheduler updateScheduler;
+    private IGameLoop updateScheduler;
 
 
     // Start is called before the first frame update
     void Awake()
     {
-        updateScheduler = this.GetUtility<SystemUpdateScheduler>();
+        updateScheduler = this.GetUtility<IGameLoop>();
     }
 
     // Update is called once per frame

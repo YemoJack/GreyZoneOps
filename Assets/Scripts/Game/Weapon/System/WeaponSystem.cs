@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 using QFramework;
-using System;
 
 
 public struct EventPlayerChangeWeapon
 {
-    public WeaponBase Weapon;
+    public WeaponInventoryEntry Slot;
+    public WeaponBase WeaponInstance;
 }
 
 
@@ -15,6 +15,7 @@ public class WeaponSystem : AbstractSystem
 {
 
     private WeaponInventoryModel weaponInventoryModel;
+    private readonly Dictionary<int, WeaponBase> weaponInstances = new Dictionary<int, WeaponBase>();
 
 
     protected override void OnInit()
@@ -23,33 +24,48 @@ public class WeaponSystem : AbstractSystem
     }
 
     /// <summary>
-    /// 装备武器列表
+    /// 注册并关联一把武器实例（基于配置 ID）。
     /// </summary>
-    /// <param name="weapons"></param>
-    public void EquipWeapon(List<WeaponBase> weapons)
+    /// <param name="weapon"></param>
+    public bool RegisterWeaponInstance(WeaponBase weapon)
     {
-        if (weapons == null || weapons.Count == 0)
+        if (weapon == null)
         {
-            return;
+            Debug.LogWarning("RegisterWeaponInstance: weapon is null");
+            return false;
         }
 
-        foreach (var weapon in weapons)
+        if (weapon.Config == null)
         {
-            weaponInventoryModel.AddWeapon(weapon);
+            Debug.LogWarning($"RegisterWeaponInstance: weapon {weapon.name} 配置为空");
+            return false;
         }
-       
-        weaponInventoryModel.SwitchWeapon(0);
+
+        if (!weaponInventoryModel.AddOrActivateSlot(weapon.Config, out var entry))
+        {
+            return false;
+        }
+
+        weaponInstances[entry.WeaponId] = weapon;
+        return true;
     }
 
     public void SwitchWeapon()
     {
-        weaponInventoryModel.SwitchWeapon();
+        var previous = weaponInventoryModel.CurrentSlot;
+        if (weaponInventoryModel.TrySwitchNextAvailable(out var entry))
+        {
+            HandleSwitch(entry, previous);
+        }
     }
 
     public void StartAttack()
     {
-        var weapon = this.GetModel<WeaponInventoryModel>().CurrentWeapon;
-        weapon?.TryAttack();
+        var currentSlot = weaponInventoryModel.CurrentSlot;
+        if (currentSlot != null && weaponInstances.TryGetValue(currentSlot.WeaponId, out var weapon))
+        {
+            weapon.TryAttack();
+        }
     }
 
 
@@ -80,6 +96,57 @@ public class WeaponSystem : AbstractSystem
         
 
         return fireDir;
+    }
+
+    public bool EquipInitialWeapon()
+    {
+        if (weaponInventoryModel.CurrentSlot == null)
+        {
+            Debug.LogWarning("EquipInitialWeapon: 无可用武器");
+            return false;
+        }
+
+        HandleSwitch(weaponInventoryModel.CurrentSlot, null);
+        return true;
+    }
+
+    public bool SwitchWeaponByIndex(int index)
+    {
+        var previous = weaponInventoryModel.CurrentSlot;
+        if (weaponInventoryModel.TrySwitchWeapon(index, out var entry))
+        {
+            HandleSwitch(entry, previous);
+            return true;
+        }
+
+        return false;
+    }
+
+    private void HandleSwitch(WeaponInventoryEntry entry, WeaponInventoryEntry previous)
+    {
+        if (entry == null)
+        {
+            return;
+        }
+
+        if (!weaponInstances.TryGetValue(entry.WeaponId, out var weapon))
+        {
+            Debug.LogWarning($"HandleSwitch: 未找到武器实例，ID={entry.WeaponId}");
+            return;
+        }
+
+        if (previous != null && weaponInstances.TryGetValue(previous.WeaponId, out var previousWeapon)
+            && previousWeapon != null && previousWeapon != weapon)
+        {
+            previousWeapon.OnUnEquip();
+        }
+
+        weapon.OnEquip();
+        this.SendEvent(new EventPlayerChangeWeapon
+        {
+            Slot = entry,
+            WeaponInstance = weapon
+        });
     }
 
 }

@@ -19,6 +19,7 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
     public float PitchClampMax = 85f;
 
     public Transform CameraRoot;
+    public Camera PlayerCamera;
 
     [Header("Ground")]
     public bool Grounded = true;
@@ -28,29 +29,48 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
 
     private CharacterController _controller;
     private InputSys _inputSys;
-    private GameObject _mainCamera;
+    private Transform _viewTransform;
+    private WeaponSystem _weaponSystem;
 
-    private float _pitch; // ÉÏÏÂÊÓ½Ç
-    private float _yaw;   // ×óÓÒÊÓ½Ç
+    private float _pitch; // ä¸Šä¸‹è§†è§’
+    private float _yaw;   // å·¦å³è§†è§’
 
     private float _speed;
     private const float _threshold = 0.01f;
 
     private void Awake()
     {
-        _mainCamera = Camera.main.gameObject;
+        if (PlayerCamera == null && CameraRoot != null)
+        {
+            PlayerCamera = CameraRoot.GetComponentInChildren<Camera>();
+        }
     }
 
     private void Start()
     {
         _inputSys = this.GetSystem<InputSys>();
+        _weaponSystem = this.GetSystem<WeaponSystem>();
         _controller = GetComponent<CharacterController>();
+
+        if (PlayerCamera != null)
+        {
+            _viewTransform = PlayerCamera.transform;
+            _weaponSystem.BindAimProvider(new CameraAimProvider(PlayerCamera));
+        }
+        else if (CameraRoot != null)
+        {
+            _viewTransform = CameraRoot;
+        }
+        else
+        {
+            Debug.LogWarning("FirstPersonController: æœªæ‰¾åˆ°ç”¨äºç§»åŠ¨å’Œç„å‡†çš„ç›¸æœº/æ–¹å‘å¼•ç”¨");
+        }
 
         Vector3 rot = transform.eulerAngles;
         _yaw = rot.y;
         _pitch = 0f;
 
-        // Êó±êËø¶¨
+        // é¼ æ ‡é”å®š
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
@@ -64,7 +84,7 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
     }
 
     // -------------------------
-    // FPS Look£¨ÉãÏñ»úĞı×ª£©
+    // FPS Lookï¼ˆæ‘„åƒæœºæ—‹è½¬ï¼‰
     // -------------------------
     private void Look()
     {
@@ -79,10 +99,10 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         _pitch -= look.y * MouseSensitivity;
         _pitch = Mathf.Clamp(_pitch, PitchClampMin, PitchClampMax);
 
-        // ½ÇÉ«ÉíÌå£ºÖ»ÊÜ yaw Ó°Ïì
+        // è§’è‰²èº«ä½“ï¼šåªå— yaw å½±å“
         transform.rotation = Quaternion.Euler(0f, _yaw, 0f);
 
-        // ÉãÏñ»ú£ºÊÜµ½ pitch + yaw Ó°Ïì
+        // æ‘„åƒæœºï¼šå—åˆ° pitch + yaw å½±å“
         CameraRoot.transform.localRotation = Quaternion.Euler(_pitch, 0f, 0f);
     }
 
@@ -93,7 +113,7 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
     }
 
     // -------------------------
-    // FPS ÒÆ¶¯
+    // FPS ç§»åŠ¨
     // -------------------------
     private void Move()
     {
@@ -104,9 +124,14 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
 
         _speed = Mathf.Lerp(currentSpeed, targetSpeed, Time.deltaTime * SpeedChangeRate);
 
-        Vector3 camForward = _mainCamera.transform.forward;
+        if (_viewTransform == null)
+        {
+            return;
+        }
+
+        Vector3 camForward = _viewTransform.forward;
         camForward.y = 0f;
-        Vector3 camRight = _mainCamera.transform.right;
+        Vector3 camRight = _viewTransform.right;
         camRight.y = 0f;
 
         Vector3 move = camForward * _inputSys.Move2D.y + camRight * _inputSys.Move2D.x;

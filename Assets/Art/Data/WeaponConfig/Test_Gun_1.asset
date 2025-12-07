@@ -16,8 +16,6 @@ MonoBehaviour:
   WeaponName: "\u6D4B\u8BD5\u624B\u67AA1"
   WeaponType: 0
   Discription: "\u6D4B\u8BD5\u624B\u67AA1"
-  WeaponPrefab: {fileID: 2780876524888379992, guid: 117a43dac40aa124cab7b4ceb3e1230e,
-    type: 3}
   impactEffect: {fileID: 2502049911153477929, guid: 55d0ea124313af549a73df885bdc8b0f,
     type: 3}
   fireRate: 300
@@ -43,10 +41,11 @@ MonoBehaviour:
   verticalRecoilMul: 1
   horizontalRecoilMul: 1
   operatingSpeed: 0
-  reloadTime: 0
+  reloadTime: 2
   aimTime: 0.5
   hipfireAccuracy: 0
   MinHipfireAngle: {x: 0, y: 0, z: 0}
   MaxHipfireAngle: {x: 0, y: 0, z: 0}
   HipFireAddAngle: 0
   zoomFactor: 1.25
+  bulletPrefab: {fileID: 0}

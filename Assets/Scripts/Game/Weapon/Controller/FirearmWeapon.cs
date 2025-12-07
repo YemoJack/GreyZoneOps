@@ -137,6 +137,7 @@ public class FirearmWeapon :  WeaponBase
     public void ConsumeAmmo()
     {
         currentAmmo = Mathf.Max(0, currentAmmo - 1);
+
     }
 
     private IEnumerator ReloadRoutine()

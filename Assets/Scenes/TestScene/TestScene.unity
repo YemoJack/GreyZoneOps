@@ -4216,11 +4216,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f81110937645024aa84d8cc22aa942e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Animator: {fileID: 95241921576962541}
   WeaponRoot: {fileID: 615182671}
-  weapons:
-  - {fileID: 11400000, guid: 328c73dcc3e9f4f438df8cab648ab1b0, type: 2}
-  - {fileID: 11400000, guid: 328c73dcc3e9f4f438df8cab648ab1b0, type: 2}
+  weaponObjectList:
+  - {fileID: 2780876524888379992, guid: 117a43dac40aa124cab7b4ceb3e1230e, type: 3}
 --- !u!114 &4416926083347132235
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,7 +1,5 @@
 ﻿using QFramework;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 
@@ -10,22 +8,15 @@ public class FirearmWeapon :  WeaponBase
 
     public Transform FirePos;
 
-    private CmdFireamFire cmdFireamFire;
+    protected CmdFireamFire cmdFireamFire;
 
 
-    public override void Init(SOWeaponConfigBase wepConfig)
+    protected override void Start()
     {
-        base.Init(wepConfig);
 
-        if(wepConfig != null)
-            Config = wepConfig as SOFirearmConfig;
-        else
-        {
+        if (Config == null)
             Debug.LogError($"FirearmWeapon WeaponConfig is null");
-        }
-
-
-        cmdFireamFire = new CmdFireamFire(Config as SOFirearmConfig, FirePos.position, FirePos.forward);
+        cmdFireamFire = new CmdFireamFire(this);
     }
 
 
@@ -42,15 +33,51 @@ public class FirearmWeapon :  WeaponBase
 
     public override void TryAttack()
     {
-        print($"Firearm Weapon {Config.WeaponName} {Config.WeaponType} Try Fire");
-        cmdFireamFire.startPos = FirePos.position;
-        cmdFireamFire.forward = this.GetSystem<WeaponSystem>().GetFireDirection(FirePos);
-        if(cmdFireamFire.forward == Vector3.zero)
+        Vector3 dir = this.GetSystem<WeaponSystem>().GetFireDirection(FirePos);
+        if(dir == Vector3.zero)
         {
             return;
         }
-        this.SendCommand<CmdFireamFire>(cmdFireamFire);
+        cmdFireamFire.Init(FirePos.position, dir);
+        this.SendCommand(cmdFireamFire);
+        //print($"Firearm Weapon {Config.WeaponName} {Config.WeaponType} Try Fire");
     }
+
+
+    public override void OnHitTarget(RaycastHit hit,System.Object param = null)
+    {
+        PlayImpactEffect(hit);
+       
+        float t = 0;
+        float dis = hit.distance;
+        if (param is (float time, float distance))
+        {
+            t = time;
+            dis = distance;
+        }
+
+        //ApplyDamage(hit);
+        //PlayHitSound();
+
+        Debug.Log($"Firearm Weapon {Config.WeaponName} {Config.WeaponType} Hit Target \n time：{t} distance ：{dis}");
+
+    }
+
+
+    private void PlayImpactEffect(RaycastHit hit)
+    {
+        if (Config.impactEffect != null)
+        {
+            //TODO 待优化 对象池 创建 销毁
+            Quaternion rot = Quaternion.LookRotation(hit.normal);
+            GameObject eff = GameObject.Instantiate(Config.impactEffect, hit.point, rot);
+
+            // 避免特效嵌入表面
+            eff.transform.position += hit.normal * 0.01f;
+            GameObject.Destroy(eff, 5f);
+        }
+    }
+
 
     public void Reload()
     {

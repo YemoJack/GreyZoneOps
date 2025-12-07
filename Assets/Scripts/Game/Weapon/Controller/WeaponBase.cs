@@ -5,19 +5,19 @@ using UnityEngine;
 
 public abstract class WeaponBase : MonoBehaviour, IWeapon,IController
 {
-    public int InstanceID { get; set; }
 
-    public SOWeaponConfigBase Config {  get; protected set; }
+    public int InstanceID { get; protected set; }
 
-    public virtual void Init(SOWeaponConfigBase wepConfig)
-    {
-        InstanceID = gameObject.GetInstanceID();
-    }
+
+
+    public SOWeaponConfigBase Config;
+
+
 
 
     protected virtual void Start()
     {
-        
+        InstanceID = gameObject.GetInstanceID();
     }
 
 
@@ -44,7 +44,10 @@ public abstract class WeaponBase : MonoBehaviour, IWeapon,IController
         
     }
 
+    public virtual void OnHitTarget(RaycastHit hit,System.Object param = null)
+    {
 
+    }
 
 
     public IArchitecture GetArchitecture()

@@ -17,15 +17,10 @@ public class SOWeaponConfigBase : ScriptableObject
     public WeaponType WeaponType;
     public string Discription;
 
-    public GameObject WeaponPrefab;
-
     /// <summary>
     /// 命中特效
     /// </summary>
     public GameObject impactEffect;
-    /// <summary>
-    /// 攻击特效
-    /// </summary>
-    public GameObject attackEffect;
+
 
 }

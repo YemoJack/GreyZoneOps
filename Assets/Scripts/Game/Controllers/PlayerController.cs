@@ -43,10 +43,8 @@ public class PlayerController : MonoBehaviour,IController
 
     public Transform WeaponRoot;
 
-    [SerializeField]
-    private List<SOWeaponConfigBase> weapons;
-
-    private List<WeaponBase> weaponList;
+    public List<GameObject> weaponObjectList;
+    private List<WeaponBase> weaponList = new List<WeaponBase>();
 
     void Start()
     {
@@ -54,10 +52,18 @@ public class PlayerController : MonoBehaviour,IController
         inputSys = this.GetSystem<InputSys>();
         weaponSystem = this.GetSystem<WeaponSystem>();
 
-        //this.RegisterEvent<EventPlayerChangeMoveState>(OnPlayerMoveStateChanged).UnRegisterWhenGameObjectDestroyed(this);
-
+      
         this.RegisterEvent<EventPlayerChangeWeapon>(OnPlayerChangeWeapon).UnRegisterWhenGameObjectDestroyed(this);
 
+
+        foreach (var weapon in weaponObjectList)
+        {
+            GameObject wep = Instantiate(weapon,WeaponRoot);
+            wep.transform.localPosition = Vector3.zero;
+            wep.transform.localRotation = Quaternion.identity;
+            weaponList.Add(wep.GetComponent<WeaponBase>());
+        }
+        weaponSystem.EquipWeapon(weaponList);
     }
 
    
@@ -73,29 +79,9 @@ public class PlayerController : MonoBehaviour,IController
             weaponSystem.SwitchWeapon();
         }
 
-
-        if(Input.GetKeyDown(KeyCode.N))
-        {
-            List<WeaponBase> weaponBases = new List<WeaponBase>();
-            foreach (var weaponBase in weapons)
-            {
-                weaponBases.Add(GenerateWeapon(weaponBase));
-            }
-            weaponList = weaponBases;
-            weaponSystem.EquipWeapon(weaponBases);
-        }
-
     }
 
 
-
-
-
-    //private void OnPlayerMoveStateChanged(EventPlayerChangeMoveState e)
-    //{
-    //    //print(e.CurrentState);
-    //    Animator.SetInteger("AnimState", (int)e.CurrentState);
-    //}
 
     private void OnPlayerChangeWeapon(EventPlayerChangeWeapon weapon)
     {
@@ -109,22 +95,6 @@ public class PlayerController : MonoBehaviour,IController
         }
     }
 
-    private WeaponBase GenerateWeapon(SOWeaponConfigBase weaponConfig)
-    {
-
-        GameObject weapon = Instantiate(weaponConfig.WeaponPrefab,WeaponRoot);
-        weapon.transform.localPosition = Vector3.zero;
-        weapon.transform.localRotation = Quaternion.identity;
-        weapon.name = weaponConfig.WeaponName;
-        if(weaponConfig.WeaponType == WeaponType.Firearm)
-        {
-            FirearmWeapon weaponBase = weapon.GetComponent<FirearmWeapon>();
-            weaponBase.Init(weaponConfig);
-        }
-
-
-        return weapon.GetComponent<WeaponBase>();
-    }
 
 
     public void LockCursor(bool isLocked)

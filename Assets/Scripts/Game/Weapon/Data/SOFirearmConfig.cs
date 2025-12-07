@@ -140,14 +140,6 @@ public class SOFirearmConfig : SOWeaponConfigBase
     public float HipFireAddAngle;
 
 
-    /// <summary>
-    /// 瞄准时的枪械模型偏移
-    /// </summary>
-    public Vector3 aimPosOffset;
-    /// <summary>
-    /// 瞄准时的枪械模型旋转
-    /// </summary>
-    public Vector3 aimRotOffset;
 
     /// <summary>
     /// 倍率配置
@@ -156,19 +148,7 @@ public class SOFirearmConfig : SOWeaponConfigBase
 
 
 
-
-    [Header("模型及特效")]
-
-
-
-    /// <summary>
-    /// 实体子弹模型
-    /// </summary>
-    public GameObject projectilePrefab;
-
-    /// <summary>
-    /// 子弹特效
-    /// </summary>
-    public GameObject projectileEffect;
+    [Header("子弹预制体")]
+    public GameObject bulletPrefab;
 
 }

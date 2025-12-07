@@ -268,6 +268,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2217f959f3832274eb4e360eebabe2f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Config: {fileID: 11400000, guid: 328c73dcc3e9f4f438df8cab648ab1b0, type: 2}
   FirePos: {fileID: 2584528825041529944}
 --- !u!1 &4745784673454533385
 GameObject:

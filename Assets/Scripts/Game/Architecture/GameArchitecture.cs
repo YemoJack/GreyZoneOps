@@ -11,6 +11,7 @@ public class GameArchitecture : Architecture<GameArchitecture>
         RegisterSystem(new PlayerSystem());
         RegisterSystem(new InputSys());
         RegisterSystem(new WeaponSystem());
+        RegisterSystem(new BulletManager());
 
     }
 }

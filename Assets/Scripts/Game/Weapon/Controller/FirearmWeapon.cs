@@ -3,6 +3,15 @@ using System.Collections;
 using UnityEngine;
 
 
+public struct EventWeaponAmmoChanged
+{
+    public int WeaponId;
+    public string WeaponName;
+    public int CurrentAmmo;
+    public int TotalAmmo;
+}
+
+
 public class FirearmWeapon :  WeaponBase
 {
 
@@ -14,6 +23,9 @@ public class FirearmWeapon :  WeaponBase
     private int currentAmmo;
     private float nextFireTime;
     private bool isReloading;
+
+    public int CurrentAmmo => currentAmmo;
+    public int TotalAmmo => firearmConfig != null ? firearmConfig.magSize : 0;
 
 
     protected override void Start()
@@ -31,6 +43,7 @@ public class FirearmWeapon :  WeaponBase
     public override void OnEquip()
     {
         Debug.Log($"FirearmWeapon {InstanceID} is OnEquip");
+        NotifyAmmoChanged();
     }
 
     public override void OnUnEquip()
@@ -137,6 +150,7 @@ public class FirearmWeapon :  WeaponBase
     public void ConsumeAmmo()
     {
         currentAmmo = Mathf.Max(0, currentAmmo - 1);
+        NotifyAmmoChanged();
 
     }
 
@@ -148,6 +162,23 @@ public class FirearmWeapon :  WeaponBase
         currentAmmo = firearmConfig.magSize;
         isReloading = false;
         Debug.Log("Reload complete.");
+        NotifyAmmoChanged();
 
+    }
+
+    private void NotifyAmmoChanged()
+    {
+        if (Config == null)
+        {
+            return;
+        }
+
+        this.SendEvent(new EventWeaponAmmoChanged
+        {
+            WeaponId = Config.WeaponID,
+            WeaponName = Config.WeaponName,
+            CurrentAmmo = currentAmmo,
+            TotalAmmo = TotalAmmo
+        });
     }
 }

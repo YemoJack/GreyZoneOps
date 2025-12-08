@@ -1,0 +1,34 @@
+﻿2025-12-08 19:35:12.711 [INFO] Begin to build package : DefaultPackage by ScriptableBuildPipeline
+2025-12-08 19:35:12.711 [INFO] --------------------------------------------->TaskPrepare<--------------------------------------------
+2025-12-08 19:35:12.713 [INFO] TaskPrepare It takes 0 seconds in total
+2025-12-08 19:35:12.713 [INFO] --------------------------------------------->TaskGetBuildMap<--------------------------------------------
+2025-12-08 19:35:15.431 [INFO] TaskGetBuildMap It takes 2 seconds in total
+2025-12-08 19:35:15.431 [INFO] --------------------------------------------->TaskBuilding<--------------------------------------------
+2025-12-08 19:35:23.872 [INFO] UnityEngine build success!
+2025-12-08 19:35:23.872 [INFO] TaskBuilding It takes 8 seconds in total
+2025-12-08 19:35:23.873 [INFO] --------------------------------------------->TaskVerifyBuildResult<--------------------------------------------
+2025-12-08 19:35:23.876 [INFO] Build results verify success!
+2025-12-08 19:35:23.876 [INFO] TaskVerifyBuildResult It takes 0 seconds in total
+2025-12-08 19:35:23.876 [INFO] --------------------------------------------->TaskEncryption<--------------------------------------------
+2025-12-08 19:35:23.876 [INFO] TaskEncryption It takes 0 seconds in total
+2025-12-08 19:35:23.876 [INFO] --------------------------------------------->TaskUpdateBundleInfo<--------------------------------------------
+2025-12-08 19:35:23.920 [INFO] TaskUpdateBundleInfo It takes 0 seconds in total
+2025-12-08 19:35:23.920 [INFO] --------------------------------------------->TaskCreateManifest<--------------------------------------------
+2025-12-08 19:35:23.929 [INFO] Create package manifest file: E:/Project/UnityProject/Practice/GreyZoneOps/GreyZoneOps/Bundles/StandaloneWindows64/DefaultPackage/2025-12-08-1174/DefaultPackage_2025-12-08-1174.json
+2025-12-08 19:35:23.955 [INFO] Create package manifest file: E:/Project/UnityProject/Practice/GreyZoneOps/GreyZoneOps/Bundles/StandaloneWindows64/DefaultPackage/2025-12-08-1174/DefaultPackage_2025-12-08-1174.bytes
+2025-12-08 19:35:23.956 [INFO] Create package manifest hash file: E:/Project/UnityProject/Practice/GreyZoneOps/GreyZoneOps/Bundles/StandaloneWindows64/DefaultPackage/2025-12-08-1174/DefaultPackage_2025-12-08-1174.hash
+2025-12-08 19:35:23.958 [INFO] Create package manifest version file: E:/Project/UnityProject/Practice/GreyZoneOps/GreyZoneOps/Bundles/StandaloneWindows64/DefaultPackage/2025-12-08-1174/DefaultPackage.version
+2025-12-08 19:35:23.960 [INFO] TaskCreateManifest It takes 0 seconds in total
+2025-12-08 19:35:23.960 [INFO] --------------------------------------------->TaskCreateReport<--------------------------------------------
+2025-12-08 19:35:23.975 [INFO] Create build report file: E:/Project/UnityProject/Practice/GreyZoneOps/GreyZoneOps/Bundles/StandaloneWindows64/DefaultPackage/2025-12-08-1174/DefaultPackage_2025-12-08-1174.report
+2025-12-08 19:35:23.975 [INFO] TaskCreateReport It takes 0 seconds in total
+2025-12-08 19:35:23.975 [INFO] --------------------------------------------->TaskCreatePackage<--------------------------------------------
+2025-12-08 19:35:23.975 [INFO] Start making patch package: E:/Project/UnityProject/Practice/GreyZoneOps/GreyZoneOps/Bundles/StandaloneWindows64/DefaultPackage/2025-12-08-1174
+2025-12-08 19:35:23.982 [INFO] TaskCreatePackage It takes 0 seconds in total
+2025-12-08 19:35:23.982 [INFO] --------------------------------------------->TaskCopyBuildinFiles<--------------------------------------------
+2025-12-08 19:35:24.240 [INFO] Buildin files copy complete: E:/Project/UnityProject/Practice/GreyZoneOps/GreyZoneOps/Assets/StreamingAssets/yoo/DefaultPackage
+2025-12-08 19:35:24.241 [INFO] TaskCopyBuildinFiles It takes 0 seconds in total
+2025-12-08 19:35:24.241 [INFO] --------------------------------------------->TaskCreateCatalog<--------------------------------------------
+2025-12-08 19:35:24.354 [INFO] TaskCreateCatalog It takes 0 seconds in total
+2025-12-08 19:35:24.354 [INFO] Total build process time: 10 seconds
+2025-12-08 19:35:24.354 [INFO] Resource pipeline build success

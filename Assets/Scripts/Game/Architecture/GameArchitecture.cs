@@ -5,6 +5,7 @@ public class GameArchitecture : Architecture<GameArchitecture>
     protected override void Init()
     {
         // 注册 Utilities
+        RegisterUtility<IResLoader>(new ResLoaderYoo());
         var gameLoop = new SystemUpdateScheduler();
         RegisterUtility(gameLoop);
         RegisterUtility<IGameLoop>(gameLoop);

@@ -16,13 +16,13 @@ MonoBehaviour:
   WeaponName: "\u6D4B\u8BD5\u624B\u67AA1"
   WeaponType: 0
   Discription: "\u6D4B\u8BD5\u624B\u67AA1"
-  impactEffect: {fileID: 2502049911153477929, guid: 55d0ea124313af549a73df885bdc8b0f,
+  impactEffect: {fileID: 1067471869909948, guid: 5e02303289b3c494e8e185be0fbbd405,
     type: 3}
   fireRate: 5
   bulletSpeed: 600
   GunshotRange: 200
-  availableFireModes: 7
-  currentFireMode: 4
+  availableFireModes: -1
+  currentFireMode: 2
   magSize: 30
   baseDamage: 30
   armorDamage: 0

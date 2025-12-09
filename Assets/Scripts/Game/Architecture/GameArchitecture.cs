@@ -9,6 +9,7 @@ public class GameArchitecture : Architecture<GameArchitecture>
         var gameLoop = new SystemUpdateScheduler();
         RegisterUtility(gameLoop);
         RegisterUtility<IGameLoop>(gameLoop);
+        RegisterUtility<IObjectPoolUtility>(new ObjectPoolUtility());
 
         // 注册 Models
         RegisterModel(new WeaponInventoryModel());

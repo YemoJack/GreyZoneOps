@@ -51,7 +51,7 @@ public class FirearmWeapon :  WeaponBase
                 factory: () => Instantiate(Config.impactEffect),
                 onGet: eff => eff.SetActive(true),
                 onRelease: eff => eff.SetActive(false),
-                maxCount: 32);
+                maxCount: 24);
         }
     }
 

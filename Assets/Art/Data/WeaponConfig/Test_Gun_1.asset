@@ -35,7 +35,19 @@ MonoBehaviour:
   range: 50
   maxRange: 200
   recoilControl: 40
-  recoilPattern: []
+  recoilPattern:
+  - {x: 0.28, y: -0.12}
+  - {x: 0.32, y: -0.08}
+  - {x: 0.36, y: 0.02}
+  - {x: 0.4, y: 0.08}
+  - {x: 0.44, y: 0.12}
+  - {x: 0.46, y: 0.14}
+  - {x: 0.42, y: 0.1}
+  - {x: 0.38, y: 0.04}
+  - {x: 0.34, y: -0.02}
+  - {x: 0.3, y: -0.06}
+  - {x: 0.28, y: -0.1}
+  - {x: 0.26, y: -0.14}
   recoilRecoverySpeed: 8
   recoilMulRange: {x: 0.4, y: 1.4}
   verticalRecoilMul: 1

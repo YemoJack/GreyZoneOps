@@ -283,7 +283,9 @@ public class FirearmWeapon :  WeaponBase
         Vector2 recoilStep;
         Vector2 recoilOffset = CalculateRecoilOffset(out recoilStep);
 
-        Vector3 dir = this.GetSystem<WeaponSystem>().GetFireDirection(FirePos);
+        var weaponSystem = this.GetSystem<WeaponSystem>();
+        Ray fireRay = weaponSystem.GetFireRay();
+        Vector3 dir = weaponSystem.GetFireDirection(fireRay, firearmConfig != null ? firearmConfig.range : 100f);
         if (dir == Vector3.zero)
         {
             return;
@@ -301,7 +303,7 @@ public class FirearmWeapon :  WeaponBase
             });
         }
 
-        cmdFireamFire.Init(FirePos.position, dir);
+        cmdFireamFire.Init(fireRay.origin, dir);
         this.SendCommand(cmdFireamFire);
         nextFireTime = firearmConfig.fireRate > 0 ? Time.time + 1f / firearmConfig.fireRate : Time.time;
         //print($"Firearm Weapon {Config.WeaponName} {Config.WeaponType} Try Fire");

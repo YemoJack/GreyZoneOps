@@ -24,6 +24,8 @@ public class FirearmWeapon :  WeaponBase
     private float nextFireTime;
     private bool isReloading;
     private bool isBurstFiring;
+    private IObjectPoolUtility objectPoolUtility;
+    private IObjectPool<GameObject> impactEffectPool;
 
     public int CurrentAmmo => currentAmmo;
     public int TotalAmmo => firearmConfig != null ? firearmConfig.magSize : 0;
@@ -41,6 +43,16 @@ public class FirearmWeapon :  WeaponBase
         firearmConfig = Config as SOFirearmConfig;
         currentAmmo = firearmConfig != null ? firearmConfig.magSize : 0;
         cmdFireamFire = new CmdFireamFire(this);
+        objectPoolUtility = this.GetUtility<IObjectPoolUtility>();
+
+        if (Config?.impactEffect != null)
+        {
+            impactEffectPool = objectPoolUtility.CreatePool(
+                factory: () => Instantiate(Config.impactEffect),
+                onGet: eff => eff.SetActive(true),
+                onRelease: eff => eff.SetActive(false),
+                maxCount: 32);
+        }
     }
 
 
@@ -105,15 +117,24 @@ public class FirearmWeapon :  WeaponBase
 
     private void PlayImpactEffect(RaycastHit hit)
     {
-        if (Config.impactEffect != null)
+        if (impactEffectPool != null)
         {
-            //TODO 待优化 对象池 创建 销毁
             Quaternion rot = Quaternion.LookRotation(hit.normal);
-            GameObject eff = GameObject.Instantiate(Config.impactEffect, hit.point, rot);
+            GameObject eff = impactEffectPool.Get();
+            eff.transform.SetPositionAndRotation(hit.point, rot);
 
             // 避免特效嵌入表面
             eff.transform.position += hit.normal * 0.01f;
-            GameObject.Destroy(eff, 1f);
+            StartCoroutine(ReleaseImpactEffect(eff, 1f));
+        }
+    }
+
+    private IEnumerator ReleaseImpactEffect(GameObject effect, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (effect != null)
+        {
+            impactEffectPool?.Release(effect);
         }
     }
 

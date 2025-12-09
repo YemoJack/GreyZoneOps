@@ -4,13 +4,18 @@ using UnityEngine;
 
 public class BulletManager : AbstractSystem, IUpdateSystem
 {
-    private BulletPool bulletPool;
+    private IObjectPool<GOBullet> bulletPool;
     private readonly List<GOBullet> bullets = new List<GOBullet>();
     private IGameLoop updateScheduler;
+    private IObjectPoolUtility objectPoolUtility;
 
     protected override void OnInit()
     {
-        bulletPool = new BulletPool(1000);
+        objectPoolUtility = this.GetUtility<IObjectPoolUtility>();
+        bulletPool = objectPoolUtility.CreatePool(() => new GOBullet(),
+            onGet: bullet => bullet.active = true,
+            onRelease: bullet => bullet.active = false,
+            maxCount: 1000);
         updateScheduler = this.GetUtility<IGameLoop>();
         updateScheduler.Register(this);
     }

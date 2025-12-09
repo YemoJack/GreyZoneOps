@@ -34,20 +34,20 @@ MonoBehaviour:
     m_RotationOrder: 4
   range: 50
   maxRange: 200
-  recoilControl: 40
+  recoilControl: 100
   recoilPattern:
-  - {x: 0.1, y: -0.12}
-  - {x: 0.2, y: -0.08}
-  - {x: 0.3, y: 0.02}
-  - {x: 0.4, y: 0.08}
-  - {x: 0.5, y: 0.12}
-  - {x: 0.6, y: 0.14}
-  - {x: 0.7, y: 0.1}
-  - {x: 0.8, y: 0.04}
-  - {x: 0.2, y: -0.02}
-  - {x: 0.3, y: -0.06}
-  - {x: 0.28, y: -0.1}
-  - {x: 0.26, y: -0.14}
+  - {x: 0.1, y: 0.2}
+  - {x: 0.1, y: 0.2}
+  - {x: 0.1, y: 0.2}
+  - {x: -0.1, y: 0.2}
+  - {x: -0.2, y: 0.2}
+  - {x: -0.1, y: 0.2}
+  - {x: 0.1, y: 0.2}
+  - {x: 0.1, y: 0.1}
+  - {x: 0.2, y: 0.1}
+  - {x: 0.2, y: 0.1}
+  - {x: 0.2, y: 0.1}
+  - {x: 0.2, y: 0.1}
   recoilRecoverySpeed: 8
   recoilMulRange: {x: 0.4, y: 1.4}
   verticalRecoilMul: 1

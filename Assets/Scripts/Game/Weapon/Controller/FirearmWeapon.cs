@@ -299,7 +299,7 @@ public class FirearmWeapon :  WeaponBase
             {
                 WeaponId = Config?.WeaponID ?? 0,
                 WeaponName = Config?.WeaponName,
-                RecoilStep = recoilStep
+                RecoilStep = recoilOffset
             });
         }
 

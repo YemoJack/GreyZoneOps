@@ -283,7 +283,9 @@ public class FirearmWeapon :  WeaponBase
         Vector2 recoilStep;
         Vector2 recoilOffset = CalculateRecoilOffset(out recoilStep);
 
-        Vector3 dir = this.GetSystem<WeaponSystem>().GetFireDirection(FirePos);
+        var weaponSystem = this.GetSystem<WeaponSystem>();
+        Ray fireRay = weaponSystem.GetFireRay();
+        Vector3 dir = weaponSystem.GetFireDirection(fireRay, firearmConfig != null ? firearmConfig.range : 100f);
         if (dir == Vector3.zero)
         {
             return;
@@ -301,7 +303,7 @@ public class FirearmWeapon :  WeaponBase
             });
         }
 
-        cmdFireamFire.Init(FirePos.position, dir);
+        cmdFireamFire.Init(fireRay.origin, dir);
         this.SendCommand(cmdFireamFire);
         nextFireTime = firearmConfig.fireRate > 0 ? Time.time + 1f / firearmConfig.fireRate : Time.time;
         //print($"Firearm Weapon {Config.WeaponName} {Config.WeaponType} Try Fire");
@@ -347,72 +349,6 @@ public class FirearmWeapon :  WeaponBase
         lastRecoilTime = Time.time;
 
         return currentRecoilOffset;
-    }
-
-    private void Update()
-    {
-        if (ShouldRecoverRecoil())
-        {
-            RecoverRecoil();
-        }
-    }
-
-    private bool ShouldRecoverRecoil()
-    {
-        if (firearmConfig == null)
-        {
-            return false;
-        }
-
-        if (isBurstFiring)
-        {
-            return false;
-        }
-
-        if (inputSys != null && inputSys.FireHold)
-        {
-            return false;
-        }
-
-        if (lastRecoilTime <= 0f)
-        {
-            return false;
-        }
-
-        float fireInterval = firearmConfig.fireRate > 0 ? 1f / firearmConfig.fireRate : 0f;
-        if (Time.time - lastRecoilTime < Mathf.Max(fireInterval, Time.deltaTime))
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    private void RecoverRecoil()
-    {
-        if (currentRecoilOffset == Vector2.zero || firearmConfig == null)
-        {
-            recoilStepIndex = 0;
-            return;
-        }
-
-        float recoverySpeed = firearmConfig.recoilRecoverySpeed;
-        if (recoverySpeed <= 0f)
-        {
-            return;
-        }
-
-        if (Time.time - lastRecoilTime < Time.deltaTime)
-        {
-            return;
-        }
-
-        currentRecoilOffset = Vector2.MoveTowards(currentRecoilOffset, Vector2.zero, recoverySpeed * Time.deltaTime);
-
-        if (currentRecoilOffset == Vector2.zero)
-        {
-            recoilStepIndex = 0;
-        }
     }
 
     private IEnumerator BurstFireRoutine()

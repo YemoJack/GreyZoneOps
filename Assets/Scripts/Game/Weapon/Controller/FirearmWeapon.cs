@@ -36,8 +36,7 @@ public class FirearmWeapon :  WeaponBase
     private IObjectPool<GameObject> impactEffectPool;
     private Vector2 currentRecoilOffset = Vector2.zero;
     private int recoilStepIndex;
-    private float lastRecoilTime;
-
+  
     public int CurrentAmmo => currentAmmo;
     public int TotalAmmo => firearmConfig != null ? firearmConfig.magSize : 0;
 
@@ -74,7 +73,7 @@ public class FirearmWeapon :  WeaponBase
         Debug.Log($"FirearmWeapon {InstanceID} is OnEquip");
         currentRecoilOffset = Vector2.zero;
         recoilStepIndex = 0;
-        lastRecoilTime = 0f;
+       
         NotifyAmmoChanged();
     }
 
@@ -280,8 +279,8 @@ public class FirearmWeapon :  WeaponBase
 
     private void FireOneRound()
     {
-        Vector2 recoilStep;
-        Vector2 recoilOffset = CalculateRecoilOffset(out recoilStep);
+       
+        Vector2 recoilOffset = CalculateRecoilOffset();
 
         var weaponSystem = this.GetSystem<WeaponSystem>();
         Ray fireRay = weaponSystem.GetFireRay();
@@ -293,7 +292,7 @@ public class FirearmWeapon :  WeaponBase
 
         dir = ApplyRecoilToDirection(dir, recoilOffset);
 
-        if (recoilStep != Vector2.zero)
+        if (recoilOffset != Vector2.zero)
         {
             this.SendEvent(new EventWeaponRecoilApplied
             {
@@ -325,9 +324,9 @@ public class FirearmWeapon :  WeaponBase
         return recoilRotation * baseDirection;
     }
 
-    private Vector2 CalculateRecoilOffset(out Vector2 appliedStep)
+    private Vector2 CalculateRecoilOffset()
     {
-        appliedStep = Vector2.zero;
+        
         if (firearmConfig.recoilPattern == null || firearmConfig.recoilPattern.Length == 0)
         {
             return currentRecoilOffset;
@@ -343,13 +342,66 @@ public class FirearmWeapon :  WeaponBase
         patternStep.y *= firearmConfig.verticalRecoilMul;
         patternStep *= controlMultiplier;
 
-        currentRecoilOffset += patternStep;
-        appliedStep = patternStep;
+        currentRecoilOffset = patternStep;
+       
         recoilStepIndex = Mathf.Min(recoilStepIndex + 1, firearmConfig.recoilPattern.Length - 1);
-        lastRecoilTime = Time.time;
-
+       
         return currentRecoilOffset;
     }
+
+
+    private void Update()
+    {
+        if (ShouldRecoverRecoil())
+        {
+            RecoverRecoil();
+        }
+    }
+
+    private bool ShouldRecoverRecoil()
+    {
+        if (firearmConfig == null)
+        {
+            return false;
+        }
+
+        if (isBurstFiring)
+        {
+            return false;
+        }
+
+        if (inputSys != null && inputSys.FireHold)
+        {
+            return false;
+        }
+
+
+        return true;
+    }
+
+    private void RecoverRecoil()
+    {
+        if (currentRecoilOffset == Vector2.zero || firearmConfig == null)
+        {
+            recoilStepIndex = 0;
+            return;
+        }
+
+        //float recoverySpeed = firearmConfig.recoilRecoverySpeed;
+        //if (recoverySpeed <= 0f)
+        //{
+        //    return;
+        //}
+
+      
+
+        currentRecoilOffset = Vector2.zero;
+
+        recoilStepIndex = 0;
+    }
+
+
+
 
     private IEnumerator BurstFireRoutine()
     {

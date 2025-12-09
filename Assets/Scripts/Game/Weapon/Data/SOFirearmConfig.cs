@@ -84,8 +84,8 @@ public class SOFirearmConfig : SOWeaponConfigBase
     /// <summary>后坐力模式：每发的垂直 / 水平 偏移</summary>
     public Vector2[] recoilPattern;
 
-    /// <summary>松开射击后回正速度</summary>
-    public float recoilRecoverySpeed = 8f;
+    ///// <summary>松开射击后回正速度</summary>
+    //public float recoilRecoverySpeed = 8f;
 
     /// <summary>
     /// 后坐力倍率范围

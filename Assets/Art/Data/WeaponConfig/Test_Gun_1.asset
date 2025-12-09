@@ -18,7 +18,7 @@ MonoBehaviour:
   Discription: "\u6D4B\u8BD5\u624B\u67AA1"
   impactEffect: {fileID: 1067471869909948, guid: 5e02303289b3c494e8e185be0fbbd405,
     type: 3}
-  fireRate: 5
+  fireRate: 8
   bulletSpeed: 600
   GunshotRange: 200
   availableFireModes: -1
@@ -36,19 +36,18 @@ MonoBehaviour:
   maxRange: 200
   recoilControl: 100
   recoilPattern:
-  - {x: 0.1, y: 0.2}
-  - {x: 0.1, y: 0.2}
-  - {x: 0.1, y: 0.2}
-  - {x: -0.1, y: 0.2}
-  - {x: -0.2, y: 0.2}
-  - {x: -0.1, y: 0.2}
-  - {x: 0.1, y: 0.2}
-  - {x: 0.1, y: 0.1}
-  - {x: 0.2, y: 0.1}
-  - {x: 0.2, y: 0.1}
-  - {x: 0.2, y: 0.1}
-  - {x: 0.2, y: 0.1}
-  recoilRecoverySpeed: 8
+  - {x: 1, y: 1}
+  - {x: 1, y: 1}
+  - {x: 1, y: 1}
+  - {x: -1, y: 2}
+  - {x: -2, y: 3}
+  - {x: -1, y: 2}
+  - {x: 1, y: 1}
+  - {x: 1, y: 1}
+  - {x: 1, y: 1}
+  - {x: 1, y: 1}
+  - {x: 1, y: 1}
+  - {x: 1, y: 1}
   recoilMulRange: {x: 0.4, y: 1.4}
   verticalRecoilMul: 1
   horizontalRecoilMul: 1

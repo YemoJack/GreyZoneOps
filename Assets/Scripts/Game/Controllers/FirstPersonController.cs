@@ -38,6 +38,13 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
     private float _speed;
     private const float _threshold = 0.01f;
 
+    private IUnRegister recoilEventUnregister;
+
+    private bool recoilActive;
+    private bool playerCounteringRecoil;
+    private Vector2 viewBeforeRecoil;
+    private float lastRecoilEventTime;
+
     private void Awake()
     {
         if (PlayerCamera == null && CameraRoot != null)
@@ -75,10 +82,23 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         Cursor.visible = false;
     }
 
+    private void OnEnable()
+    {
+        recoilEventUnregister = this.RegisterEvent<EventWeaponRecoilApplied>(OnWeaponRecoilApplied);
+    }
+
+    private void OnDisable()
+    {
+        recoilEventUnregister?.UnRegister();
+        recoilEventUnregister = null;
+    }
+
     private void Update()
     {
         GroundCheck();
         Look();
+        TrackRecoilCompensation();
+        TryRestoreViewAfterFireStops();
         Move();
         JumpAndGravity();
     }
@@ -99,11 +119,7 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         _pitch -= look.y * MouseSensitivity;
         _pitch = Mathf.Clamp(_pitch, PitchClampMin, PitchClampMax);
 
-        // 角色身体：只受 yaw 影响
-        transform.rotation = Quaternion.Euler(0f, _yaw, 0f);
-
-        // 摄像机：受到 pitch + yaw 影响
-        CameraRoot.transform.localRotation = Quaternion.Euler(_pitch, 0f, 0f);
+        ApplyViewRotation();
     }
 
     private void GroundCheck()
@@ -138,6 +154,92 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         move.Normalize();
 
         _controller.Move(move * (_speed * Time.deltaTime) + new Vector3(0, _verticalVelocity, 0) * Time.deltaTime);
+    }
+
+    private void OnWeaponRecoilApplied(EventWeaponRecoilApplied evt)
+    {
+        if (_weaponSystem == null)
+        {
+            return;
+        }
+
+        var currentWeapon = _weaponSystem.GetCurrentWeapon();
+        if (currentWeapon?.Config == null || currentWeapon.Config.WeaponID != evt.WeaponId)
+        {
+            return;
+        }
+
+        if (!recoilActive)
+        {
+            viewBeforeRecoil = new Vector2(_yaw, _pitch);
+            playerCounteringRecoil = false;
+            recoilActive = true;
+        }
+
+        lastRecoilEventTime = Time.time;
+        ApplyRecoilToView(evt.RecoilStep);
+    }
+
+    private void ApplyRecoilToView(Vector2 recoilStep)
+    {
+        _yaw += recoilStep.x;
+        _pitch -= recoilStep.y;
+        _pitch = Mathf.Clamp(_pitch, PitchClampMin, PitchClampMax);
+
+        ApplyViewRotation();
+    }
+
+    private void ApplyViewRotation()
+    {
+        // 角色身体：只受 yaw 影响
+        transform.rotation = Quaternion.Euler(0f, _yaw, 0f);
+
+        // 摄像机：受到 pitch + yaw 影响
+        if (CameraRoot != null)
+        {
+            CameraRoot.transform.localRotation = Quaternion.Euler(_pitch, 0f, 0f);
+        }
+    }
+
+    private void TrackRecoilCompensation()
+    {
+        if (!recoilActive || _inputSys == null)
+        {
+            return;
+        }
+
+        if (_inputSys.Look2D.sqrMagnitude >= _threshold * _threshold)
+        {
+            playerCounteringRecoil = true;
+        }
+    }
+
+    private void TryRestoreViewAfterFireStops()
+    {
+        if (!recoilActive || _inputSys == null)
+        {
+            return;
+        }
+
+        if (_inputSys.FireHold)
+        {
+            return;
+        }
+
+        if (Time.time - lastRecoilEventTime < Time.deltaTime)
+        {
+            return;
+        }
+
+        if (!playerCounteringRecoil)
+        {
+            _yaw = viewBeforeRecoil.x;
+            _pitch = Mathf.Clamp(viewBeforeRecoil.y, PitchClampMin, PitchClampMax);
+            ApplyViewRotation();
+        }
+
+        recoilActive = false;
+        playerCounteringRecoil = false;
     }
 
     // -------------------------

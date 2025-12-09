@@ -18,6 +18,30 @@ public class WeaponSystem : AbstractSystem
     private readonly Dictionary<int, WeaponBase> weaponInstances = new Dictionary<int, WeaponBase>();
     private readonly List<WeaponBase> instantiatedWeapons = new List<WeaponBase>();
     private IAimRayProvider aimRayProvider;
+    private bool triedBindMainCamera;
+
+    private IAimRayProvider FallbackAimProvider
+    {
+        get
+        {
+            if (aimRayProvider != null)
+            {
+                return aimRayProvider;
+            }
+
+            if (!triedBindMainCamera)
+            {
+                triedBindMainCamera = true;
+                if (Camera.main != null)
+                {
+                    Debug.LogWarning("WeaponSystem: Aim provider missing, defaulting to main camera.");
+                    aimRayProvider = new CameraAimProvider(Camera.main);
+                }
+            }
+
+            return aimRayProvider;
+        }
+    }
 
 
     protected override void OnInit()
@@ -139,13 +163,14 @@ public class WeaponSystem : AbstractSystem
 
     public Ray GetFireRay()
     {
-        if (aimRayProvider == null)
+        var provider = FallbackAimProvider;
+        if (provider == null)
         {
             Debug.LogWarning("WeaponSystem: Aim provider is not bound.");
             return new Ray(Vector3.zero, Vector3.forward);
         }
 
-        return aimRayProvider.GetAimRay();
+        return provider.GetAimRay();
     }
 
 
@@ -165,7 +190,8 @@ public class WeaponSystem : AbstractSystem
 
         // 方向 = 目标点 - 摄像机中心
         Vector3 fireDir = (targetPoint - fireRay.origin).normalized;
-        Vector3 camForward = aimRayProvider != null ? aimRayProvider.GetAimForward() : Vector3.forward;
+        var provider = FallbackAimProvider;
+        Vector3 camForward = provider != null ? provider.GetAimForward() : Vector3.forward;
         if (Vector3.Dot(fireDir, camForward) <= 0)
         {
             Debug.Log("摄像机前方有阻挡，请和障碍物保持一定距离");

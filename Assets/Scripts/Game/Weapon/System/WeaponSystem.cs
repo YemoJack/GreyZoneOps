@@ -137,36 +137,41 @@ public class WeaponSystem : AbstractSystem
 
 
 
-    public Vector3 GetFireDirection(Transform firePos, float maxRange = 100f)
+    public Ray GetFireRay()
     {
         if (aimRayProvider == null)
         {
             Debug.LogWarning("WeaponSystem: Aim provider is not bound.");
-            return Vector3.zero;
+            return new Ray(Vector3.zero, Vector3.forward);
         }
 
-        Ray ray = aimRayProvider.GetAimRay();
+        return aimRayProvider.GetAimRay();
+    }
+
+
+    public Vector3 GetFireDirection(Ray fireRay, float maxRange = 100f)
+    {
         Vector3 targetPoint;
 
-        if (Physics.Raycast(ray, out RaycastHit hit, maxRange))
+        if (Physics.Raycast(fireRay, out RaycastHit hit, maxRange))
         {
             targetPoint = hit.point;
         }
         else
         {
             // 射线未命中，取最大射程点
-            targetPoint = ray.origin + ray.direction * maxRange;
+            targetPoint = fireRay.origin + fireRay.direction * maxRange;
         }
 
-        // 方向 = 目标点 - 枪口
-        Vector3 fireDir = (targetPoint - firePos.position).normalized;
-        Vector3 camForward = aimRayProvider.GetAimForward();
+        // 方向 = 目标点 - 摄像机中心
+        Vector3 fireDir = (targetPoint - fireRay.origin).normalized;
+        Vector3 camForward = aimRayProvider != null ? aimRayProvider.GetAimForward() : Vector3.forward;
         if (Vector3.Dot(fireDir, camForward) <= 0)
         {
-            Debug.Log("枪口有阻挡，请和障碍物保持一定距离");
+            Debug.Log("摄像机前方有阻挡，请和障碍物保持一定距离");
             return Vector3.zero;
         }
-        
+
 
         return fireDir;
     }

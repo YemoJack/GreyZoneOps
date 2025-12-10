@@ -18,7 +18,7 @@ MonoBehaviour:
   Discription: "\u6D4B\u8BD5\u624B\u67AA1"
   impactEffect: {fileID: 1067471869909948, guid: 5e02303289b3c494e8e185be0fbbd405,
     type: 3}
-  fireRate: 8
+  fireRate: 6
   bulletSpeed: 600
   GunshotRange: 200
   availableFireModes: -1
@@ -33,8 +33,8 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   range: 50
-  maxRange: 200
-  recoilControl: 100
+  maxRange: 150
+  recoilControl: 60
   recoilPattern:
   - {x: 1, y: 1}
   - {x: 1, y: 1}
@@ -49,14 +49,16 @@ MonoBehaviour:
   - {x: 1, y: 1}
   - {x: 1, y: 1}
   recoilMulRange: {x: 0.4, y: 1.4}
-  verticalRecoilMul: 1
-  horizontalRecoilMul: 1
-  operatingSpeed: 0
-  reloadTime: 2
+  reloadTime: 1.5
   aimTime: 0.5
-  hipfireAccuracy: 0
-  MinHipfireAngle: {x: 0, y: 0, z: 0}
-  MaxHipfireAngle: {x: 0, y: 0, z: 0}
-  HipFireAddAngle: 0
   zoomFactor: 1.25
   bulletPrefab: {fileID: 0}
+  idleSpread: 1.5
+  walkSpread: 3
+  runSpread: 5
+  jumpSpread: 6
+  aimSpread: 0.1
+  maxAimSpreadWhileFiring: 0.5
+  spreadIncreasePerShot: 0.05
+  maxSpreadWhileFiring: 2
+  spreadRecoveryRate: 4

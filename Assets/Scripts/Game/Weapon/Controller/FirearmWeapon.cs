@@ -36,7 +36,15 @@ public class FirearmWeapon :  WeaponBase
     private IObjectPool<GameObject> impactEffectPool;
     private Vector2 currentRecoilOffset = Vector2.zero;
     private int recoilStepIndex;
-  
+
+    [HideInInspector]
+    /// <summary>垂直后坐力倍率（附件影响）</summary>
+    public float verticalRecoilMul = 1f;
+    [HideInInspector]
+    /// <summary>水平后坐力倍率（附件影响）</summary>
+    public float horizontalRecoilMul = 1f;
+
+
     public int CurrentAmmo => currentAmmo;
     public int TotalAmmo => firearmConfig != null ? firearmConfig.magSize : 0;
 
@@ -338,8 +346,8 @@ public class FirearmWeapon :  WeaponBase
         float controlFactor = Mathf.Clamp01(firearmConfig.recoilControl / 100f);
         float controlMultiplier = Mathf.Lerp(firearmConfig.recoilMulRange.y, firearmConfig.recoilMulRange.x, controlFactor);
 
-        patternStep.x *= firearmConfig.horizontalRecoilMul;
-        patternStep.y *= firearmConfig.verticalRecoilMul;
+        patternStep.x *= horizontalRecoilMul;
+        patternStep.y *=verticalRecoilMul;
         patternStep *= controlMultiplier;
 
         currentRecoilOffset = patternStep;

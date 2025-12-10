@@ -92,20 +92,11 @@ public class SOFirearmConfig : SOWeaponConfigBase
     /// </summary>
     public Vector2 recoilMulRange = new Vector2(0.4f, 1.4f);
 
-    [HideInInspector]
-    /// <summary>垂直后坐力倍率（附件影响）</summary>
-    public float verticalRecoilMul = 1f;
-    [HideInInspector]
-    /// <summary>水平后坐力倍率（附件影响）</summary>
-    public float horizontalRecoilMul = 1f;
-
+    
 
 
     [Header("操作速度")]
-    /// <summary>
-    /// 当前操作速度
-    /// </summary>
-    public float operatingSpeed;
+    
     /// <summary>
     /// 换弹时间
     /// </summary>
@@ -116,28 +107,6 @@ public class SOFirearmConfig : SOWeaponConfigBase
     /// </summary>
     public float aimTime = 0.5f;
 
-
-
-    [Header("瞄准 & 腰射精度")]
-    /// <summary>
-    /// 当前腰射精度（0-100 100表示最小腰射角度，0表示最大腰射角度）
-    /// </summary>
-    public float hipfireAccuracy;
-
-
-    /// <summary>
-    /// 最小腰射角度(静止，移动，开火)
-    /// </summary>
-    public Vector3 MinHipfireAngle;
-    /// <summary>
-    /// 最大腰射角度(静止，移动，开火)
-    /// </summary>
-    public Vector3 MaxHipfireAngle;
-
-    /// <summary>
-    /// 射击时的腰射增量
-    /// </summary>
-    public float HipFireAddAngle;
 
 
 

@@ -137,6 +137,9 @@ public class SOFirearmConfig : SOWeaponConfigBase
     [Tooltip("瞄准状态下的基础散布角度（度）")]
     public float aimSpread = 0.05f;
 
+    [Tooltip("瞄准状态下连续开火累计散布的最大角度（度）")]
+    public float maxAimSpreadWhileFiring = 0.5f;
+
     [Tooltip("每次开火递增的散布角度（度）")]
     public float spreadIncreasePerShot = 0.05f;
 

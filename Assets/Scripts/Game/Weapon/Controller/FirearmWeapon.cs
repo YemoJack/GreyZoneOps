@@ -505,8 +505,14 @@ public class FirearmWeapon :  WeaponBase
             return;
         }
 
+        float maxSpread = firearmConfig.maxSpreadWhileFiring;
+        if (isAiming && firearmConfig.maxAimSpreadWhileFiring > 0f)
+        {
+            maxSpread = Mathf.Min(maxSpread, firearmConfig.maxAimSpreadWhileFiring);
+        }
+
         firingSpread = Mathf.Min(
-            firearmConfig.maxSpreadWhileFiring,
+            maxSpread,
             firingSpread + firearmConfig.spreadIncreasePerShot);
     }
 

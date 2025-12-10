@@ -36,6 +36,7 @@ public class FirearmWeapon :  WeaponBase
     private IObjectPool<GameObject> impactEffectPool;
     private Vector2 currentRecoilOffset = Vector2.zero;
     private int recoilStepIndex;
+    private bool isAiming;
 
     [HideInInspector]
     /// <summary>垂直后坐力倍率（附件影响）</summary>
@@ -51,6 +52,7 @@ public class FirearmWeapon :  WeaponBase
     public bool IsAutomatic => firearmConfig != null && firearmConfig.currentFireMode == FireMode.Auto;
     public bool IsBurstMode => firearmConfig != null && firearmConfig.currentFireMode == FireMode.Burst;
     public bool IsSingleMode => firearmConfig == null || firearmConfig.currentFireMode == FireMode.Single;
+    public bool IsAiming => isAiming;
 
 
     protected override void Start()
@@ -87,7 +89,12 @@ public class FirearmWeapon :  WeaponBase
 
     public override void OnUnEquip()
     {
-        
+
+    }
+
+    public void SetAimState(bool aiming)
+    {
+        isAiming = aiming;
     }
 
     public override void TryAttack()

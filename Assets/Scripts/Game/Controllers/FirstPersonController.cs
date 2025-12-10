@@ -1,3 +1,5 @@
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using QFramework;
 
@@ -45,6 +47,11 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
     private Vector2 viewBeforeRecoil;
     private float lastRecoilEventTime;
 
+    private float _defaultFov;
+    private bool _aimHeld;
+    private FirearmWeapon _aimWeapon;
+    private CancellationTokenSource _aimCts;
+
     private void Awake()
     {
         if (PlayerCamera == null && CameraRoot != null)
@@ -63,6 +70,7 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         {
             _viewTransform = PlayerCamera.transform;
             _weaponSystem.BindAimProvider(new CameraAimProvider(PlayerCamera));
+            _defaultFov = PlayerCamera.fieldOfView;
         }
         else if (CameraRoot != null)
         {
@@ -71,6 +79,11 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         else
         {
             Debug.LogWarning("FirstPersonController: 未找到用于移动和瞄准的相机/方向引用");
+        }
+
+        if (_defaultFov <= 0f && PlayerCamera != null)
+        {
+            _defaultFov = PlayerCamera.fieldOfView;
         }
 
         Vector3 rot = transform.eulerAngles;
@@ -91,11 +104,21 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
     {
         recoilEventUnregister?.UnRegister();
         recoilEventUnregister = null;
+        _aimCts?.Cancel();
+        _aimCts?.Dispose();
+        _aimCts = null;
+        if (_aimWeapon != null)
+        {
+            _aimWeapon.SetAimState(false);
+            _aimWeapon = null;
+        }
+        _aimHeld = false;
     }
 
     private void Update()
     {
         GroundCheck();
+        HandleAimInput();
         Look();
         TrackRecoilCompensation();
         TryRestoreViewAfterFireStops();
@@ -199,6 +222,80 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         {
             CameraRoot.transform.localRotation = Quaternion.Euler(_pitch, 0f, 0f);
         }
+    }
+
+    private void HandleAimInput()
+    {
+        if (PlayerCamera == null || _inputSys == null)
+        {
+            return;
+        }
+
+        var currentWeapon = _weaponSystem?.GetCurrentWeapon() as FirearmWeapon;
+        var firearmConfig = currentWeapon?.Config as SOFirearmConfig;
+        bool aimHold = _inputSys.AimHold && firearmConfig != null && firearmConfig.zoomFactor > 0f;
+
+        if (currentWeapon != _aimWeapon && _aimWeapon != null)
+        {
+            _aimWeapon.SetAimState(false);
+        }
+
+        if (aimHold == _aimHeld && currentWeapon == _aimWeapon)
+        {
+            return;
+        }
+
+        _aimHeld = aimHold;
+        _aimWeapon = currentWeapon;
+        StartAimRoutine(aimHold, firearmConfig, currentWeapon).Forget();
+    }
+
+    private async UniTaskVoid StartAimRoutine(bool aiming, SOFirearmConfig firearmConfig, FirearmWeapon weapon)
+    {
+        _aimCts?.Cancel();
+        _aimCts?.Dispose();
+        _aimCts = new CancellationTokenSource();
+        var token = _aimCts.Token;
+
+        float duration = firearmConfig != null ? Mathf.Max(firearmConfig.aimTime, 0.001f) : 0.001f;
+        float startFov = PlayerCamera.fieldOfView;
+        float defaultFov = _defaultFov > 0f ? _defaultFov : startFov;
+        float targetFov = defaultFov;
+
+        if (aiming && firearmConfig != null && firearmConfig.zoomFactor > 0f)
+        {
+            targetFov = defaultFov / Mathf.Max(firearmConfig.zoomFactor, 0.01f);
+        }
+
+        float elapsed = 0f;
+        try
+        {
+            while (elapsed < duration)
+            {
+                token.ThrowIfCancellationRequested();
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                PlayerCamera.fieldOfView = Mathf.Lerp(startFov, targetFov, t);
+                await UniTask.Yield(PlayerLoopTiming.Update, token);
+            }
+
+            PlayerCamera.fieldOfView = targetFov;
+            UpdateWeaponAimState(weapon, aiming);
+        }
+        catch (OperationCanceledException)
+        {
+            // ignore cancellation when switching aim states or disabling
+        }
+    }
+
+    private void UpdateWeaponAimState(FirearmWeapon weapon, bool aiming)
+    {
+        if (weapon == null)
+        {
+            return;
+        }
+
+        weapon.SetAimState(aiming);
     }
 
     private void TrackRecoilCompensation()

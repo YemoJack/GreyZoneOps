@@ -51,6 +51,9 @@ public class FirearmWeapon :  WeaponBase
     private CancellationTokenSource aimTransitionCts;
     private bool isEquipped;
     private bool lastAimHold;
+    private EPlayerMoveState currentMoveState = EPlayerMoveState.Idle;
+    private IUnRegister moveStateUnregister;
+    private float firingSpread;
 
     [HideInInspector]
     /// <summary>垂直后坐力倍率（附件影响）</summary>
@@ -97,11 +100,13 @@ public class FirearmWeapon :  WeaponBase
         Debug.Log($"FirearmWeapon {InstanceID} is OnEquip");
         currentRecoilOffset = Vector2.zero;
         recoilStepIndex = 0;
+        firingSpread = 0f;
 
         NotifyAmmoChanged();
 
         isEquipped = true;
         lastAimHold = false;
+        RegisterMoveStateListener();
     }
 
     public override void OnUnEquip()
@@ -110,6 +115,15 @@ public class FirearmWeapon :  WeaponBase
         CancelAimTransition();
         SetAimState(false);
         NotifyAimState(false, firearmConfig != null ? firearmConfig.aimTime : 0.001f);
+        moveStateUnregister?.UnRegister();
+        moveStateUnregister = null;
+    }
+
+    private void OnDestroy()
+    {
+        moveStateUnregister?.UnRegister();
+        moveStateUnregister = null;
+        CancelAimTransition();
     }
 
     private void Update()
@@ -131,6 +145,8 @@ public class FirearmWeapon :  WeaponBase
         {
             RecoverRecoil();
         }
+
+        RecoverSpread();
     }
 
     public void SetAimState(bool aiming)
@@ -401,6 +417,7 @@ public class FirearmWeapon :  WeaponBase
             return;
         }
 
+        dir = ApplySpreadToDirection(dir);
         dir = ApplyRecoilToDirection(dir, recoilOffset);
 
         if (recoilOffset != Vector2.zero)
@@ -416,7 +433,97 @@ public class FirearmWeapon :  WeaponBase
         cmdFireamFire.Init(fireRay.origin, dir);
         this.SendCommand(cmdFireamFire);
         nextFireTime = firearmConfig.fireRate > 0 ? Time.time + 1f / firearmConfig.fireRate : Time.time;
+        IncreaseSpreadOnFire();
         //print($"Firearm Weapon {Config.WeaponName} {Config.WeaponType} Try Fire");
+    }
+
+    private void RegisterMoveStateListener()
+    {
+        moveStateUnregister?.UnRegister();
+        moveStateUnregister = this.RegisterEvent<EventPlayerChangeMoveState>(OnPlayerMoveStateChanged);
+    }
+
+    private void OnPlayerMoveStateChanged(EventPlayerChangeMoveState evt)
+    {
+        currentMoveState = evt.CurrentState;
+    }
+
+    private float CalculateCurrentSpread()
+    {
+        if (firearmConfig == null)
+        {
+            return 0f;
+        }
+
+        float baseSpread;
+        if (isAiming)
+        {
+            baseSpread = firearmConfig.aimSpread;
+        }
+        else
+        {
+            baseSpread = GetMovementSpread(currentMoveState);
+        }
+
+        return Mathf.Max(0f, baseSpread + firingSpread);
+    }
+
+    private float GetMovementSpread(EPlayerMoveState moveState)
+    {
+        switch (moveState)
+        {
+            case EPlayerMoveState.Walk:
+                return firearmConfig.walkSpread;
+            case EPlayerMoveState.Run:
+                return firearmConfig.runSpread;
+            case EPlayerMoveState.Jump:
+            case EPlayerMoveState.Fall:
+                return firearmConfig.jumpSpread;
+            default:
+                return firearmConfig.idleSpread;
+        }
+    }
+
+    private Vector3 ApplySpreadToDirection(Vector3 baseDirection)
+    {
+        float spread = CalculateCurrentSpread();
+        if (spread <= 0f)
+        {
+            return baseDirection;
+        }
+
+        float yaw = UnityEngine.Random.Range(-spread, spread);
+        float pitch = UnityEngine.Random.Range(-spread, spread);
+        Quaternion spreadRotation = Quaternion.Euler(-pitch, yaw, 0f);
+        return spreadRotation * baseDirection;
+    }
+
+    private void IncreaseSpreadOnFire()
+    {
+        if (firearmConfig == null)
+        {
+            return;
+        }
+
+        firingSpread = Mathf.Min(
+            firearmConfig.maxSpreadWhileFiring,
+            firingSpread + firearmConfig.spreadIncreasePerShot);
+    }
+
+    private void RecoverSpread()
+    {
+        if (firearmConfig == null || firingSpread <= 0f)
+        {
+            return;
+        }
+
+        if (inputSys != null && inputSys.FireHold)
+        {
+            return;
+        }
+
+        float delta = Time.deltaTime;
+        firingSpread = Mathf.Max(0f, firingSpread - firearmConfig.spreadRecoveryRate * delta);
     }
 
     private Vector3 ApplyRecoilToDirection(Vector3 baseDirection, Vector2 recoilOffset)

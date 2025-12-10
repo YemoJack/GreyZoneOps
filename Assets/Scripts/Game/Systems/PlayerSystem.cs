@@ -88,7 +88,11 @@ public partial class PlayerSystem : AbstractSystem, IUpdateSystem,ICanSendComman
         var previous = moveState;
         var moveMagnitude = inputSys.Move2D.magnitude;
 
-        if (moveMagnitude < 0.05f)
+        if (inputSys.Jump)
+        {
+            moveState = EPlayerMoveState.Jump;
+        }
+        else if (moveMagnitude < 0.05f)
         {
             moveState = EPlayerMoveState.Idle;
         }

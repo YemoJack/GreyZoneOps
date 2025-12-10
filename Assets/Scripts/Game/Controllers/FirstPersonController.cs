@@ -1,3 +1,5 @@
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using QFramework;
 
@@ -45,6 +47,10 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
     private Vector2 viewBeforeRecoil;
     private float lastRecoilEventTime;
 
+    private float _defaultFov;
+    private CancellationTokenSource _aimCts;
+    private IUnRegister aimEventUnregister;
+
     private void Awake()
     {
         if (PlayerCamera == null && CameraRoot != null)
@@ -63,6 +69,7 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         {
             _viewTransform = PlayerCamera.transform;
             _weaponSystem.BindAimProvider(new CameraAimProvider(PlayerCamera));
+            _defaultFov = PlayerCamera.fieldOfView;
         }
         else if (CameraRoot != null)
         {
@@ -71,6 +78,11 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         else
         {
             Debug.LogWarning("FirstPersonController: 未找到用于移动和瞄准的相机/方向引用");
+        }
+
+        if (_defaultFov <= 0f && PlayerCamera != null)
+        {
+            _defaultFov = PlayerCamera.fieldOfView;
         }
 
         Vector3 rot = transform.eulerAngles;
@@ -85,12 +97,22 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
     private void OnEnable()
     {
         recoilEventUnregister = this.RegisterEvent<EventWeaponRecoilApplied>(OnWeaponRecoilApplied);
+        aimEventUnregister = this.RegisterEvent<EventFirearmAimChanged>(OnAimStateChanged);
     }
 
     private void OnDisable()
     {
         recoilEventUnregister?.UnRegister();
         recoilEventUnregister = null;
+        aimEventUnregister?.UnRegister();
+        aimEventUnregister = null;
+        _aimCts?.Cancel();
+        _aimCts?.Dispose();
+        _aimCts = null;
+        if (PlayerCamera != null && _defaultFov > 0f)
+        {
+            PlayerCamera.fieldOfView = _defaultFov;
+        }
     }
 
     private void Update()
@@ -198,6 +220,48 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         if (CameraRoot != null)
         {
             CameraRoot.transform.localRotation = Quaternion.Euler(_pitch, 0f, 0f);
+        }
+    }
+
+    private void OnAimStateChanged(EventFirearmAimChanged evt)
+    {
+        if (PlayerCamera == null)
+        {
+            return;
+        }
+
+        _aimCts?.Cancel();
+        _aimCts?.Dispose();
+        _aimCts = new CancellationTokenSource();
+        var token = _aimCts.Token;
+
+        float duration = Mathf.Max(evt.Duration, 0.001f);
+        float startFov = PlayerCamera.fieldOfView;
+        float defaultFov = _defaultFov > 0f ? _defaultFov : startFov;
+        float targetFov = defaultFov;
+
+        if (evt.Aiming && evt.ZoomFactor > 0f)
+        {
+            targetFov = defaultFov / Mathf.Max(evt.ZoomFactor, 0.01f);
+        }
+
+        float elapsed = 0f;
+        try
+        {
+            while (elapsed < duration)
+            {
+                token.ThrowIfCancellationRequested();
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                PlayerCamera.fieldOfView = Mathf.Lerp(startFov, targetFov, t);
+                await UniTask.Yield(PlayerLoopTiming.Update, token);
+            }
+
+            PlayerCamera.fieldOfView = targetFov;
+        }
+        catch (OperationCanceledException)
+        {
+            // ignore cancellation when switching aim states or disabling
         }
     }
 

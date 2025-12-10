@@ -48,8 +48,9 @@ public class FirearmWeapon :  WeaponBase
     private Vector2 currentRecoilOffset = Vector2.zero;
     private int recoilStepIndex;
     private bool isAiming;
-    private CancellationTokenSource aimMonitorCts;
     private CancellationTokenSource aimTransitionCts;
+    private bool isEquipped;
+    private bool lastAimHold;
 
     [HideInInspector]
     /// <summary>垂直后坐力倍率（附件影响）</summary>
@@ -99,14 +100,38 @@ public class FirearmWeapon :  WeaponBase
 
         NotifyAmmoChanged();
 
-        StartAimMonitoring();
+        isEquipped = true;
+        lastAimHold = false;
     }
 
     public override void OnUnEquip()
     {
-        StopAimMonitoring();
+        isEquipped = false;
+        CancelAimTransition();
         SetAimState(false);
         NotifyAimState(false, firearmConfig != null ? firearmConfig.aimTime : 0.001f);
+    }
+
+    private void Update()
+    {
+        if (!isEquipped)
+        {
+            return;
+        }
+
+        if (inputSys == null)
+        {
+            inputSys = this.GetSystem<InputSys>();
+        }
+
+        bool canAim = firearmConfig != null && firearmConfig.zoomFactor > 0f;
+        bool aimHold = canAim && inputSys != null && inputSys.AimHold;
+
+        if (aimHold != lastAimHold)
+        {
+            lastAimHold = aimHold;
+            BeginAimTransition(aimHold);
+        }
     }
 
     public void SetAimState(bool aiming)
@@ -114,61 +139,9 @@ public class FirearmWeapon :  WeaponBase
         isAiming = aiming;
     }
 
-    private void StartAimMonitoring()
-    {
-        StopAimMonitoring();
-
-        if (inputSys == null)
-        {
-            inputSys = this.GetSystem<InputSys>();
-        }
-
-        aimMonitorCts = new CancellationTokenSource();
-        MonitorAimInput(aimMonitorCts.Token).Forget();
-    }
-
-    private void StopAimMonitoring()
-    {
-        aimMonitorCts?.Cancel();
-        aimMonitorCts?.Dispose();
-        aimMonitorCts = null;
-
-        aimTransitionCts?.Cancel();
-        aimTransitionCts?.Dispose();
-        aimTransitionCts = null;
-    }
-
-    private async UniTaskVoid MonitorAimInput(CancellationToken token)
-    {
-        bool lastHold = false;
-
-        try
-        {
-            while (true)
-            {
-                token.ThrowIfCancellationRequested();
-
-                bool canAim = firearmConfig != null && firearmConfig.zoomFactor > 0f;
-                bool aimHold = canAim && inputSys != null && inputSys.AimHold;
-
-                if (aimHold != lastHold)
-                {
-                    lastHold = aimHold;
-                    BeginAimTransition(aimHold);
-                }
-
-                await UniTask.Yield(PlayerLoopTiming.Update, token);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-        }
-    }
-
     private void BeginAimTransition(bool aiming)
     {
-        aimTransitionCts?.Cancel();
-        aimTransitionCts?.Dispose();
+        CancelAimTransition();
         aimTransitionCts = new CancellationTokenSource();
         var token = aimTransitionCts.Token;
 
@@ -181,6 +154,13 @@ public class FirearmWeapon :  WeaponBase
 
         NotifyAimState(aiming, duration);
         CompleteAimAfterDelay(aiming, duration, token).Forget();
+    }
+
+    private void CancelAimTransition()
+    {
+        aimTransitionCts?.Cancel();
+        aimTransitionCts?.Dispose();
+        aimTransitionCts = null;
     }
 
     private async UniTaskVoid CompleteAimAfterDelay(bool aiming, float duration, CancellationToken token)

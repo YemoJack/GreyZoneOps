@@ -120,4 +120,33 @@ public class SOFirearmConfig : SOWeaponConfigBase
     [Header("子弹预制体")]
     public GameObject bulletPrefab;
 
+
+    [Header("子弹散布")]
+    [Tooltip("静止状态下的基础散布角度（度）")]
+    public float idleSpread = 0.25f;
+
+    [Tooltip("行走时的基础散布角度（度）")]
+    public float walkSpread = 0.6f;
+
+    [Tooltip("奔跑时的基础散布角度（度）")]
+    public float runSpread = 1.2f;
+
+    [Tooltip("跳跃或空中时的基础散布角度（度）")]
+    public float jumpSpread = 1.5f;
+
+    [Tooltip("瞄准状态下的基础散布角度（度）")]
+    public float aimSpread = 0.05f;
+
+    [Tooltip("瞄准状态下连续开火累计散布的最大角度（度）")]
+    public float maxAimSpreadWhileFiring = 0.5f;
+
+    [Tooltip("每次开火递增的散布角度（度）")]
+    public float spreadIncreasePerShot = 0.05f;
+
+    [Tooltip("连续开火累计散布的最大角度（度）")]
+    public float maxSpreadWhileFiring = 2f;
+
+    [Tooltip("停止射击后散布恢复到基础值的速度（度/秒）")]
+    public float spreadRecoveryRate = 4f;
+
 }

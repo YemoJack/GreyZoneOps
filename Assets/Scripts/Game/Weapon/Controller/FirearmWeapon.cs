@@ -1,5 +1,8 @@
-﻿using QFramework;
+﻿using System;
 using System.Collections;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using QFramework;
 using UnityEngine;
 
 
@@ -16,6 +19,14 @@ public struct EventWeaponRecoilApplied
     public int WeaponId;
     public string WeaponName;
     public Vector2 RecoilStep;
+}
+
+public struct EventFirearmAimChanged
+{
+    public FirearmWeapon Weapon;
+    public bool Aiming;
+    public float ZoomFactor;
+    public float Duration;
 }
 
 
@@ -37,6 +48,8 @@ public class FirearmWeapon :  WeaponBase
     private Vector2 currentRecoilOffset = Vector2.zero;
     private int recoilStepIndex;
     private bool isAiming;
+    private CancellationTokenSource aimMonitorCts;
+    private CancellationTokenSource aimTransitionCts;
 
     [HideInInspector]
     /// <summary>垂直后坐力倍率（附件影响）</summary>
@@ -83,18 +96,120 @@ public class FirearmWeapon :  WeaponBase
         Debug.Log($"FirearmWeapon {InstanceID} is OnEquip");
         currentRecoilOffset = Vector2.zero;
         recoilStepIndex = 0;
-       
+
         NotifyAmmoChanged();
+
+        StartAimMonitoring();
     }
 
     public override void OnUnEquip()
     {
-
+        StopAimMonitoring();
+        SetAimState(false);
+        NotifyAimState(false, firearmConfig != null ? firearmConfig.aimTime : 0.001f);
     }
 
     public void SetAimState(bool aiming)
     {
         isAiming = aiming;
+    }
+
+    private void StartAimMonitoring()
+    {
+        StopAimMonitoring();
+
+        if (inputSys == null)
+        {
+            inputSys = this.GetSystem<InputSys>();
+        }
+
+        aimMonitorCts = new CancellationTokenSource();
+        MonitorAimInput(aimMonitorCts.Token).Forget();
+    }
+
+    private void StopAimMonitoring()
+    {
+        aimMonitorCts?.Cancel();
+        aimMonitorCts?.Dispose();
+        aimMonitorCts = null;
+
+        aimTransitionCts?.Cancel();
+        aimTransitionCts?.Dispose();
+        aimTransitionCts = null;
+    }
+
+    private async UniTaskVoid MonitorAimInput(CancellationToken token)
+    {
+        bool lastHold = false;
+
+        try
+        {
+            while (true)
+            {
+                token.ThrowIfCancellationRequested();
+
+                bool canAim = firearmConfig != null && firearmConfig.zoomFactor > 0f;
+                bool aimHold = canAim && inputSys != null && inputSys.AimHold;
+
+                if (aimHold != lastHold)
+                {
+                    lastHold = aimHold;
+                    BeginAimTransition(aimHold);
+                }
+
+                await UniTask.Yield(PlayerLoopTiming.Update, token);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private void BeginAimTransition(bool aiming)
+    {
+        aimTransitionCts?.Cancel();
+        aimTransitionCts?.Dispose();
+        aimTransitionCts = new CancellationTokenSource();
+        var token = aimTransitionCts.Token;
+
+        float duration = firearmConfig != null ? Mathf.Max(firearmConfig.aimTime, 0.001f) : 0.001f;
+
+        if (!aiming)
+        {
+            SetAimState(false);
+        }
+
+        NotifyAimState(aiming, duration);
+        CompleteAimAfterDelay(aiming, duration, token).Forget();
+    }
+
+    private async UniTaskVoid CompleteAimAfterDelay(bool aiming, float duration, CancellationToken token)
+    {
+        try
+        {
+            if (duration > 0f)
+            {
+                await UniTask.Delay(TimeSpan.FromSeconds(duration), cancellationToken: token);
+            }
+
+            SetAimState(aiming);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private void NotifyAimState(bool aiming, float duration)
+    {
+        float zoom = firearmConfig != null ? firearmConfig.zoomFactor : 1f;
+
+        this.SendEvent(new EventFirearmAimChanged
+        {
+            Weapon = this,
+            Aiming = aiming,
+            ZoomFactor = zoom,
+            Duration = duration
+        });
     }
 
     public override void TryAttack()

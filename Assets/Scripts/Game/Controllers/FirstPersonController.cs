@@ -48,9 +48,8 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
     private float lastRecoilEventTime;
 
     private float _defaultFov;
-    private bool _aimHeld;
-    private FirearmWeapon _aimWeapon;
     private CancellationTokenSource _aimCts;
+    private IUnRegister aimEventUnregister;
 
     private void Awake()
     {
@@ -98,27 +97,27 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
     private void OnEnable()
     {
         recoilEventUnregister = this.RegisterEvent<EventWeaponRecoilApplied>(OnWeaponRecoilApplied);
+        aimEventUnregister = this.RegisterEvent<EventFirearmAimChanged>(OnAimStateChanged);
     }
 
     private void OnDisable()
     {
         recoilEventUnregister?.UnRegister();
         recoilEventUnregister = null;
+        aimEventUnregister?.UnRegister();
+        aimEventUnregister = null;
         _aimCts?.Cancel();
         _aimCts?.Dispose();
         _aimCts = null;
-        if (_aimWeapon != null)
+        if (PlayerCamera != null && _defaultFov > 0f)
         {
-            _aimWeapon.SetAimState(false);
-            _aimWeapon = null;
+            PlayerCamera.fieldOfView = _defaultFov;
         }
-        _aimHeld = false;
     }
 
     private void Update()
     {
         GroundCheck();
-        HandleAimInput();
         Look();
         TrackRecoilCompensation();
         TryRestoreViewAfterFireStops();
@@ -224,47 +223,26 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         }
     }
 
-    private void HandleAimInput()
+    private void OnAimStateChanged(EventFirearmAimChanged evt)
     {
-        if (PlayerCamera == null || _inputSys == null)
+        if (PlayerCamera == null)
         {
             return;
         }
 
-        var currentWeapon = _weaponSystem?.GetCurrentWeapon() as FirearmWeapon;
-        var firearmConfig = currentWeapon?.Config as SOFirearmConfig;
-        bool aimHold = _inputSys.AimHold && firearmConfig != null && firearmConfig.zoomFactor > 0f;
-
-        if (currentWeapon != _aimWeapon && _aimWeapon != null)
-        {
-            _aimWeapon.SetAimState(false);
-        }
-
-        if (aimHold == _aimHeld && currentWeapon == _aimWeapon)
-        {
-            return;
-        }
-
-        _aimHeld = aimHold;
-        _aimWeapon = currentWeapon;
-        StartAimRoutine(aimHold, firearmConfig, currentWeapon).Forget();
-    }
-
-    private async UniTaskVoid StartAimRoutine(bool aiming, SOFirearmConfig firearmConfig, FirearmWeapon weapon)
-    {
         _aimCts?.Cancel();
         _aimCts?.Dispose();
         _aimCts = new CancellationTokenSource();
         var token = _aimCts.Token;
 
-        float duration = firearmConfig != null ? Mathf.Max(firearmConfig.aimTime, 0.001f) : 0.001f;
+        float duration = Mathf.Max(evt.Duration, 0.001f);
         float startFov = PlayerCamera.fieldOfView;
         float defaultFov = _defaultFov > 0f ? _defaultFov : startFov;
         float targetFov = defaultFov;
 
-        if (aiming && firearmConfig != null && firearmConfig.zoomFactor > 0f)
+        if (evt.Aiming && evt.ZoomFactor > 0f)
         {
-            targetFov = defaultFov / Mathf.Max(firearmConfig.zoomFactor, 0.01f);
+            targetFov = defaultFov / Mathf.Max(evt.ZoomFactor, 0.01f);
         }
 
         float elapsed = 0f;
@@ -280,22 +258,11 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
             }
 
             PlayerCamera.fieldOfView = targetFov;
-            UpdateWeaponAimState(weapon, aiming);
         }
         catch (OperationCanceledException)
         {
             // ignore cancellation when switching aim states or disabling
         }
-    }
-
-    private void UpdateWeaponAimState(FirearmWeapon weapon, bool aiming)
-    {
-        if (weapon == null)
-        {
-            return;
-        }
-
-        weapon.SetAimState(aiming);
     }
 
     private void TrackRecoilCompensation()

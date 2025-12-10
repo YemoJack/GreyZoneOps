@@ -119,18 +119,17 @@ public class FirearmWeapon :  WeaponBase
             return;
         }
 
-        if (inputSys == null)
-        {
-            inputSys = this.GetSystem<InputSys>();
-        }
-
-        bool canAim = firearmConfig != null && firearmConfig.zoomFactor > 0f;
-        bool aimHold = canAim && inputSys != null && inputSys.AimHold;
+        bool aimHold = inputSys.AimHold;
 
         if (aimHold != lastAimHold)
         {
             lastAimHold = aimHold;
             BeginAimTransition(aimHold);
+        }
+
+        if (ShouldRecoverRecoil())
+        {
+            RecoverRecoil();
         }
     }
 
@@ -147,6 +146,7 @@ public class FirearmWeapon :  WeaponBase
 
         float duration = firearmConfig != null ? Mathf.Max(firearmConfig.aimTime, 0.001f) : 0.001f;
 
+        Debug.Log($"FirearmWeapon {InstanceID} is BeginAimTransition {aiming} duration {duration}");
         if (!aiming)
         {
             SetAimState(false);
@@ -173,6 +173,7 @@ public class FirearmWeapon :  WeaponBase
             }
 
             SetAimState(aiming);
+            Debug.Log($"FirearmWeapon {InstanceID} is CompleteAimAfterDelay {aiming}");
         }
         catch (OperationCanceledException)
         {
@@ -460,13 +461,7 @@ public class FirearmWeapon :  WeaponBase
     }
 
 
-    private void Update()
-    {
-        if (ShouldRecoverRecoil())
-        {
-            RecoverRecoil();
-        }
-    }
+   
 
     private bool ShouldRecoverRecoil()
     {

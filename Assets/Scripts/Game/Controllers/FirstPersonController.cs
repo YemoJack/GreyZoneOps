@@ -2,6 +2,8 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using QFramework;
+using System;
+using Unity.VisualScripting.Antlr3.Runtime;
 
 [RequireComponent(typeof(CharacterController))]
 public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
@@ -245,6 +247,11 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
             targetFov = defaultFov / Mathf.Max(evt.ZoomFactor, 0.01f);
         }
 
+        AimStateChange(duration, startFov, targetFov, token).Forget();
+    }
+
+    private async UniTask AimStateChange(float duration, float startFov, float targetFov, CancellationToken token)
+    {
         float elapsed = 0f;
         try
         {
@@ -259,7 +266,7 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
 
             PlayerCamera.fieldOfView = targetFov;
         }
-        catch (OperationCanceledException)
+        catch (Exception e)
         {
             // ignore cancellation when switching aim states or disabling
         }

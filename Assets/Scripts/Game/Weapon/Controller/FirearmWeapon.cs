@@ -279,13 +279,13 @@ public class FirearmWeapon :  WeaponBase
 
             // 避免特效嵌入表面
             eff.transform.position += hit.normal * 0.01f;
-            StartCoroutine(ReleaseImpactEffect(eff, 1f));
+            ReleaseImpactEffect(eff, 1f).Forget();
         }
     }
 
-    private IEnumerator ReleaseImpactEffect(GameObject effect, float delay)
+    private async UniTask ReleaseImpactEffect(GameObject effect, float delay)
     {
-        yield return new WaitForSeconds(delay);
+        await UniTask.Delay(TimeSpan.FromSeconds(delay));
         if (effect != null)
         {
             impactEffectPool?.Release(effect);
@@ -312,7 +312,7 @@ public class FirearmWeapon :  WeaponBase
             return;
         }
 
-        StartCoroutine(ReloadRoutine());
+        ReloadRoutine().Forget();
     }
 
     public void ConsumeAmmo()
@@ -322,11 +322,11 @@ public class FirearmWeapon :  WeaponBase
 
     }
 
-    private IEnumerator ReloadRoutine()
+    private async UniTask ReloadRoutine()
     {
         isReloading = true;
         Debug.Log("Reloading... (placeholder animation/sound)");
-        yield return new WaitForSeconds(firearmConfig.reloadTime);
+        await UniTask.Delay(TimeSpan.FromSeconds(firearmConfig.reloadTime));
         currentAmmo = firearmConfig.magSize;
         isReloading = false;
         Debug.Log("Reload complete.");
@@ -398,7 +398,7 @@ public class FirearmWeapon :  WeaponBase
             return;
         }
 
-        StartCoroutine(BurstFireRoutine());
+        BurstFireRoutine().Forget();
     }
 
     private bool CanFire()
@@ -590,7 +590,7 @@ public class FirearmWeapon :  WeaponBase
 
 
 
-    private IEnumerator BurstFireRoutine()
+    private async UniTask BurstFireRoutine()
     {
         isBurstFiring = true;
         int burstCount = 3;
@@ -598,14 +598,21 @@ public class FirearmWeapon :  WeaponBase
         for (int i = 0; i < burstCount; i++)
         {
             if (!CanFire())
-            {
                 break;
-            }
 
             FireOneRound();
-            yield return new WaitForSeconds(firearmConfig.fireRate > 0 ? 1f / firearmConfig.fireRate : 0f);
+
+            float delay = firearmConfig.fireRate > 0
+                ? 1f / firearmConfig.fireRate
+                : 0f;
+
+            if (delay > 0f)
+                await UniTask.Delay(TimeSpan.FromSeconds(delay), cancellationToken: this.GetCancellationTokenOnDestroy());
+            else
+                await UniTask.Yield(); // 下一帧继续，防止阻塞
         }
 
         isBurstFiring = false;
     }
+
 }

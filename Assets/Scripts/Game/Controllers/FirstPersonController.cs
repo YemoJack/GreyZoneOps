@@ -12,6 +12,8 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
     public float MoveSpeed = 4f;
     public float SprintSpeed = 7f;
     public float SpeedChangeRate = 10.0f;
+    private float _moveSpeed;
+    private float _sprintSpeed;
 
     public float JumpHeight = 1.2f;
     public float Gravity = -15.0f;
@@ -53,6 +55,8 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
     private CancellationTokenSource _aimCts;
     private IUnRegister aimEventUnregister;
 
+    private IUnRegister weaponChangedUnregister;
+
     private void Awake()
     {
         if (PlayerCamera == null && CameraRoot != null)
@@ -91,6 +95,8 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         _yaw = rot.y;
         _pitch = 0f;
 
+        _moveSpeed = MoveSpeed;
+        _sprintSpeed = SprintSpeed;
         // 鼠标锁定
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -98,12 +104,17 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
 
     private void OnEnable()
     {
+        weaponChangedUnregister = this.RegisterEvent<EventPlayerChangeWeapon>(OnWeaponChanged);
         recoilEventUnregister = this.RegisterEvent<EventWeaponRecoilApplied>(OnWeaponRecoilApplied);
         aimEventUnregister = this.RegisterEvent<EventFirearmAimChanged>(OnAimStateChanged);
     }
 
+    
+
     private void OnDisable()
     {
+        weaponChangedUnregister?.UnRegister();
+        weaponChangedUnregister = null;
         recoilEventUnregister?.UnRegister();
         recoilEventUnregister = null;
         aimEventUnregister?.UnRegister();
@@ -157,7 +168,7 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
     // -------------------------
     private void Move()
     {
-        float targetSpeed = _inputSys.Sprint ? SprintSpeed : MoveSpeed;
+        float targetSpeed = _inputSys.Sprint ? _sprintSpeed : _moveSpeed;
         if (_inputSys.Move2D == Vector2.zero) targetSpeed = 0.0f;
 
         float currentSpeed = new Vector3(_controller.velocity.x, 0f, _controller.velocity.z).magnitude;
@@ -245,6 +256,13 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         if (evt.Aiming && evt.ZoomFactor > 0f)
         {
             targetFov = defaultFov / Mathf.Max(evt.ZoomFactor, 0.01f);
+            _moveSpeed = MoveSpeed * (evt.Weapon.Config as SOFirearmConfig).aimMoveSpeedMultiplier;
+            _sprintSpeed = _moveSpeed;
+        }
+        else if(!evt.Aiming) 
+        {
+            _moveSpeed = evt.Weapon.Config.moveSpeedMultiplier * MoveSpeed;
+            _sprintSpeed = evt.Weapon.Config.runSpeedMultiplier * SprintSpeed;
         }
 
         AimStateChange(duration, startFov, targetFov, token).Forget();
@@ -333,6 +351,17 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
             _verticalVelocity += Gravity * Time.deltaTime;
         }
     }
+
+
+
+
+    private void OnWeaponChanged(EventPlayerChangeWeapon weapon)
+    {
+        _moveSpeed = weapon.WeaponInstance.Config.moveSpeedMultiplier * MoveSpeed;
+        _sprintSpeed = weapon.WeaponInstance.Config.runSpeedMultiplier * SprintSpeed;
+    }
+
+
 
     public IArchitecture GetArchitecture() => GameArchitecture.Interface;
 }

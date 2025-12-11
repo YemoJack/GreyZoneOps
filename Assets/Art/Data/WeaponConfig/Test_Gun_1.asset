@@ -16,6 +16,8 @@ MonoBehaviour:
   WeaponName: "\u6D4B\u8BD5\u624B\u67AA1"
   WeaponType: 0
   Discription: "\u6D4B\u8BD5\u624B\u67AA1"
+  moveSpeedMultiplier: 0.9
+  runSpeedMultiplier: 0.9
   impactEffect: {fileID: 1067471869909948, guid: 5e02303289b3c494e8e185be0fbbd405,
     type: 3}
   fireRate: 6
@@ -24,14 +26,9 @@ MonoBehaviour:
   availableFireModes: -1
   currentFireMode: 4
   magSize: 30
+  zoomFactor: 1.25
   baseDamage: 30
   armorDamage: 0
-  damageFalloffCurve:
-    serializedVersion: 2
-    m_Curve: []
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
   range: 50
   maxRange: 150
   recoilControl: 60
@@ -51,7 +48,7 @@ MonoBehaviour:
   recoilMulRange: {x: 0.4, y: 1.4}
   reloadTime: 1.5
   aimTime: 0.5
-  zoomFactor: 1.25
+  aimMoveSpeedMultiplier: 0.6
   bulletPrefab: {fileID: 0}
   idleSpread: 1.5
   walkSpread: 3

@@ -51,6 +51,11 @@ public class SOFirearmConfig : SOWeaponConfigBase
     /// </summary>
     public int magSize;
 
+    /// <summary>
+    /// 倍率配置
+    /// </summary>
+    public float zoomFactor = 1.25f;
+
     [Header("基础伤害")]
     /// <summary>
     /// 基础伤害
@@ -61,8 +66,7 @@ public class SOFirearmConfig : SOWeaponConfigBase
     /// </summary>
     public float armorDamage;
 
-    public AnimationCurve damageFalloffCurve; // x=距离，y=伤害倍率
-
+    
     /// <summary>
     /// 优势射程
     /// </summary>
@@ -107,13 +111,11 @@ public class SOFirearmConfig : SOWeaponConfigBase
     /// </summary>
     public float aimTime = 0.5f;
 
-
-
-
+    
     /// <summary>
-    /// 倍率配置
+    /// 装备时瞄准移动速度倍率
     /// </summary>
-    public float zoomFactor = 1.25f;
+    public float aimMoveSpeedMultiplier = 0.6f;
 
 
 

@@ -27,6 +27,7 @@ public struct EventFirearmAimChanged
     public bool Aiming;
     public float ZoomFactor;
     public float Duration;
+
 }
 
 

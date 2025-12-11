@@ -49,7 +49,8 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
     private bool recoilActive;
     private bool playerCounteringRecoil;
     private Vector2 viewBeforeRecoil;
-    private float lastRecoilEventTime;
+    private float viewBeforeRecoilDuration;
+    private IUnRegister recoilRecoverUnregister;
 
     private float _defaultFov;
     private CancellationTokenSource _aimCts;
@@ -106,6 +107,7 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
     {
         weaponChangedUnregister = this.RegisterEvent<EventPlayerChangeWeapon>(OnWeaponChanged);
         recoilEventUnregister = this.RegisterEvent<EventWeaponRecoilApplied>(OnWeaponRecoilApplied);
+        recoilRecoverUnregister = this.RegisterEvent<EventFireRecoilRecover>(OnRestoreViewAfterFireStops);
         aimEventUnregister = this.RegisterEvent<EventFirearmAimChanged>(OnAimStateChanged);
     }
 
@@ -117,6 +119,8 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         weaponChangedUnregister = null;
         recoilEventUnregister?.UnRegister();
         recoilEventUnregister = null;
+        recoilRecoverUnregister?.UnRegister();
+        recoilRecoverUnregister = null;
         aimEventUnregister?.UnRegister();
         aimEventUnregister = null;
         _aimCts?.Cancel();
@@ -133,7 +137,7 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         GroundCheck();
         Look();
         TrackRecoilCompensation();
-        TryRestoreViewAfterFireStops();
+        
         Move();
         JumpAndGravity();
     }
@@ -207,11 +211,11 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         if (!recoilActive)
         {
             viewBeforeRecoil = new Vector2(_yaw, _pitch);
+            viewBeforeRecoilDuration = (currentWeapon.Config as SOFirearmConfig).recoilDuration;
             playerCounteringRecoil = false;
             recoilActive = true;
         }
 
-        lastRecoilEventTime = Time.time;
         ApplyRecoilToView(evt.RecoilStep);
     }
 
@@ -303,33 +307,56 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         }
     }
 
-    private void TryRestoreViewAfterFireStops()
+    private void OnRestoreViewAfterFireStops(EventFireRecoilRecover evt)
     {
         if (!recoilActive || _inputSys == null)
         {
             return;
         }
 
-        if (_inputSys.FireHold)
-        {
-            return;
-        }
-
-        if (Time.time - lastRecoilEventTime < Time.deltaTime)
-        {
-            return;
-        }
 
         if (!playerCounteringRecoil)
         {
-            _yaw = viewBeforeRecoil.x;
-            _pitch = Mathf.Clamp(viewBeforeRecoil.y, PitchClampMin, PitchClampMax);
-            ApplyViewRotation();
+            RestoreViewAfterFireStops().Forget();
         }
 
         recoilActive = false;
         playerCounteringRecoil = false;
     }
+
+    private async UniTask RestoreViewAfterFireStops()
+    {
+        float duration = viewBeforeRecoilDuration;
+        float time = 0f;
+
+        float startYaw = _yaw;
+        float startPitch = _pitch;
+
+        float targetYaw = viewBeforeRecoil.x;
+        float targetPitch = Mathf.Clamp(viewBeforeRecoil.y, PitchClampMin, PitchClampMax);
+
+        while (time < duration)
+        {
+            time += Time.deltaTime;
+            float t = time / duration;
+
+            // 缓动函数（可改成 SmoothStep / EaseOutQuad 等）
+            t = Mathf.SmoothStep(0f, 1f, t);
+
+            _yaw = Mathf.Lerp(startYaw, targetYaw, t);
+            _pitch = Mathf.Lerp(startPitch, targetPitch, t);
+
+            ApplyViewRotation();
+
+            await UniTask.Yield();  // 在下一帧继续
+        }
+
+        // 最终保证到达目标位置
+        _yaw = targetYaw;
+        _pitch = targetPitch;
+        ApplyViewRotation();
+    }
+
 
     // -------------------------
     // Jump / Gravity

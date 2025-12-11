@@ -30,6 +30,11 @@ public struct EventFirearmAimChanged
 
 }
 
+public struct EventFireRecoilRecover
+{
+    
+}
+
 
 public class FirearmWeapon :  WeaponBase
 {
@@ -52,6 +57,7 @@ public class FirearmWeapon :  WeaponBase
     private CancellationTokenSource aimTransitionCts;
     private bool isEquipped;
     private bool lastAimHold;
+    private bool lastFireHold;
     private EPlayerMoveState currentMoveState = EPlayerMoveState.Idle;
     private IUnRegister moveStateUnregister;
     private float firingSpread;
@@ -142,9 +148,15 @@ public class FirearmWeapon :  WeaponBase
             BeginAimTransition(aimHold);
         }
 
-        if (ShouldRecoverRecoil())
+        bool fireHold = inputSys.FireHold;
+        if(fireHold != lastFireHold)
         {
-            RecoverRecoil();
+            lastFireHold = fireHold;
+            if (!fireHold && !isBurstFiring)
+            {
+                RecoverRecoil();
+                this.SendEvent<EventFireRecoilRecover>();
+            }
         }
 
         RecoverSpread();
@@ -419,7 +431,11 @@ public class FirearmWeapon :  WeaponBase
         }
 
         dir = ApplySpreadToDirection(dir);
-        dir = ApplyRecoilToDirection(dir, recoilOffset);
+        //dir = ApplyRecoilToDirection(dir, recoilOffset);
+
+        cmdFireamFire.Init(fireRay.origin, dir);
+        this.SendCommand(cmdFireamFire);
+        nextFireTime = firearmConfig.fireRate > 0 ? Time.time + 1f / firearmConfig.fireRate : Time.time;
 
         if (recoilOffset != Vector2.zero)
         {
@@ -430,10 +446,6 @@ public class FirearmWeapon :  WeaponBase
                 RecoilStep = recoilOffset
             });
         }
-
-        cmdFireamFire.Init(fireRay.origin, dir);
-        this.SendCommand(cmdFireamFire);
-        nextFireTime = firearmConfig.fireRate > 0 ? Time.time + 1f / firearmConfig.fireRate : Time.time;
         IncreaseSpreadOnFire();
         //print($"Firearm Weapon {Config.WeaponName} {Config.WeaponType} Try Fire");
     }
@@ -533,22 +545,6 @@ public class FirearmWeapon :  WeaponBase
         firingSpread = Mathf.Max(0f, firingSpread - firearmConfig.spreadRecoveryRate * delta);
     }
 
-    private Vector3 ApplyRecoilToDirection(Vector3 baseDirection, Vector2 recoilOffset)
-    {
-        if (firearmConfig == null)
-        {
-            return baseDirection;
-        }
-
-        if (recoilOffset == Vector2.zero)
-        {
-            return baseDirection;
-        }
-
-        Quaternion recoilRotation = Quaternion.Euler(-recoilOffset.y, recoilOffset.x, 0f);
-        return recoilRotation * baseDirection;
-    }
-
     private Vector2 CalculateRecoilOffset()
     {
         
@@ -575,28 +571,6 @@ public class FirearmWeapon :  WeaponBase
     }
 
 
-   
-
-    private bool ShouldRecoverRecoil()
-    {
-        if (firearmConfig == null)
-        {
-            return false;
-        }
-
-        if (isBurstFiring)
-        {
-            return false;
-        }
-
-        if (inputSys != null && inputSys.FireHold)
-        {
-            return false;
-        }
-
-
-        return true;
-    }
 
     private void RecoverRecoil()
     {
@@ -605,14 +579,8 @@ public class FirearmWeapon :  WeaponBase
             recoilStepIndex = 0;
             return;
         }
-
-        //float recoverySpeed = firearmConfig.recoilRecoverySpeed;
-        //if (recoverySpeed <= 0f)
-        //{
-        //    return;
-        //}
-
       
+
 
         currentRecoilOffset = Vector2.zero;
 

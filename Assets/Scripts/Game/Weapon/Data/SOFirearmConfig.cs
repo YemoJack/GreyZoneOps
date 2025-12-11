@@ -96,7 +96,7 @@ public class SOFirearmConfig : SOWeaponConfigBase
     /// </summary>
     public Vector2 recoilMulRange = new Vector2(0.4f, 1.4f);
 
-    
+    public float recoilDuration = 0.2f;
 
 
     [Header("操作速度")]

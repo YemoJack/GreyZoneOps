@@ -6,7 +6,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using YooAsset;
 
-public class ResTestMain : MonoBehaviour,IController
+public class ResTestMain : MonoBehaviour, IController
 {
 
     public EPlayMode LaunchMode;
@@ -18,6 +18,7 @@ public class ResTestMain : MonoBehaviour,IController
     private void Start()
     {
         OnStart().Forget();
+        UIModule.Instance.Initialize();
     }
     async UniTask OnStart()
     {
@@ -25,7 +26,7 @@ public class ResTestMain : MonoBehaviour,IController
 
         var updatedRemote = await this.GetUtility<IResLoader>().UpdateRes((progress, desc) =>
         {
-           
+
         });
     }
 
@@ -39,6 +40,9 @@ public class ResTestMain : MonoBehaviour,IController
             {
                 Instantiate(prefab);
             });
+
+
+            UIModule.Instance.PopUpWindow<GameWindow>();
 
         }
     }

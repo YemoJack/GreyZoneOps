@@ -1,0 +1,259 @@
+{
+    "Summary": {
+        "YooVersion": "2.3.16",
+        "UnityVersion": "2022.3.56f1",
+        "BuildDate": "2025/12/14 21:15:10",
+        "BuildSeconds": 27,
+        "BuildTarget": 19,
+        "BuildPipeline": "ScriptableBuildPipeline",
+        "BuildBundleType": 2,
+        "BuildPackageName": "DefaultPackage",
+        "BuildPackageVersion": "2025-12-14-1274",
+        "BuildPackageNote": "2025/12/14 21:14:41",
+        "UniqueBundleName": false,
+        "EnableAddressable": true,
+        "SupportExtensionless": true,
+        "LocationToLower": false,
+        "IncludeAssetGUID": false,
+        "AutoCollectShaders": true,
+        "IgnoreRuleName": "YooAsset.Editor.NormalIgnoreRule",
+        "ClearBuildCacheFiles": false,
+        "UseAssetDependencyDB": false,
+        "EnableSharePackRule": true,
+        "SingleReferencedPackAlone": true,
+        "EncryptionServicesClassName": "YooAsset.Editor.EncryptionNone",
+        "ManifestProcessServicesClassName": "YooAsset.Editor.ManifestProcessNone",
+        "ManifestRestoreServicesClassName": "YooAsset.Editor.ManifestRestoreNone",
+        "FileNameStyle": 0,
+        "CompressOption": 2,
+        "DisableWriteTypeTree": false,
+        "IgnoreTypeTreeChanges": true,
+        "WriteLinkXML": true,
+        "CacheServerHost": "",
+        "CacheServerPort": 0,
+        "BuiltinShadersBundleName": "unityshaders.bundle",
+        "MonoScriptsBundleName": "",
+        "AssetFileTotalCount": 11,
+        "MainAssetTotalCount": 3,
+        "AllBundleTotalCount": 6,
+        "AllBundleTotalSize": 152004,
+        "EncryptedBundleTotalCount": 0,
+        "EncryptedBundleTotalSize": 0
+    },
+    "AssetInfos": [
+        {
+            "Address": "HitEff",
+            "AssetPath": "Assets/Art/Prefabs/Effect/HitEff.prefab",
+            "AssetGUID": "55d0ea124313af549a73df885bdc8b0f",
+            "AssetTags": [],
+            "MainBundleName": "assets_art_prefabs_effect_hiteff.bundle",
+            "MainBundleSize": 2882,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/Art/Shader/EffectShader.mat",
+                    "AssetGUID": "d961698a79d511946942f94b87ded3a7"
+                },
+                {
+                    "AssetPath": "Assets/Art/Shader/EffectShader.shadergraph",
+                    "AssetGUID": "638944df740a55a439cbf4bb1d627c78"
+                }
+            ],
+            "DependBundles": [
+                "share_assets_art_shader.bundle",
+                "unityshaders.bundle"
+            ]
+        },
+        {
+            "Address": "P_IMP_Concrete",
+            "AssetPath": "Assets/Art/Prefabs/Effect/ImpactEff/P_IMP_Concrete.prefab",
+            "AssetGUID": "5e02303289b3c494e8e185be0fbbd405",
+            "AssetTags": [],
+            "MainBundleName": "assets_art_prefabs_effect_impacteff_p_imp_concrete.bundle",
+            "MainBundleSize": 29975,
+            "DependAssets": [
+                {
+                    "AssetPath": "Assets/Art/Prefabs/Effect/ImpactEff/M_Concrete_Debris.mat",
+                    "AssetGUID": "a526e256d337dbf4288e13f1a96e4461"
+                },
+                {
+                    "AssetPath": "Assets/Art/Prefabs/Effect/ImpactEff/M_Impact_Concrete.mat",
+                    "AssetGUID": "7a8ad10c976a30848b75c4ba8d61ce62"
+                },
+                {
+                    "AssetPath": "Assets/Art/Prefabs/Effect/ImpactEff/M_Smoke.mat",
+                    "AssetGUID": "b1c68c048883aa04e98206611bbd70f7"
+                },
+                {
+                    "AssetPath": "Assets/Art/Prefabs/Effect/ImpactEff/T_Debris_Concrete_D.png",
+                    "AssetGUID": "b630af342144bed489dd1ad86bd423ef"
+                },
+                {
+                    "AssetPath": "Assets/Art/Prefabs/Effect/ImpactEff/T_Impact_Concrete_D.png",
+                    "AssetGUID": "e676fea0225b9c74f97851005f7cc31a"
+                },
+                {
+                    "AssetPath": "Assets/Art/Prefabs/Effect/ImpactEff/T_Smoke_01_D.png",
+                    "AssetGUID": "674087750461e8b488460fee85c245aa"
+                }
+            ],
+            "DependBundles": [
+                "share_assets_art_prefabs_effect_impacteff.bundle",
+                "unityshaders.bundle"
+            ]
+        },
+        {
+            "Address": "GameWindow",
+            "AssetPath": "Assets/Art/Prefabs/UI/GameWindow.prefab",
+            "AssetGUID": "f6944c67ca29b0f4c922642c24907195",
+            "AssetTags": [],
+            "MainBundleName": "assets_art_prefabs_ui_gamewindow.bundle",
+            "MainBundleSize": 11785,
+            "DependAssets": [],
+            "DependBundles": []
+        }
+    ],
+    "BundleInfos": [
+        {
+            "BundleName": "assets_art_prefabs_effect_hiteff.bundle",
+            "FileName": "ceb66f931a8419b107106a4e06c7b7b9.bundle",
+            "FileHash": "ceb66f931a8419b107106a4e06c7b7b9",
+            "FileCRC": 0,
+            "FileSize": 2882,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [
+                "share_assets_art_shader.bundle",
+                "unityshaders.bundle"
+            ],
+            "ReferenceBundles": [],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/Art/Prefabs/Effect/HitEff.prefab",
+                    "AssetGUID": "55d0ea124313af549a73df885bdc8b0f"
+                }
+            ]
+        },
+        {
+            "BundleName": "assets_art_prefabs_effect_impacteff_p_imp_concrete.bundle",
+            "FileName": "8691a7d7dc6c07b65cba40db579574a3.bundle",
+            "FileHash": "8691a7d7dc6c07b65cba40db579574a3",
+            "FileCRC": 0,
+            "FileSize": 29975,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [
+                "share_assets_art_prefabs_effect_impacteff.bundle",
+                "unityshaders.bundle"
+            ],
+            "ReferenceBundles": [],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/Art/Prefabs/Effect/ImpactEff/P_IMP_Concrete.prefab",
+                    "AssetGUID": "5e02303289b3c494e8e185be0fbbd405"
+                }
+            ]
+        },
+        {
+            "BundleName": "assets_art_prefabs_ui_gamewindow.bundle",
+            "FileName": "0827e6bb52d1d8d8bf04e8989a4deb16.bundle",
+            "FileHash": "0827e6bb52d1d8d8bf04e8989a4deb16",
+            "FileCRC": 0,
+            "FileSize": 11785,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [],
+            "ReferenceBundles": [],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/Art/Prefabs/UI/GameWindow.prefab",
+                    "AssetGUID": "f6944c67ca29b0f4c922642c24907195"
+                }
+            ]
+        },
+        {
+            "BundleName": "share_assets_art_prefabs_effect_impacteff.bundle",
+            "FileName": "9a8440aabe8b826404ae3b355885133b.bundle",
+            "FileHash": "9a8440aabe8b826404ae3b355885133b",
+            "FileCRC": 0,
+            "FileSize": 69674,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [
+                "unityshaders.bundle"
+            ],
+            "ReferenceBundles": [
+                "assets_art_prefabs_effect_impacteff_p_imp_concrete.bundle"
+            ],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/Art/Prefabs/Effect/ImpactEff/M_Concrete_Debris.mat",
+                    "AssetGUID": "a526e256d337dbf4288e13f1a96e4461"
+                },
+                {
+                    "AssetPath": "Assets/Art/Prefabs/Effect/ImpactEff/M_Impact_Concrete.mat",
+                    "AssetGUID": "7a8ad10c976a30848b75c4ba8d61ce62"
+                },
+                {
+                    "AssetPath": "Assets/Art/Prefabs/Effect/ImpactEff/M_Smoke.mat",
+                    "AssetGUID": "b1c68c048883aa04e98206611bbd70f7"
+                },
+                {
+                    "AssetPath": "Assets/Art/Prefabs/Effect/ImpactEff/T_Debris_Concrete_D.png",
+                    "AssetGUID": "b630af342144bed489dd1ad86bd423ef"
+                },
+                {
+                    "AssetPath": "Assets/Art/Prefabs/Effect/ImpactEff/T_Impact_Concrete_D.png",
+                    "AssetGUID": "e676fea0225b9c74f97851005f7cc31a"
+                },
+                {
+                    "AssetPath": "Assets/Art/Prefabs/Effect/ImpactEff/T_Smoke_01_D.png",
+                    "AssetGUID": "674087750461e8b488460fee85c245aa"
+                }
+            ]
+        },
+        {
+            "BundleName": "share_assets_art_shader.bundle",
+            "FileName": "a95ce5b1f102a7c8875c99d9443046a3.bundle",
+            "FileHash": "a95ce5b1f102a7c8875c99d9443046a3",
+            "FileCRC": 0,
+            "FileSize": 2365,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [
+                "unityshaders.bundle"
+            ],
+            "ReferenceBundles": [
+                "assets_art_prefabs_effect_hiteff.bundle"
+            ],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/Art/Shader/EffectShader.mat",
+                    "AssetGUID": "d961698a79d511946942f94b87ded3a7"
+                }
+            ]
+        },
+        {
+            "BundleName": "unityshaders.bundle",
+            "FileName": "0900a41aac4693d85184d23a7bacbf6e.bundle",
+            "FileHash": "0900a41aac4693d85184d23a7bacbf6e",
+            "FileCRC": 0,
+            "FileSize": 35323,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [],
+            "ReferenceBundles": [
+                "assets_art_prefabs_effect_hiteff.bundle",
+                "assets_art_prefabs_effect_impacteff_p_imp_concrete.bundle",
+                "share_assets_art_prefabs_effect_impacteff.bundle",
+                "share_assets_art_shader.bundle"
+            ],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/Art/Shader/EffectShader.shadergraph",
+                    "AssetGUID": "638944df740a55a439cbf4bb1d627c78"
+                }
+            ]
+        }
+    ],
+    "IndependAssets": []
+}

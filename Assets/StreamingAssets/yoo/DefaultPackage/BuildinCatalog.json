@@ -1,8 +1,12 @@
 {
     "FileVersion": "1.0.0",
     "PackageName": "DefaultPackage",
-    "PackageVersion": "2025-12-08-1174",
+    "PackageVersion": "2025-12-14-1274",
     "Wrappers": [
+        {
+            "BundleGUID": "0827e6bb52d1d8d8bf04e8989a4deb16",
+            "FileName": "0827e6bb52d1d8d8bf04e8989a4deb16.bundle"
+        },
         {
             "BundleGUID": "0900a41aac4693d85184d23a7bacbf6e",
             "FileName": "0900a41aac4693d85184d23a7bacbf6e.bundle"

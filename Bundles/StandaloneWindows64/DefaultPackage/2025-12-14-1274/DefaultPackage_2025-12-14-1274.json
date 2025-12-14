@@ -1,0 +1,117 @@
+{
+    "FileVersion": "2025.8.28",
+    "EnableAddressable": true,
+    "SupportExtensionless": true,
+    "LocationToLower": false,
+    "IncludeAssetGUID": false,
+    "OutputNameStyle": 0,
+    "BuildBundleType": 2,
+    "BuildPipeline": "ScriptableBuildPipeline",
+    "PackageName": "DefaultPackage",
+    "PackageVersion": "2025-12-14-1274",
+    "PackageNote": "2025/12/14 21:14:41",
+    "AssetList": [
+        {
+            "Address": "HitEff",
+            "AssetPath": "Assets/Art/Prefabs/Effect/HitEff.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 0,
+            "DependBundleIDs": [
+                4,
+                5
+            ]
+        },
+        {
+            "Address": "P_IMP_Concrete",
+            "AssetPath": "Assets/Art/Prefabs/Effect/ImpactEff/P_IMP_Concrete.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 1,
+            "DependBundleIDs": [
+                3,
+                5
+            ]
+        },
+        {
+            "Address": "GameWindow",
+            "AssetPath": "Assets/Art/Prefabs/UI/GameWindow.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 2,
+            "DependBundleIDs": []
+        }
+    ],
+    "BundleList": [
+        {
+            "BundleName": "assets_art_prefabs_effect_hiteff.bundle",
+            "UnityCRC": 1837013882,
+            "FileHash": "ceb66f931a8419b107106a4e06c7b7b9",
+            "FileCRC": 0,
+            "FileSize": 2882,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": [
+                4,
+                5
+            ]
+        },
+        {
+            "BundleName": "assets_art_prefabs_effect_impacteff_p_imp_concrete.bundle",
+            "UnityCRC": 347580180,
+            "FileHash": "8691a7d7dc6c07b65cba40db579574a3",
+            "FileCRC": 0,
+            "FileSize": 29975,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": [
+                3,
+                5
+            ]
+        },
+        {
+            "BundleName": "assets_art_prefabs_ui_gamewindow.bundle",
+            "UnityCRC": 2315702182,
+            "FileHash": "0827e6bb52d1d8d8bf04e8989a4deb16",
+            "FileCRC": 0,
+            "FileSize": 11785,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        },
+        {
+            "BundleName": "share_assets_art_prefabs_effect_impacteff.bundle",
+            "UnityCRC": 1914616650,
+            "FileHash": "9a8440aabe8b826404ae3b355885133b",
+            "FileCRC": 0,
+            "FileSize": 69674,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": [
+                5
+            ]
+        },
+        {
+            "BundleName": "share_assets_art_shader.bundle",
+            "UnityCRC": 3876230883,
+            "FileHash": "a95ce5b1f102a7c8875c99d9443046a3",
+            "FileCRC": 0,
+            "FileSize": 2365,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": [
+                5
+            ]
+        },
+        {
+            "BundleName": "unityshaders.bundle",
+            "UnityCRC": 3540942738,
+            "FileHash": "0900a41aac4693d85184d23a7bacbf6e",
+            "FileCRC": 0,
+            "FileSize": 35323,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        }
+    ]
+}

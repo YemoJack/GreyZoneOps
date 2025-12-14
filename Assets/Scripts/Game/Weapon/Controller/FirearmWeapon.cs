@@ -32,11 +32,11 @@ public struct EventFirearmAimChanged
 
 public struct EventFireRecoilRecover
 {
-    
+
 }
 
 
-public class FirearmWeapon :  WeaponBase
+public class FirearmWeapon : WeaponBase
 {
 
     public Transform FirePos;
@@ -149,7 +149,7 @@ public class FirearmWeapon :  WeaponBase
         }
 
         bool fireHold = inputSys.FireHold;
-        if(fireHold != lastFireHold)
+        if (fireHold != lastFireHold)
         {
             lastFireHold = fireHold;
             if (!fireHold && !isBurstFiring)
@@ -246,10 +246,10 @@ public class FirearmWeapon :  WeaponBase
     }
 
 
-    public override void OnHitTarget(RaycastHit hit,System.Object param = null)
+    public override void OnHitTarget(RaycastHit hit, System.Object param = null)
     {
         PlayImpactEffect(hit);
-       
+
         float t = 0;
         float dis = hit.distance;
         if (param is (float time, float distance))
@@ -261,7 +261,10 @@ public class FirearmWeapon :  WeaponBase
         var healthComponent = hit.collider.GetComponentInParent<HealthComponent>();
         if (healthComponent != null)
         {
-            healthComponent.ApplyDamage(Config is SOFirearmConfig firearmConfig ? firearmConfig.baseDamage : 0f);
+            float hitDamage = CalculateDamage(dis);
+            healthComponent.ApplyDamage(hitDamage);
+            Debug.Log($"Firearm Weapon {Config.WeaponName} {Config.WeaponType} Hit Target {hitDamage} \n time：{t} distance ：{dis}");
+
         }
 
         Debug.Log($"Firearm Weapon {Config.WeaponName} {Config.WeaponType} Hit Target \n time：{t} distance ：{dis}");
@@ -419,7 +422,7 @@ public class FirearmWeapon :  WeaponBase
 
     private void FireOneRound()
     {
-       
+
         Vector2 recoilOffset = CalculateRecoilOffset();
 
         var weaponSystem = this.GetSystem<WeaponSystem>();
@@ -547,7 +550,7 @@ public class FirearmWeapon :  WeaponBase
 
     private Vector2 CalculateRecoilOffset()
     {
-        
+
         if (firearmConfig.recoilPattern == null || firearmConfig.recoilPattern.Length == 0)
         {
             return currentRecoilOffset;
@@ -560,13 +563,13 @@ public class FirearmWeapon :  WeaponBase
         float controlMultiplier = Mathf.Lerp(firearmConfig.recoilMulRange.y, firearmConfig.recoilMulRange.x, controlFactor);
 
         patternStep.x *= horizontalRecoilMul;
-        patternStep.y *=verticalRecoilMul;
+        patternStep.y *= verticalRecoilMul;
         patternStep *= controlMultiplier;
 
         currentRecoilOffset = patternStep;
-       
+
         recoilStepIndex = Mathf.Min(recoilStepIndex + 1, firearmConfig.recoilPattern.Length - 1);
-       
+
         return currentRecoilOffset;
     }
 
@@ -579,7 +582,7 @@ public class FirearmWeapon :  WeaponBase
             recoilStepIndex = 0;
             return;
         }
-      
+
 
 
         currentRecoilOffset = Vector2.zero;
@@ -613,6 +616,33 @@ public class FirearmWeapon :  WeaponBase
         }
 
         isBurstFiring = false;
+    }
+
+    private float CalculateDamage(float distance)
+    {
+        if (firearmConfig == null)
+        {
+            return 0f;
+        }
+
+        float multiplier = 1f;
+        var falloff = firearmConfig.damageFalloff;
+        if (falloff != null && falloff.Count > 0)
+        {
+            for (int i = 0; i < falloff.Count; i++)
+            {
+                if (distance >= falloff[i].distance)
+                {
+                    multiplier = falloff[i].multiplier;
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
+        return Mathf.Max(0f, firearmConfig.baseDamage * multiplier);
     }
 
 }

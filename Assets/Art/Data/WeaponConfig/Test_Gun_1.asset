@@ -24,7 +24,7 @@ MonoBehaviour:
   bulletSpeed: 600
   GunshotRange: 200
   availableFireModes: -1
-  currentFireMode: 4
+  currentFireMode: 2
   magSize: 30
   zoomFactor: 1.25
   baseDamage: 30
@@ -46,6 +46,7 @@ MonoBehaviour:
   - {x: 1, y: 1}
   - {x: 1, y: 1}
   recoilMulRange: {x: 0.4, y: 1.4}
+  recoilDuration: 0.2
   reloadTime: 1.5
   aimTime: 0.5
   aimMoveSpeedMultiplier: 0.6

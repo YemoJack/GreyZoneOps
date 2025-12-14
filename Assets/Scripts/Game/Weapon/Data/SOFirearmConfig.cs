@@ -12,6 +12,14 @@ public enum FireMode
     Auto = 1 << 2, // 0100
 }
 
+[System.Serializable]
+public struct DamageFalloffEntry
+{
+    /// <summary>超过该距离时使用的伤害倍率</summary>
+    public float distance;
+    public float multiplier;
+}
+
 
 [CreateAssetMenu(fileName = "SOFirearmConfig", menuName = "WeaponConfig/SOFirearmConfig")]
 public class SOFirearmConfig : SOWeaponConfigBase
@@ -76,6 +84,14 @@ public class SOFirearmConfig : SOWeaponConfigBase
     ///  最大射程
     /// </summary>
     public float maxRange;
+
+    [Header("伤害衰减")]
+    /// <summary>距离-伤害倍率表（按距离升序配置）。例如 50 -> 0.8, 100 -> 0.4</summary>
+    public List<DamageFalloffEntry> damageFalloff = new List<DamageFalloffEntry>
+    {
+        new DamageFalloffEntry { distance = 50f, multiplier = 0.8f },
+        new DamageFalloffEntry { distance = 100f, multiplier = 0.4f }
+    };
 
 
     [Header("后坐力控制")]

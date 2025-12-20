@@ -9,7 +9,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2025/12/14 21:21:34",
+    "PackageNote": "2025/12/20 21:33:20",
     "AssetList": [
         {
             "Address": "HitEff",
@@ -33,6 +33,38 @@
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 2,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "InventoryCellView",
+            "AssetPath": "Assets/Art/Prefabs/UI/InventoryCellView.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 3,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "InventoryGridView",
+            "AssetPath": "Assets/Art/Prefabs/UI/InventoryGridView.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 4,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "InventoryItemView",
+            "AssetPath": "Assets/Art/Prefabs/UI/InventoryItemView.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 5,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "InventoryWindow",
+            "AssetPath": "Assets/Art/Prefabs/UI/InventoryWindow.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 6,
             "DependBundleIDs": []
         }
     ],
@@ -63,6 +95,46 @@
             "FileHash": "c305abc368acb2768d44af7f4d882938",
             "FileCRC": 0,
             "FileSize": 14373,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        },
+        {
+            "BundleName": "assets_art_prefabs_ui_inventorycellview.bundle",
+            "UnityCRC": 0,
+            "FileHash": "1ba061c286c6b970a26fb20b0360b4fc",
+            "FileCRC": 0,
+            "FileSize": 2646,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        },
+        {
+            "BundleName": "assets_art_prefabs_ui_inventorygridview.bundle",
+            "UnityCRC": 0,
+            "FileHash": "6f7825ca0b5841e4bb57ea310356a9a5",
+            "FileCRC": 0,
+            "FileSize": 6179,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        },
+        {
+            "BundleName": "assets_art_prefabs_ui_inventoryitemview.bundle",
+            "UnityCRC": 0,
+            "FileHash": "6b902af2ee09cd6401308ec0486bb299",
+            "FileCRC": 0,
+            "FileSize": 5037,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        },
+        {
+            "BundleName": "assets_art_prefabs_ui_inventorywindow.bundle",
+            "UnityCRC": 0,
+            "FileHash": "50501177804990d19f89592cf0dc8e7f",
+            "FileCRC": 0,
+            "FileSize": 26929,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

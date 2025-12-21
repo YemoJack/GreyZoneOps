@@ -16,6 +16,8 @@ public class InventoryGridView : MonoBehaviour
     private readonly List<InventoryCellView> cells = new();
     private readonly List<InventoryItemView> items = new();
     private InventoryGrid gridData;
+    public int GridWidth { get; private set; }
+    public int GridHeight { get; private set; }
 
     // 外部注入的交互委托
     public System.Func<Vector2Int, bool, bool> OnTryPlace; // pos, rotated -> success
@@ -26,6 +28,8 @@ public class InventoryGridView : MonoBehaviour
     {
         containerType = type;
         gridData = grid;
+        GridWidth = grid.Width;
+        GridHeight = grid.Height;
         BuildCells(grid.Width, grid.Height);
         RenderItems(grid);
     }
@@ -63,7 +67,7 @@ public class InventoryGridView : MonoBehaviour
         foreach (var placement in grid.GetAllPlacements())
         {
             var view = GetItemView();
-            view.SetupGrid(layout, cellRoot, itemRoot, grid.Width, grid.Height);
+            view.SetupGrid(layout, cellRoot, itemRoot, grid.Width, grid.Height, this);
             view.Bind(placement);
             view.SetDragCallbacks(
                 onBegin: () => OnTryTake?.Invoke(placement.Pos) ?? false,

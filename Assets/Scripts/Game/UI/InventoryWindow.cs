@@ -21,6 +21,8 @@ public class InventoryWindow : WindowBase, IController
 	private InventorySystem inventorySystem;
 
 	private ItemInstance draggingItem;
+	private InventoryContainerType draggingOriginType;
+	private ItemPlacement draggingOriginPlacement;
 	private IUnRegister inventoryChangedUnreg;
 
 	#region 声明周期函数
@@ -125,11 +127,24 @@ public class InventoryWindow : WindowBase, IController
 	{
 		// 已经有拖拽物，避免重复拿取
 		if (draggingItem != null) return false;
-		if (inventorySystem.TryTakeItemAt(type, pos, out var item))
+		var grid = inventorySystem.GetGrid(type);
+		if (grid == null) return false;
+
+		var itemAt = grid.GetItemAt(pos);
+		if (itemAt == null) return false;
+
+		// 记录原始位置，便于放置失败回滚
+		draggingOriginPlacement = grid.GetPlacement(itemAt);
+		draggingOriginType = type;
+
+		if (inventorySystem.TryTakeItemAt(type, pos, out var item, notify: false))
 		{
 			draggingItem = item;
+			Debug.Log($"draggingItem {draggingItem.Definition.Id}");
 			return true;
 		}
+
+		draggingOriginPlacement = null;
 		return false;
 	}
 
@@ -137,13 +152,33 @@ public class InventoryWindow : WindowBase, IController
 	{
 		if (draggingItem == null) return false;
 
-		// 尝试指定格放置，失败则尝试自动放置
-		if (inventorySystem.TryPlaceItem(type, draggingItem, pos, rotated) ||
-			inventorySystem.TryAutoPlace(type, draggingItem))
+		var placed = false;
+		if (pos.x >= 0 && pos.y >= 0)
+		{
+			placed = inventorySystem.TryPlaceItem(type, draggingItem, pos, rotated);
+		}
+
+		if (placed)
 		{
 			draggingItem = null;
+			draggingOriginPlacement = null;
 			return true;
 		}
+
+		// 放置失败时回滚到原位置
+		if (draggingOriginPlacement != null)
+		{
+			inventorySystem.TryPlaceItem(
+				draggingOriginType,
+				draggingItem,
+				draggingOriginPlacement.Pos,
+				draggingOriginPlacement.Rotated);
+			draggingOriginPlacement = null;
+		}
+
+		draggingItem = null;
+		if (placed)
+			return true;
 
 		return false;
 	}

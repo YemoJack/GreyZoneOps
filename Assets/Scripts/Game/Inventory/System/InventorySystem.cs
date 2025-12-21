@@ -82,22 +82,24 @@ public class InventorySystem : AbstractSystem
 
     public bool TryRemoveItem(
         InventoryContainerType type,
-        ItemInstance item)
+        ItemInstance item,
+        bool notify = true)
     {
         var grid = _model.Grids[type];
         var removed = grid.Remove(item);
-        if (removed) NotifyChanged();
+        if (removed && notify) NotifyChanged();
         return removed;
     }
 
     public bool TryTakeItemAt(
         InventoryContainerType type,
         Vector2Int pos,
-        out ItemInstance item)
+        out ItemInstance item,
+        bool notify = true)
     {
         var grid = _model.Grids[type];
         var taken = grid.TryTakeAt(pos, out item);
-        if (taken) NotifyChanged();
+        if (taken && notify) NotifyChanged();
         return taken;
     }
 

@@ -8,7 +8,7 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
 {
     public Image icon;
     public Text countText;
-    public CanvasGroup canvasGroup;
+    private CanvasGroup canvasGroup;
 
     private RectTransform rect;
     private RectTransform gridRect;
@@ -16,6 +16,8 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
     private GridLayoutGroup layout;
     private int gridWidth;
     private int gridHeight;
+    private InventoryGridView ownerGrid;
+    private InventoryGridView currentTargetGrid;
 
     private ItemPlacement placement;
     private System.Func<bool> onBegin;
@@ -23,11 +25,17 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
     private bool rotated => placement.Rotated;
     private bool dragging;
     private Vector2Int cellSpan = Vector2Int.one;
+    private Transform originalParent;
+    private Vector2 originalAnchoredPos;
+    private Canvas rootCanvas;
+    private RectTransform canvasRect;
+    private Camera canvasCamera;
+    private Vector2 pointerOffset = Vector2.zero;
 
     private void Awake()
     {
         rect = transform as RectTransform;
-        if (canvasGroup == null) canvasGroup = GetComponent<CanvasGroup>();
+        canvasGroup = GetComponent<CanvasGroup>();
     }
 
     public void SetupGrid(
@@ -35,11 +43,13 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         RectTransform gridSpace,
         RectTransform itemParent,
         int width,
-        int height)
+        int height,
+        InventoryGridView owner)
     {
         layout = gridLayout;
         gridRect = gridSpace;
         itemRoot = itemParent;
+        ownerGrid = owner;
         if (itemRoot != null && rect != null && rect.parent != itemRoot)
         {
             rect.SetParent(itemRoot, worldPositionStays: false);
@@ -67,21 +77,39 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         if (onBegin != null && !onBegin.Invoke())
             return;
 
+        originalParent = rect.parent;
+        originalAnchoredPos = rect.anchoredPosition;
+        currentTargetGrid = null;
+        rootCanvas = GetComponentInParent<Canvas>();
+        canvasRect = rootCanvas != null ? rootCanvas.transform as RectTransform : null;
+        canvasCamera = (rootCanvas != null && rootCanvas.renderMode != RenderMode.ScreenSpaceOverlay)
+            ? rootCanvas.worldCamera
+            : null;
+
+        // 把拖拽物提升到最顶层，避免被其他容器遮挡
+        if (rootCanvas != null)
+        {
+            rect.SetParent(rootCanvas.transform, worldPositionStays: true);
+            rect.SetAsLastSibling();
+        }
+
         dragging = true;
         if (canvasGroup != null)
         {
             canvasGroup.blocksRaycasts = false;
             canvasGroup.alpha = 0.8f;
         }
+        Debug.Log($"Item {placement.Item.InstanceId} OnBeginDrag startPos{placement.Pos}");
+
+        // 初始时就让物品中心对齐指针
+        pointerOffset = CalculatePointerOffset(e);
+        UpdatePositionToPointer(e);
     }
 
     public void OnDrag(PointerEventData e)
     {
         if (!dragging) return;
-        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(gridRect, e.position, e.pressEventCamera, out var localPoint))
-        {
-            rect.anchoredPosition = localPoint;
-        }
+        UpdatePositionToPointer(e);
     }
 
     public void OnEndDrag(PointerEventData e)
@@ -94,8 +122,50 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
             canvasGroup.alpha = 1f;
         }
 
-        var gridPos = ScreenToCell(e.position, e.pressEventCamera);
-        onDrop?.Invoke(gridPos, rotated);
+        var gridPos = ScreenToCell(e.position, e.pressEventCamera, out var targetGrid);
+        var target = targetGrid ?? ownerGrid;
+        var placed = false;
+        if (target != null && target.OnTryPlace != null && gridPos.x >= 0 && gridPos.y >= 0)
+        {
+            placed = target.OnTryPlace(gridPos, rotated);
+        }
+        else if (onDrop != null)
+        {
+            placed = onDrop.Invoke(gridPos, rotated);
+        }
+        Debug.Log($"Item {placement.Item.InstanceId} OnEndDrag endPos {gridPos} placed:{placed} target:{target?.name}");
+
+        // 恢复父节点，具体位置会在后续刷新时由绑定更新
+        var targetParent = itemRoot != null ? (Transform)itemRoot : originalParent;
+        if (targetParent != null)
+        {
+            rect.SetParent(targetParent, worldPositionStays: false);
+            rect.anchoredPosition = originalAnchoredPos;
+        }
+    }
+
+    private void UpdatePositionToPointer(PointerEventData e)
+    {
+        var targetRect = canvasRect != null ? canvasRect : gridRect;
+        var cam = canvasCamera != null ? canvasCamera : e.pressEventCamera;
+        if (targetRect == null) return;
+
+        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(targetRect, e.position, cam, out var localPoint))
+        {
+            rect.localPosition = localPoint + pointerOffset;
+        }
+    }
+
+    /// <summary>计算当前鼠标位置与物品中心的偏移，保证拖拽时中心对齐。</summary>
+    private Vector2 CalculatePointerOffset(PointerEventData e)
+    {
+        // 直接用尺寸与 pivot 计算中心相对左上角的偏移
+        var size = rect.rect.size;
+        var pivot = rect.pivot;
+        // 当 pivot 为(0.5,0.5)时偏移为0，否则根据 pivot 计算中心偏移
+        return new Vector2(
+            -size.x * (0.5f - pivot.x),
+            -size.y * (0.5f - pivot.y));
     }
 
     private void SetSize(Vector2Int size, bool isRotated)
@@ -140,28 +210,67 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         return new Vector2(x, y);
     }
 
-    private Vector2Int ScreenToCell(Vector2 screenPos, Camera cam)
+    private Vector2Int ScreenToCell(Vector2 screenPos, Camera cam, out InventoryGridView targetGrid)
     {
-        if (layout == null || gridRect == null) return new Vector2Int(-1, -1);
-
-        if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(gridRect, screenPos, cam, out var localPoint))
+        // 优先命中指针下的网格；如果未命中则使用原所属网格
+        currentTargetGrid = FindGridViewUnderPointer(screenPos, cam) ?? ownerGrid;
+        targetGrid = currentTargetGrid;
+        if (targetGrid == null || targetGrid.layout == null || targetGrid.cellRoot == null)
             return new Vector2Int(-1, -1);
 
-        var padding = layout.padding;
-        var cell = layout.cellSize;
-        var spacing = layout.spacing;
+        var targetRect = targetGrid.cellRoot;
+        var targetLayout = targetGrid.layout;
 
-        float localX = localPoint.x - padding.left;
-        float localY = -(localPoint.y) - padding.top;
+        if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(targetRect, screenPos, cam, out var localPoint))
+            return new Vector2Int(-1, -1);
 
-        if (localX < 0 || localY < 0) return new Vector2Int(-1, -1);
+        var padding = targetLayout.padding;
+        var cell = targetLayout.cellSize;
+        var spacing = targetLayout.spacing;
+        var size = targetRect.rect.size;
+        var pivot = targetRect.pivot;
 
-        int x = Mathf.FloorToInt(localX / (cell.x + spacing.x));
-        int y = Mathf.FloorToInt(localY / (cell.y + spacing.y));
+        // 将以 pivot 为原点的坐标，转换为以左上角为原点的坐标系
+        float originX = localPoint.x + size.x * pivot.x;
+        float originY = -localPoint.y + size.y * (1f - pivot.y);
 
-        if (x < 0 || y < 0 || x >= gridWidth || y >= gridHeight)
+        // 指针在物品中心，将中心换算成左上角起点
+        float width = cell.x * cellSpan.x + spacing.x * Mathf.Max(0, cellSpan.x - 1);
+        float height = cell.y * cellSpan.y + spacing.y * Mathf.Max(0, cellSpan.y - 1);
+
+        float localX = originX - padding.left - width * 0.5f;
+        float localY = originY - padding.top - height * 0.5f;
+
+        float stepX = cell.x + spacing.x;
+        float stepY = cell.y + spacing.y;
+
+        // 将指针位置映射到距离左上角最近的格子（四舍五入而非向下取整）
+        int x = Mathf.RoundToInt(localX / stepX);
+        int y = Mathf.RoundToInt(localY / stepY);
+
+        // 确保剩余空间足够放下该物品
+        if (x < 0 || y < 0 || x > targetGrid.GridWidth - cellSpan.x || y > targetGrid.GridHeight - cellSpan.y)
             return new Vector2Int(-1, -1);
 
         return new Vector2Int(x, y);
+    }
+
+    private InventoryGridView FindGridViewUnderPointer(Vector2 screenPos, Camera cam)
+    {
+        var results = new System.Collections.Generic.List<RaycastResult>();
+        var es = EventSystem.current;
+        if (es == null) return null;
+
+        var eventData = new PointerEventData(es)
+        {
+            position = screenPos
+        };
+        es.RaycastAll(eventData, results);
+        foreach (var r in results)
+        {
+            var gv = r.gameObject.GetComponentInParent<InventoryGridView>();
+            if (gv != null) return gv;
+        }
+        return null;
     }
 }

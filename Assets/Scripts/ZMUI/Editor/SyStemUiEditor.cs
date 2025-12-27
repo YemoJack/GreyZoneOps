@@ -26,22 +26,22 @@ public class SyStemUiEditor : Editor
                     text.raycastTarget = false;
                 }
             }
-            else if (obj.name.Contains("Image"))
-            {
-                Image image = obj.GetComponent<Image>();
-                if (image != null)
-                {
-                    image.raycastTarget = false;
-                }
-                else
-                {
-                    RawImage rawImage = obj.GetComponent<RawImage>();
-                    if (rawImage != null)
-                    {
-                        rawImage.raycastTarget = false;
-                    }
-                }
-            }
+            // else if (obj.name.Contains("Image"))
+            // {
+            //     Image image = obj.GetComponent<Image>();
+            //     if (image != null)
+            //     {
+            //         image.raycastTarget = false;
+            //     }
+            //     else
+            //     {
+            //         RawImage rawImage = obj.GetComponent<RawImage>();
+            //         if (rawImage != null)
+            //         {
+            //             rawImage.raycastTarget = false;
+            //         }
+            //     }
+            // }
 
         }
     }

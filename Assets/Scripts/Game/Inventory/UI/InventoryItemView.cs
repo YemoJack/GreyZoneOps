@@ -14,9 +14,7 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
     private RectTransform gridRect;
     private RectTransform itemRoot;
     private GridLayoutGroup layout;
-    private int gridWidth;
-    private int gridHeight;
-    private InventoryGridView ownerGrid;
+
     private InventoryGridView currentTargetGrid;
 
     private ItemPlacement placement;
@@ -41,21 +39,16 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
     public void SetupGrid(
         GridLayoutGroup gridLayout,
         RectTransform gridSpace,
-        RectTransform itemParent,
-        int width,
-        int height,
-        InventoryGridView owner)
+        RectTransform itemParent)
     {
         layout = gridLayout;
         gridRect = gridSpace;
         itemRoot = itemParent;
-        ownerGrid = owner;
         if (itemRoot != null && rect != null && rect.parent != itemRoot)
         {
             rect.SetParent(itemRoot, worldPositionStays: false);
         }
-        gridWidth = width;
-        gridHeight = height;
+
     }
 
     public void Bind(ItemPlacement p)
@@ -123,7 +116,14 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         }
 
         var gridPos = ScreenToCell(e.position, e.pressEventCamera, out var targetGrid);
-        var target = targetGrid ?? ownerGrid;
+        var isOutside = targetGrid == null;
+        if (isOutside)
+        {
+            // 特殊标记：完全拖出任何网格，交由上层判定为丢弃
+            gridPos = new Vector2Int(int.MinValue, int.MinValue);
+        }
+
+        var target = targetGrid;
         var placed = false;
         if (target != null && target.OnTryPlace != null && gridPos.x >= 0 && gridPos.y >= 0)
         {
@@ -131,6 +131,7 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         }
         else if (onDrop != null)
         {
+            // targetGrid 为空视为丢弃，传递 (-1,-1) 让上层决定如何处理
             placed = onDrop.Invoke(gridPos, rotated);
         }
         Debug.Log($"Item {placement.Item.InstanceId} OnEndDrag endPos {gridPos} placed:{placed} target:{target?.name}");
@@ -212,8 +213,8 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
 
     private Vector2Int ScreenToCell(Vector2 screenPos, Camera cam, out InventoryGridView targetGrid)
     {
-        // 优先命中指针下的网格；如果未命中则使用原所属网格
-        currentTargetGrid = FindGridViewUnderPointer(screenPos, cam) ?? ownerGrid;
+        // 优先命中指针下的网格；未命中则视为拖出网格（丢弃）
+        currentTargetGrid = FindGridViewUnderPointer(screenPos, cam);
         targetGrid = currentTargetGrid;
         if (targetGrid == null || targetGrid.layout == null || targetGrid.cellRoot == null)
             return new Vector2Int(-1, -1);

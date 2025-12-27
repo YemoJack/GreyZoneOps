@@ -67,7 +67,7 @@ public class InventoryGridView : MonoBehaviour
         foreach (var placement in grid.GetAllPlacements())
         {
             var view = GetItemView();
-            view.SetupGrid(layout, cellRoot, itemRoot, grid.Width, grid.Height, this);
+            view.SetupGrid(layout, cellRoot, itemRoot);
             view.Bind(placement);
             view.SetDragCallbacks(
                 onBegin: () => OnTryTake?.Invoke(placement.Pos) ?? false,

@@ -10,7 +10,7 @@ using UnityEngine;
 using ZMUIFrameWork;
 using QFramework;
 
-public class InventoryWindow : WindowBase, IController
+public class InventoryWindow : WindowBase, IController, ICanSendEvent
 {
 	public InventoryWindowDataComponent dataCompt;
 
@@ -151,6 +151,31 @@ public class InventoryWindow : WindowBase, IController
 	private bool HandleTryPlace(InventoryContainerType type, Vector2Int pos, bool rotated)
 	{
 		if (draggingItem == null) return false;
+
+		// int.MinValue 标记：完全拖出网格，丢弃
+		if (pos.x == int.MinValue || pos.y == int.MinValue)
+		{
+			draggingItem = null;
+			draggingOriginPlacement = null;
+			this.SendEvent(new InventoryChangedEvent());
+			return true;
+		}
+
+		// 负数但非最小值：表示有网格命中但位置非法，回滚
+		if (pos.x < 0 || pos.y < 0)
+		{
+			if (draggingOriginPlacement != null)
+			{
+				inventorySystem.TryPlaceItem(
+					draggingOriginType,
+					draggingItem,
+					draggingOriginPlacement.Pos,
+					draggingOriginPlacement.Rotated);
+				draggingOriginPlacement = null;
+			}
+			draggingItem = null;
+			return false;
+		}
 
 		var placed = false;
 		if (pos.x >= 0 && pos.y >= 0)

@@ -21,7 +21,8 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 	private InventorySystem inventorySystem;
 
 	private ItemInstance draggingItem;
-	private InventoryContainerType draggingOriginType;
+	private string draggingOriginId;
+	private int draggingOriginPartIndex;
 	private ItemPlacement draggingOriginPlacement;
 	private IUnRegister inventoryChangedUnreg;
 
@@ -88,16 +89,18 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 
 	private void BindGridCallbacks()
 	{
-		if (dataCompt?.PlayerBagInventoryGridView != null)
+		if (dataCompt?.PlayerBagContainerView != null)
 		{
-			dataCompt.PlayerBagInventoryGridView.OnTryTake = pos => HandleTryTake(playerContainer, pos);
-			dataCompt.PlayerBagInventoryGridView.OnTryPlace = (pos, rotated) => HandleTryPlace(playerContainer, pos, rotated);
+			dataCompt.PlayerBagContainerView.BindCallbacks(
+				(containerId, part, pos) => HandleTryTake(containerId, part, pos),
+				(containerId, part, pos, rotated) => HandleTryPlace(containerId, part, pos, rotated));
 		}
 
-		if (dataCompt?.ContainerInventoryGridView != null)
+		if (dataCompt?.BoxContainerView != null)
 		{
-			dataCompt.ContainerInventoryGridView.OnTryTake = pos => HandleTryTake(interactContainer, pos);
-			dataCompt.ContainerInventoryGridView.OnTryPlace = (pos, rotated) => HandleTryPlace(interactContainer, pos, rotated);
+			dataCompt.BoxContainerView.BindCallbacks(
+				(containerId, part, pos) => HandleTryTake(containerId, part, pos),
+				(containerId, part, pos, rotated) => HandleTryPlace(containerId, part, pos, rotated));
 		}
 	}
 
@@ -109,25 +112,24 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 
 	private void RefreshPlayer()
 	{
-		if (inventorySystem == null || dataCompt?.PlayerBagInventoryGridView == null) return;
-		var grid = inventorySystem.GetGrid(playerContainer);
-		if (grid != null)
-			dataCompt.PlayerBagInventoryGridView.Render(playerContainer, grid);
+		if (inventorySystem == null || dataCompt?.PlayerBagContainerView == null) return;
+		dataCompt.PlayerBagContainerView.RenderAll();
+		//this.GetModel<InventoryModel>().Containers[InventoryContainerType.Backpack] = dataCompt.PlayerBagContainerView.container;
+
 	}
 
 	private void RefreshInteract()
 	{
-		if (inventorySystem == null || dataCompt?.ContainerInventoryGridView == null) return;
-		var grid = inventorySystem.GetGrid(interactContainer);
-		if (grid != null)
-			dataCompt.ContainerInventoryGridView.Render(interactContainer, grid);
+		if (inventorySystem == null || dataCompt?.BoxContainerView == null) return;
+		dataCompt.BoxContainerView.RenderAll();
+
 	}
 
-	private bool HandleTryTake(InventoryContainerType type, Vector2Int pos)
+	private bool HandleTryTake(string id, int partIndex, Vector2Int pos)
 	{
 		// 已经有拖拽物，避免重复拿取
 		if (draggingItem != null) return false;
-		var grid = inventorySystem.GetGrid(type);
+		var grid = inventorySystem.GetGrid(id, partIndex);
 		if (grid == null) return false;
 
 		var itemAt = grid.GetItemAt(pos);
@@ -135,9 +137,10 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 
 		// 记录原始位置，便于放置失败回滚
 		draggingOriginPlacement = grid.GetPlacement(itemAt);
-		draggingOriginType = type;
+		draggingOriginId = id;
+		draggingOriginPartIndex = partIndex;
 
-		if (inventorySystem.TryTakeItemAt(type, pos, out var item, notify: false))
+		if (inventorySystem.TryTakeItemAt(id, pos, out var item, notify: false, partIndex: partIndex))
 		{
 			draggingItem = item;
 			Debug.Log($"draggingItem {draggingItem.Definition.Id}");
@@ -148,7 +151,7 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 		return false;
 	}
 
-	private bool HandleTryPlace(InventoryContainerType type, Vector2Int pos, bool rotated)
+	private bool HandleTryPlace(string id, int partIndex, Vector2Int pos, bool rotated)
 	{
 		if (draggingItem == null) return false;
 
@@ -167,10 +170,11 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 			if (draggingOriginPlacement != null)
 			{
 				inventorySystem.TryPlaceItem(
-					draggingOriginType,
+					draggingOriginId,
 					draggingItem,
 					draggingOriginPlacement.Pos,
-					draggingOriginPlacement.Rotated);
+					draggingOriginPlacement.Rotated,
+					partIndex: draggingOriginPartIndex);
 				draggingOriginPlacement = null;
 			}
 			draggingItem = null;
@@ -180,7 +184,7 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 		var placed = false;
 		if (pos.x >= 0 && pos.y >= 0)
 		{
-			placed = inventorySystem.TryPlaceItem(type, draggingItem, pos, rotated);
+			placed = inventorySystem.TryPlaceItem(id, draggingItem, pos, rotated, partIndex);
 		}
 
 		if (placed)
@@ -194,10 +198,11 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 		if (draggingOriginPlacement != null)
 		{
 			inventorySystem.TryPlaceItem(
-				draggingOriginType,
+				draggingOriginId,
 				draggingItem,
 				draggingOriginPlacement.Pos,
-				draggingOriginPlacement.Rotated);
+				draggingOriginPlacement.Rotated,
+				partIndex: draggingOriginPartIndex);
 			draggingOriginPlacement = null;
 		}
 

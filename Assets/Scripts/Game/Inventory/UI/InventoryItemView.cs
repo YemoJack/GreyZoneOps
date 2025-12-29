@@ -127,7 +127,7 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         var placed = false;
         if (target != null && target.OnTryPlace != null && gridPos.x >= 0 && gridPos.y >= 0)
         {
-            placed = target.OnTryPlace(gridPos, rotated);
+            placed = target.OnTryPlace(target.partIndex, gridPos, rotated);
         }
         else if (onDrop != null)
         {

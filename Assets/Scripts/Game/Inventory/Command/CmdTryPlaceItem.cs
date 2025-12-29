@@ -6,18 +6,18 @@ using QFramework;
 
 public class CmdTryPlaceItem : AbstractCommand
 {
-    private InventoryContainerType _type;
+    private string _id;
     private ItemInstance _item;
     private Vector2Int _pos;
     private bool _rotated;
 
     public CmdTryPlaceItem(
-        InventoryContainerType type,
+        string id,
         ItemInstance item,
         Vector2Int pos,
         bool rotated)
     {
-        _type = type;
+        _id = id;
         _item = item;
         _pos = pos;
         _rotated = rotated;
@@ -26,7 +26,7 @@ public class CmdTryPlaceItem : AbstractCommand
     protected override void OnExecute()
     {
         var system = this.GetSystem<InventorySystem>();
-        if (system.TryPlaceItem(_type, _item, _pos, _rotated))
+        if (system.TryPlaceItem(_id, _item, _pos, _rotated))
         {
             this.SendEvent(new InventoryChangedEvent());
         }

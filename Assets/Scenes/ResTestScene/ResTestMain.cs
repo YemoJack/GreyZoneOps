@@ -28,6 +28,8 @@ public class ResTestMain : MonoBehaviour, IController
         {
 
         });
+
+        (GameArchitecture.Interface as GameArchitecture).Registor();
     }
 
 

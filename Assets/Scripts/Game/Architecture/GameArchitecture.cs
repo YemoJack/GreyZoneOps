@@ -6,6 +6,13 @@ public class GameArchitecture : Architecture<GameArchitecture>
     {
         // 注册 Utilities
         RegisterUtility<IResLoader>(new ResLoaderYoo());
+
+
+    }
+
+
+    public void Registor()
+    {
         var gameLoop = new SystemUpdateScheduler();
         RegisterUtility(gameLoop);
         RegisterUtility<IGameLoop>(gameLoop);
@@ -13,7 +20,7 @@ public class GameArchitecture : Architecture<GameArchitecture>
 
         // 注册 Models
         RegisterModel(new WeaponInventoryModel());
-        RegisterModel(new InventoryModel());
+        RegisterModel(new InventoryContainerModel());
 
         // 注册 Systems
         RegisterSystem(new InputSys());
@@ -21,6 +28,5 @@ public class GameArchitecture : Architecture<GameArchitecture>
         RegisterSystem(new WeaponSystem());
         RegisterSystem(new BulletManager());
         RegisterSystem(new InventorySystem());
-
     }
 }

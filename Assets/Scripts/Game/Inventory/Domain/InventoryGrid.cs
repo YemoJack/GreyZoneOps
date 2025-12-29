@@ -18,6 +18,14 @@ public sealed class InventoryGrid
         _cells = new ItemInstance[width, height];
     }
 
+    public InventoryGrid(Vector2Int size)
+    {
+        Width = size.x;
+        Height = size.y;
+        _cells = new ItemInstance[size.x, size.y];
+    }
+
+
     #region --- Query ---
 
     public ItemPlacement GetPlacement(ItemInstance item)

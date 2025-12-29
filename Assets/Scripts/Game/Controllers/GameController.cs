@@ -18,23 +18,20 @@ public class GameController : MonoBehaviour, IController
     // Start is called before the first frame update
     void Awake()
     {
-        updateScheduler = this.GetUtility<IGameLoop>();
-    }
-
-
-    private void Start()
-    {
         OnInitRes().Forget();
 
     }
+
+
     async UniTask OnInitRes()
     {
         await this.GetUtility<IResLoader>().InitLoader(LaunchMode);
 
-        // var updatedRemote = await this.GetUtility<IResLoader>().UpdateRes((progress, desc) =>
-        // {
 
-        // });
+
+        (GameArchitecture.Interface as GameArchitecture).Registor();
+
+        updateScheduler = this.GetUtility<IGameLoop>();
         UIModule.Instance.Initialize();
         UIModule.Instance.PopUpWindow<GameWindow>();
 

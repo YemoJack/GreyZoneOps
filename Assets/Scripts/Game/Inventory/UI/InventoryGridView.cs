@@ -5,11 +5,16 @@ using UnityEngine.UI;
 
 public class InventoryGridView : MonoBehaviour
 {
+    private RectTransform rectTrans;
+
     [Header("Grid")]
     public RectTransform cellRoot;          // 格子父节点（挂 GridLayoutGroup）
     public RectTransform itemRoot;          // 物品父节点（与格子对齐）
     public GridLayoutGroup layout;          // 设定 cell 大小/间距
-    public InventoryContainerType containerType;
+
+    [Tooltip("容器内的第几个分格（0开始）。")]
+    public int partIndex = 0;
+
     public GameObject cellPrefab;
     public GameObject itemPrefab;
 
@@ -19,19 +24,29 @@ public class InventoryGridView : MonoBehaviour
     public int GridWidth { get; private set; }
     public int GridHeight { get; private set; }
 
-    // 外部注入的交互委托
-    public System.Func<Vector2Int, bool, bool> OnTryPlace; // pos, rotated -> success
-    public System.Func<Vector2Int, bool> OnTryTake;        // pos -> success
-    public System.Action<Vector2Int> OnHover;              // 可用于高亮
+    // 外部注入的交互委托（带分格索引）
+    public System.Func<int, Vector2Int, bool, bool> OnTryPlace; // partIndex, pos, rotated -> success
+    public System.Func<int, Vector2Int, bool> OnTryTake;        // partIndex, pos -> success
+    public System.Action<Vector2Int> OnHover;                   // 可用于高亮
 
-    public void Render(InventoryContainerType type, InventoryGrid grid)
+    public void Render(InventoryGrid grid)
     {
-        containerType = type;
+        rectTrans = transform as RectTransform;
+
         gridData = grid;
         GridWidth = grid.Width;
         GridHeight = grid.Height;
+        ChangeGridBGSize(grid.Width, grid.Height);
         BuildCells(grid.Width, grid.Height);
         RenderItems(grid);
+    }
+
+    private void ChangeGridBGSize(int w, int h)
+    {
+        if (rectTrans == null || layout == null) return;
+        rectTrans.sizeDelta = new Vector2(
+            w * layout.cellSize.x + layout.padding.left * 2,
+            h * layout.cellSize.y + layout.padding.top * 2);
     }
 
     private void BuildCells(int w, int h)
@@ -70,15 +85,15 @@ public class InventoryGridView : MonoBehaviour
             view.SetupGrid(layout, cellRoot, itemRoot);
             view.Bind(placement);
             view.SetDragCallbacks(
-                onBegin: () => OnTryTake?.Invoke(placement.Pos) ?? false,
-                onDrop: (pos, rotated) => OnTryPlace?.Invoke(pos, rotated) ?? false
+                onBegin: () => OnTryTake?.Invoke(partIndex, placement.Pos) ?? false,
+                onDrop: (pos, rotated) => OnTryPlace?.Invoke(partIndex, pos, rotated) ?? false
             );
         }
     }
 
     private void OnCellClick(Vector2Int pos)
     {
-        OnTryTake?.Invoke(pos);
+        OnTryTake?.Invoke(partIndex, pos);
         Debug.Log($"Click Cell pos :{pos}");
     }
 
@@ -108,3 +123,4 @@ public class InventoryGridView : MonoBehaviour
         items.Clear();
     }
 }
+

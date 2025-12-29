@@ -13,7 +13,7 @@ public struct InventoryChangedEvent
 
 public class InventorySystem : AbstractSystem
 {
-    private InventoryModel _model;
+    private InventoryContainerModel _model;
 
     private void NotifyChanged()
     {
@@ -22,45 +22,97 @@ public class InventorySystem : AbstractSystem
 
     protected override void OnInit()
     {
-        _model = this.GetModel<InventoryModel>();
+        _model = this.GetModel<InventoryContainerModel>();
     }
 
-    public InventoryGrid GetGrid(InventoryContainerType type)
-        => _model.Grids.TryGetValue(type, out var grid) ? grid : null;
+
+
+    public InventoryContainer GetContainer(string id)
+        => _model.Containers.TryGetValue(id, out var c) ? c : null;
+
+    public InventoryGrid GetGrid(string id, int partIndex = 0)
+    {
+        return GetContainer(id)?.GetGrid(partIndex);
+    }
+
+    private IEnumerable<InventoryGrid> GetCandidateGrids(string id, int partIndex)
+    {
+        var container = GetContainer(id);
+        if (container == null) yield break;
+
+        if (partIndex >= 0)
+        {
+            var g = container.GetGrid(partIndex);
+            if (g != null) yield return g;
+        }
+        else
+        {
+            foreach (var g in container.PartGrids)
+                yield return g;
+        }
+    }
 
     public bool TryPlaceItem(
-        InventoryContainerType type,
+        string id,
         ItemInstance item,
         Vector2Int pos,
-        bool rotated)
+        bool rotated,
+        int partIndex = -1)
     {
-        var grid = _model.Grids[type];
-
         // 这里可以加战斗中限制、容器规则等
-        var placed = grid.PlaceOrStack(item, pos, rotated);
-        if (placed) NotifyChanged();
-        return placed;
+        foreach (var grid in GetCandidateGrids(id, partIndex))
+        {
+            var placed = grid.PlaceOrStack(item, pos, rotated);
+            if (placed)
+            {
+                NotifyChanged();
+                return true;
+            }
+        }
+        return false;
     }
 
     public bool TryMoveItem(
-        InventoryContainerType type,
+        string id,
         ItemInstance item,
         Vector2Int pos,
-        bool rotated)
+        bool rotated,
+        int partIndex = -1)
     {
-        var moved = _model.Grids[type].Move(item, pos, rotated);
+        var container = GetContainer(id);
+        if (container == null) return false;
+
+        // 若未指定分格，则根据 item 所在分格移动
+        if (partIndex < 0)
+        {
+            for (int i = 0; i < container.PartGrids.Count; i++)
+            {
+                var g = container.PartGrids[i];
+                if (g.GetPlacement(item) != null)
+                {
+                    partIndex = i;
+                    break;
+                }
+            }
+        }
+
+        var grid = GetGrid(id, partIndex);
+        if (grid == null) return false;
+
+        var moved = grid.Move(item, pos, rotated);
         if (moved) NotifyChanged();
         return moved;
     }
 
     public bool TryAutoPlace(
-        InventoryContainerType type,
-        ItemInstance item)
+        string id,
+        ItemInstance item,
+        int partIndex = -1)
     {
-        var grid = _model.Grids[type];
+        var grids = GetCandidateGrids(id, partIndex);
 
         // 优先向现有堆叠补充
-        if (TryStackExisting(grid, item))
+        if (TryStackExisting(grids, item))
         {
             if (item.Count <= 0)
             {
@@ -70,48 +122,73 @@ public class InventorySystem : AbstractSystem
             }
         }
 
-        if (grid.TryFindSpaceAuto(item, out var pos, out var rotated))
+        foreach (var grid in GetCandidateGrids(id, partIndex))
         {
-            var placed = grid.Place(item, pos, rotated);
-            if (placed) NotifyChanged();
-            return placed;
+            if (grid.TryFindSpaceAuto(item, out var pos, out var rotated))
+            {
+                var placed = grid.Place(item, pos, rotated);
+                if (placed)
+                {
+                    NotifyChanged();
+                    return true;
+                }
+            }
         }
 
         return false;
     }
 
     public bool TryRemoveItem(
-        InventoryContainerType type,
+        string id,
         ItemInstance item,
-        bool notify = true)
+        bool notify = true,
+        int partIndex = -1)
     {
-        var grid = _model.Grids[type];
-        var removed = grid.Remove(item);
-        if (removed && notify) NotifyChanged();
-        return removed;
+        foreach (var grid in GetCandidateGrids(id, partIndex))
+        {
+            if (grid.GetPlacement(item) != null && grid.Remove(item))
+            {
+                if (notify) NotifyChanged();
+                return true;
+            }
+        }
+        return false;
     }
 
     public bool TryTakeItemAt(
-        InventoryContainerType type,
+        string id,
         Vector2Int pos,
         out ItemInstance item,
-        bool notify = true)
+        bool notify = true,
+        int partIndex = -1)
     {
-        var grid = _model.Grids[type];
-        var taken = grid.TryTakeAt(pos, out item);
-        if (taken && notify) NotifyChanged();
-        return taken;
+        foreach (var grid in GetCandidateGrids(id, partIndex))
+        {
+            var taken = grid.TryTakeAt(pos, out item);
+            if (taken)
+            {
+                if (notify) NotifyChanged();
+                return true;
+            }
+        }
+
+        item = null;
+        return false;
     }
 
-    private bool TryStackExisting(InventoryGrid grid, ItemInstance item)
+    private bool TryStackExisting(IEnumerable<InventoryGrid> grids, ItemInstance item)
     {
         var changed = false;
-        foreach (var placement in grid.GetAllPlacements())
+        foreach (var grid in grids)
         {
-            if (!placement.Item.CanStackWith(item)) continue;
-            var moved = item.Count - placement.Item.AddToStack(item.Count);
-            item.Count -= moved;
-            if (moved > 0) changed = true;
+            foreach (var placement in grid.GetAllPlacements())
+            {
+                if (!placement.Item.CanStackWith(item)) continue;
+                var moved = item.Count - placement.Item.AddToStack(item.Count);
+                item.Count -= moved;
+                if (moved > 0) changed = true;
+                if (item.Count <= 0) break;
+            }
             if (item.Count <= 0) break;
         }
         if (changed) NotifyChanged();

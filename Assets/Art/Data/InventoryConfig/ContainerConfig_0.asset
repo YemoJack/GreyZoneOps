@@ -10,8 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 965792b8aca47ba49bad19ffaf15d6ef, type: 3}
-  m_Name: SOInventoryContainerConfig
+  m_Name: ContainerConfig_0
   m_EditorClassIdentifier: 
+  mapId: 0
   containerConfigs:
   - containerId: 100
     containerName: testBag
@@ -27,3 +28,15 @@ MonoBehaviour:
     partGridDatas:
     - partIndex: 0
       Size: {x: 5, y: 5}
+  - containerId: 102
+    containerName: testChest
+    containerType: 1
+    partGridDatas:
+    - partIndex: 0
+      Size: {x: 5, y: 4}
+  - containerId: 103
+    containerName: testBackpack
+    containerType: 0
+    partGridDatas:
+    - partIndex: 0
+      Size: {x: 5, y: 4}

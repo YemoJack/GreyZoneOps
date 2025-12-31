@@ -14,9 +14,6 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 {
 	public InventoryWindowDataComponent dataCompt;
 
-	[Header("容器类型")]
-	public InventoryContainerType playerContainer = InventoryContainerType.Backpack;
-	public InventoryContainerType interactContainer = InventoryContainerType.LootBox;
 
 	private InventorySystem inventorySystem;
 
@@ -89,9 +86,9 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 
 	private void BindGridCallbacks()
 	{
-		if (dataCompt?.PlayerBagContainerView != null)
+		if (dataCompt?.PlayerInventoryPlayerInventoryView != null)
 		{
-			dataCompt.PlayerBagContainerView.BindCallbacks(
+			dataCompt.PlayerInventoryPlayerInventoryView.BindCallbacks(
 				(containerId, part, pos) => HandleTryTake(containerId, part, pos),
 				(containerId, part, pos, rotated) => HandleTryPlace(containerId, part, pos, rotated));
 		}
@@ -112,9 +109,8 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 
 	private void RefreshPlayer()
 	{
-		if (inventorySystem == null || dataCompt?.PlayerBagContainerView == null) return;
-		dataCompt.PlayerBagContainerView.RenderAll();
-		//this.GetModel<InventoryModel>().Containers[InventoryContainerType.Backpack] = dataCompt.PlayerBagContainerView.container;
+		if (inventorySystem == null || dataCompt?.PlayerInventoryPlayerInventoryView == null) return;
+		dataCompt.PlayerInventoryPlayerInventoryView.RenderAll();
 
 	}
 

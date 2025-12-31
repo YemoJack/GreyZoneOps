@@ -20,13 +20,13 @@ public class InventoryContainerModel : AbstractModel
     {
         Containers = new Dictionary<string, InventoryContainer>();
 
-        LoadContainerConfig();
+        LoadContainerConfig(0);
     }
 
 
-    public void LoadContainerConfig()
+    public void LoadContainerConfig(int mapId)
     {
-        SOInventoryContainerConfig config = this.GetUtility<IResLoader>().LoadSync<SOInventoryContainerConfig>("SOInventoryContainerConfig");
+        SOInventoryContainerConfig config = this.GetUtility<IResLoader>().LoadSync<SOInventoryContainerConfig>($"ContainerConfig_{mapId}");
         if (config != null)
         {
             foreach (var container in config.containerConfigs)

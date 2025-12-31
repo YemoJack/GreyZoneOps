@@ -25,5 +25,6 @@ public class ContainerConfig
 [CreateAssetMenu(fileName = "SOInventoryContainerConfig", menuName = "InventoryConfig/InventoryContainerConfig")]
 public class SOInventoryContainerConfig : ScriptableObject
 {
+    public int mapId;
     public List<ContainerConfig> containerConfigs = new List<ContainerConfig>();
 }

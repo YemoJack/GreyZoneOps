@@ -128,7 +128,7 @@ MonoBehaviour:
   cellRoot: {fileID: 1918540713125885112}
   itemRoot: {fileID: 2951400627923607291}
   layout: {fileID: 6486474655566702384}
-  containerType: 0
+  partIndex: 0
   cellPrefab: {fileID: 6472474653157131044, guid: 1197ab14074c273448c6d474c402f42b,
     type: 3}
   itemPrefab: {fileID: 1381848891684723868, guid: 5c648c6d797345649b559d8a973b25f4,
@@ -183,9 +183,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Padding:
-    m_Left: 25
+    m_Left: 5
     m_Right: 0
-    m_Top: 25
+    m_Top: 5
     m_Bottom: 0
   m_ChildAlignment: 0
   m_StartCorner: 0

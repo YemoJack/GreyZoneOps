@@ -39,4 +39,4 @@ MonoBehaviour:
     containerType: 0
     partGridDatas:
     - partIndex: 0
-      Size: {x: 5, y: 4}
+      Size: {x: 6, y: 7}

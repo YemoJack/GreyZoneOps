@@ -9,7 +9,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2025/12/31 17:09:56",
+    "PackageNote": "2026/1/6 15:51:49",
     "AssetList": [
         {
             "Address": "ContainerConfig_0",
@@ -234,7 +234,7 @@
             "UnityCRC": 0,
             "FileHash": "d39c54db4261bdfcf4c1f416196917cf",
             "FileCRC": 0,
-            "FileSize": 10173,
+            "FileSize": 8332,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -264,7 +264,7 @@
             "UnityCRC": 0,
             "FileHash": "4363b0d06040c1b85bc61d0e1112b252",
             "FileCRC": 0,
-            "FileSize": 10177,
+            "FileSize": 8326,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -284,7 +284,7 @@
             "UnityCRC": 0,
             "FileHash": "83ddac79d39dfa210149f521c808467c",
             "FileCRC": 0,
-            "FileSize": 6170,
+            "FileSize": 6164,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -304,7 +304,7 @@
             "UnityCRC": 0,
             "FileHash": "2bd75968216fe4e8f80d50269e535eae",
             "FileCRC": 0,
-            "FileSize": 15640,
+            "FileSize": 13426,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -314,7 +314,7 @@
             "UnityCRC": 0,
             "FileHash": "50501177804990d19f89592cf0dc8e7f",
             "FileCRC": 0,
-            "FileSize": 81581,
+            "FileSize": 90505,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

@@ -14,7 +14,6 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 {
 	public InventoryWindowDataComponent dataCompt;
 
-
 	private InventorySystem inventorySystem;
 
 	private ItemInstance draggingItem;
@@ -41,6 +40,8 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 	public override void OnShow()
 	{
 		base.OnShow();
+		InitPlayerInventory();
+		InitSceneContainer();
 		BindGridCallbacks();
 		RegisterInventoryEvents();
 		RefreshAll();
@@ -84,6 +85,22 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 		inventoryChangedUnreg = null;
 	}
 
+	private void InitPlayerInventory()
+	{
+		if (dataCompt?.PlayerInventoryPlayerInventoryView != null)
+		{
+			dataCompt.PlayerInventoryPlayerInventoryView.InitPlayerInventory();
+		}
+	}
+
+	private void InitSceneContainer()
+	{
+		if (dataCompt?.SceneInventorySceneContainerView != null)
+		{
+			dataCompt?.SceneInventorySceneContainerView.InitSceneContainer();
+		}
+	}
+
 	private void BindGridCallbacks()
 	{
 		if (dataCompt?.PlayerInventoryPlayerInventoryView != null)
@@ -93,9 +110,15 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 				(containerId, part, pos, rotated) => HandleTryPlace(containerId, part, pos, rotated));
 		}
 
-		if (dataCompt?.BoxContainerView != null)
+		if (dataCompt?.SceneInventorySceneContainerView != null)
 		{
-			dataCompt.BoxContainerView.BindCallbacks(
+			dataCompt?.SceneInventorySceneContainerView.BindCallbacks(
+				(containerId, part, pos) => HandleTryTake(containerId, part, pos),
+				(containerId, part, pos, rotated) => HandleTryPlace(containerId, part, pos, rotated));
+		}
+		else if (dataCompt?.SceneInventorySceneContainerView != null)
+		{
+			dataCompt.SceneInventorySceneContainerView.BindCallbacks(
 				(containerId, part, pos) => HandleTryTake(containerId, part, pos),
 				(containerId, part, pos, rotated) => HandleTryPlace(containerId, part, pos, rotated));
 		}
@@ -116,8 +139,14 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 
 	private void RefreshInteract()
 	{
-		if (inventorySystem == null || dataCompt?.BoxContainerView == null) return;
-		dataCompt.BoxContainerView.RenderAll();
+		if (inventorySystem == null) return;
+		if (dataCompt?.SceneInventorySceneContainerView != null)
+		{
+			dataCompt?.SceneInventorySceneContainerView.RenderAll();
+			return;
+		}
+		if (dataCompt?.SceneInventorySceneContainerView == null) return;
+		dataCompt.SceneInventorySceneContainerView.RenderAll();
 
 	}
 

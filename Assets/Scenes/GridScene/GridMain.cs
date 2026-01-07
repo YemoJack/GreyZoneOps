@@ -36,7 +36,7 @@ public class GridMain : MonoBehaviour, IController
 
     }
 
-    string id = "102";
+    string id = "1";
 
 
     private void Update()

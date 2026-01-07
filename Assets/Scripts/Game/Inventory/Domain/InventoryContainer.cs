@@ -5,6 +5,8 @@ using UnityEngine;
 public class InventoryContainer
 {
     public string InstanceId;
+
+    public string ContainerName;
     public InventoryContainerType Type;
     public readonly List<InventoryGrid> PartGrids = new List<InventoryGrid>();
 

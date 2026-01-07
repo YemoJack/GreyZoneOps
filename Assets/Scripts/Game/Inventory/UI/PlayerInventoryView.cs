@@ -5,8 +5,55 @@ using UnityEngine;
 
 public class PlayerInventoryView : MonoBehaviour, IController
 {
-    public ContainerView chest;
-    public ContainerView backpack;
+
+
+    public RectTransform chestRoot;
+    public RectTransform backpackRoot;
+
+    private ContainerView chest;
+    private ContainerView backpack;
+
+    public void InitPlayerInventory()
+    {
+        var model = this.GetModel<InventoryContainerModel>();
+        if (model == null) return;
+
+        if (chest == null)
+        {
+            chest = CreateContainerView(
+                model.GetPlayerContainerName(InventoryContainerType.ChestRig),
+                chestRoot);
+        }
+        if (backpack == null)
+        {
+            backpack = CreateContainerView(
+                model.GetPlayerContainerName(InventoryContainerType.Backpack),
+                backpackRoot);
+        }
+
+        if (chest != null)
+        {
+            chest.containerId = model.GetPlayerContainerId(InventoryContainerType.ChestRig);
+
+            chestRoot.sizeDelta = new Vector2(chestRoot.sizeDelta.x, (chest.transform as RectTransform).sizeDelta.y + 10f);
+        }
+        if (backpack != null)
+        {
+            backpack.containerId = model.GetPlayerContainerId(InventoryContainerType.Backpack);
+
+            backpackRoot.sizeDelta = new Vector2(backpackRoot.sizeDelta.x, (backpack.transform as RectTransform).sizeDelta.y + 10f);
+        }
+    }
+
+    private ContainerView CreateContainerView(string containerName, RectTransform root)
+    {
+        if (string.IsNullOrEmpty(containerName) || root == null) return null;
+        var prefab = this.GetUtility<IResLoader>().LoadSync<GameObject>(containerName);
+        if (prefab == null) return null;
+        Transform rootObj = root.GetChild("Root");
+        var instance = Instantiate(prefab, rootObj);
+        return instance.GetComponent<ContainerView>();
+    }
 
 
     public void BindCallbacks(System.Func<string, int, Vector2Int, bool> tryTake,

@@ -9,7 +9,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/1/6 15:51:49",
+    "PackageNote": "2026/1/7 21:07:42",
     "AssetList": [
         {
             "Address": "ContainerConfig_0",
@@ -86,6 +86,14 @@
         {
             "Address": "Item_44",
             "AssetPath": "Assets/Art/Data/InventoryConfig/Item_44.asset",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 0,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "PlayerContainerConfig",
+            "AssetPath": "Assets/Art/Data/InventoryConfig/PlayerContainerConfig.asset",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 0,
@@ -194,7 +202,7 @@
             "UnityCRC": 0,
             "FileHash": "3f6cf7c1dfd4f024dad533de8070359c",
             "FileCRC": 0,
-            "FileSize": 5309,
+            "FileSize": 5729,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -304,7 +312,7 @@
             "UnityCRC": 0,
             "FileHash": "2bd75968216fe4e8f80d50269e535eae",
             "FileCRC": 0,
-            "FileSize": 13426,
+            "FileSize": 13427,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -314,7 +322,7 @@
             "UnityCRC": 0,
             "FileHash": "50501177804990d19f89592cf0dc8e7f",
             "FileCRC": 0,
-            "FileSize": 90505,
+            "FileSize": 78450,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

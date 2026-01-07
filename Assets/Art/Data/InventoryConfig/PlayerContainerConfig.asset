@@ -9,22 +9,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 965792b8aca47ba49bad19ffaf15d6ef, type: 3}
-  m_Name: ContainerConfig_0
+  m_Script: {fileID: 11500000, guid: 22831cf4ac628ce4b9019f0f49512e6b, type: 3}
+  m_Name: PlayerContainerConfig
   m_EditorClassIdentifier: 
-  mapId: 0
   containerConfigs:
-  - containerId: 101
-    containerName: Box1
-    containerType: 3
+  - containerId: 1
+    containerName: Chest1
+    containerType: 1
     partGridDatas:
     - partIndex: 0
-      Size: {x: 5, y: 5}
-  - containerId: 102
-    containerName: PlayerBag1
+      Size: {x: 5, y: 4}
+  - containerId: 2
+    containerName: Backpack1
     containerType: 0
     partGridDatas:
     - partIndex: 0
-      Size: {x: 6, y: 4}
-    - partIndex: 1
-      Size: {x: 6, y: 3}
+      Size: {x: 6, y: 7}

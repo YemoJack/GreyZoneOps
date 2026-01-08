@@ -9,7 +9,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/1/8 18:02:31",
+    "PackageNote": "2026/1/8 20:06:22",
     "AssetList": [
         {
             "Address": "ContainerConfig_0",
@@ -322,7 +322,7 @@
             "UnityCRC": 0,
             "FileHash": "50501177804990d19f89592cf0dc8e7f",
             "FileCRC": 0,
-            "FileSize": 78450,
+            "FileSize": 95277,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

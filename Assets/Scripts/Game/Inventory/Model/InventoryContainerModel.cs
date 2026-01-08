@@ -4,6 +4,7 @@ using UnityEngine;
 
 public enum InventoryContainerType
 {
+    Pocket,
     Backpack,
     ChestRig,
     Stash,

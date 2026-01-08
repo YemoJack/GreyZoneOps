@@ -7,11 +7,14 @@ public class PlayerInventoryView : MonoBehaviour, IController
 {
 
 
+    private Transform pocketRoot;
     public RectTransform chestRoot;
     public RectTransform backpackRoot;
 
     private ContainerView chest;
     private ContainerView backpack;
+
+    private ContainerView pocket;
 
     public void InitPlayerInventory()
     {
@@ -43,6 +46,12 @@ public class PlayerInventoryView : MonoBehaviour, IController
 
             backpackRoot.sizeDelta = new Vector2(backpackRoot.sizeDelta.x, (backpack.transform as RectTransform).sizeDelta.y + 10f);
         }
+
+        pocketRoot = transform.GetChild("Pocket");
+        pocket = pocketRoot?.GetComponent<ContainerView>();
+        if (pocket != null)
+            pocket.containerId = model.GetPlayerContainerId(InventoryContainerType.Pocket);
+
     }
 
     private ContainerView CreateContainerView(string containerName, RectTransform root)
@@ -67,6 +76,10 @@ public class PlayerInventoryView : MonoBehaviour, IController
         {
             backpack.BindCallbacks(tryTake, tryPlace);
         }
+        if (pocket != null)
+        {
+            pocket.BindCallbacks(tryTake, tryPlace);
+        }
 
     }
 
@@ -81,6 +94,10 @@ public class PlayerInventoryView : MonoBehaviour, IController
         if (backpack != null)
         {
             backpack.RenderAll();
+        }
+        if (pocket != null)
+        {
+            pocket.RenderAll();
         }
     }
 

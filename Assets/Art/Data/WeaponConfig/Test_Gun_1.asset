@@ -20,7 +20,7 @@ MonoBehaviour:
   runSpeedMultiplier: 0.9
   impactEffect: {fileID: 1067471869909948, guid: 5e02303289b3c494e8e185be0fbbd405,
     type: 3}
-  fireRate: 6
+  fireRate: 10
   bulletSpeed: 600
   GunshotRange: 200
   availableFireModes: -1

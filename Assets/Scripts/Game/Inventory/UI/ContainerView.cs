@@ -7,6 +7,7 @@ using UnityEngine;
 /// </summary>
 public class ContainerView : MonoBehaviour, IController
 {
+    [HideInInspector]
     public string containerId;
     public InventoryContainer container;
 

@@ -3,10 +3,11 @@ using UnityEngine;
 public enum ItemCategory
 {
     Weapon,
+    helmet,
+    Armor,
     Ammo,
     Medical,
-    Material,
-    Quest
+    Collection
 }
 
 

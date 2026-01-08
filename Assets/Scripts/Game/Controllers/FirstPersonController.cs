@@ -68,6 +68,12 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
 
     private void Start()
     {
+        this.RegisterEvent<EventPlayerInit>(OnInit).UnRegisterWhenGameObjectDestroyed(this);
+    }
+
+
+    private void OnInit(EventPlayerInit e)
+    {
         _inputSys = this.GetSystem<InputSys>();
         _weaponSystem = this.GetSystem<WeaponSystem>();
         _controller = GetComponent<CharacterController>();
@@ -111,7 +117,7 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         aimEventUnregister = this.RegisterEvent<EventFirearmAimChanged>(OnAimStateChanged);
     }
 
-    
+
 
     private void OnDisable()
     {
@@ -134,10 +140,15 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
 
     private void Update()
     {
+        if (_inputSys == null)
+        {
+            return;
+        }
+
         GroundCheck();
         Look();
         TrackRecoilCompensation();
-        
+
         Move();
         JumpAndGravity();
     }
@@ -263,7 +274,7 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
             _moveSpeed = MoveSpeed * (evt.Weapon.Config as SOFirearmConfig).aimMoveSpeedMultiplier;
             _sprintSpeed = _moveSpeed;
         }
-        else if(!evt.Aiming) 
+        else if (!evt.Aiming)
         {
             _moveSpeed = evt.Weapon.Config.moveSpeedMultiplier * MoveSpeed;
             _sprintSpeed = evt.Weapon.Config.runSpeedMultiplier * SprintSpeed;

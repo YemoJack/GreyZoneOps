@@ -6,43 +6,46 @@ using YooAsset;
 using Cysharp.Threading.Tasks;
 
 
-public class GameController : MonoBehaviour, IController
+public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
 {
     private IGameLoop updateScheduler;
 
     public EPlayMode LaunchMode;
 
 
-
-
-    // Start is called before the first frame update
-    void Awake()
+    private void Awake()
     {
-        OnInitRes().Forget();
+        UIModule.Instance.Initialize();
+        OnStart().Forget();
 
     }
 
-
-    async UniTask OnInitRes()
+    async UniTask OnStart()
     {
         await this.GetUtility<IResLoader>().InitLoader(LaunchMode);
-
-
 
         (GameArchitecture.Interface as GameArchitecture).Registor();
 
         updateScheduler = this.GetUtility<IGameLoop>();
+
+        this.GetSystem<PlayerSystem>().InitPlayerSystem();
+
+
         UIModule.Instance.Initialize();
         UIModule.Instance.PopUpWindow<GameWindow>();
 
+        this.SendEvent<EventPlayerInit>(new EventPlayerInit());
+
     }
+
 
 
 
     // Update is called once per frame
     void Update()
     {
-        updateScheduler.Tick(Time.deltaTime);
+        if (updateScheduler != null)
+            updateScheduler.Tick(Time.deltaTime);
     }
 
     public IArchitecture GetArchitecture()

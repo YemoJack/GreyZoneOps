@@ -23,7 +23,7 @@ public enum EPlayerMoveState
 }
 
 
-public partial class PlayerSystem : AbstractSystem, IUpdateSystem,ICanSendCommand
+public partial class PlayerSystem : AbstractSystem, IUpdateSystem, ICanSendCommand
 
 {
     private WeaponSystem weaponSystem;
@@ -35,6 +35,11 @@ public partial class PlayerSystem : AbstractSystem, IUpdateSystem,ICanSendComman
 
     protected override void OnInit()
     {
+
+    }
+
+    public void InitPlayerSystem()
+    {
         weaponSystem = this.GetSystem<WeaponSystem>();
         inputSys = this.GetSystem<InputSys>();
 
@@ -43,10 +48,12 @@ public partial class PlayerSystem : AbstractSystem, IUpdateSystem,ICanSendComman
         initialized = true;
     }
 
+
     public void OnUpdate(float deltaTime)
     {
         if (!initialized)
         {
+
             return;
         }
 

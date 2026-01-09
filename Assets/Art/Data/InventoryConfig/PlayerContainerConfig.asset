@@ -15,13 +15,27 @@ MonoBehaviour:
   containerConfigs:
   - containerId: 1
     containerName: Chest1
-    containerType: 1
+    containerType: 2
     partGridDatas:
     - partIndex: 0
       Size: {x: 5, y: 4}
   - containerId: 2
     containerName: Backpack1
-    containerType: 0
+    containerType: 1
     partGridDatas:
     - partIndex: 0
       Size: {x: 6, y: 7}
+  - containerId: 3
+    containerName: Pocket
+    containerType: 0
+    partGridDatas:
+    - partIndex: 0
+      Size: {x: 1, y: 1}
+    - partIndex: 1
+      Size: {x: 1, y: 1}
+    - partIndex: 2
+      Size: {x: 1, y: 1}
+    - partIndex: 3
+      Size: {x: 1, y: 1}
+    - partIndex: 4
+      Size: {x: 1, y: 1}

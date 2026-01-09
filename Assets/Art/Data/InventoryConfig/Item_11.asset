@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Item_11
   m_EditorClassIdentifier: 
   Id: 1
-  Name: 
+  Name: 11
   Size: {x: 1, y: 1}
   MaxStack: 1
   CanRotate: 0
-  Category: 2
+  Category: 0

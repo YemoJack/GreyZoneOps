@@ -9,7 +9,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/1/8 20:06:22",
+    "PackageNote": "2026/1/9 21:19:22",
     "AssetList": [
         {
             "Address": "ContainerConfig_0",
@@ -164,11 +164,19 @@
             "DependBundleIDs": []
         },
         {
+            "Address": "EquipSlotView",
+            "AssetPath": "Assets/Art/Prefabs/UI/Inventory/EquipSlotView.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 9,
+            "DependBundleIDs": []
+        },
+        {
             "Address": "GridView",
             "AssetPath": "Assets/Art/Prefabs/UI/Inventory/GridView.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 9,
+            "BundleID": 10,
             "DependBundleIDs": []
         },
         {
@@ -176,7 +184,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/Inventory/ItemView.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 10,
+            "BundleID": 11,
             "DependBundleIDs": []
         },
         {
@@ -184,7 +192,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/Inventory/PlayerBag1.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 11,
+            "BundleID": 12,
             "DependBundleIDs": []
         },
         {
@@ -192,7 +200,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/InventoryWindow.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 12,
+            "BundleID": 13,
             "DependBundleIDs": []
         }
     ],
@@ -202,7 +210,7 @@
             "UnityCRC": 0,
             "FileHash": "3f6cf7c1dfd4f024dad533de8070359c",
             "FileCRC": 0,
-            "FileSize": 5729,
+            "FileSize": 6038,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -288,6 +296,16 @@
             "DependBundleIDs": []
         },
         {
+            "BundleName": "assets_art_prefabs_ui_inventory_equipslotview.bundle",
+            "UnityCRC": 0,
+            "FileHash": "913b43ade11d4ef907fb38a183a10d38",
+            "FileCRC": 0,
+            "FileSize": 5223,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        },
+        {
             "BundleName": "assets_art_prefabs_ui_inventory_gridview.bundle",
             "UnityCRC": 0,
             "FileHash": "83ddac79d39dfa210149f521c808467c",
@@ -322,7 +340,7 @@
             "UnityCRC": 0,
             "FileHash": "50501177804990d19f89592cf0dc8e7f",
             "FileCRC": 0,
-            "FileSize": 95277,
+            "FileSize": 114337,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

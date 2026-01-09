@@ -20,6 +20,7 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 	private string draggingOriginId;
 	private int draggingOriginPartIndex;
 	private ItemPlacement draggingOriginPlacement;
+	private EquipmentSlotType? draggingOriginEquipSlot;
 	private IUnRegister inventoryChangedUnreg;
 
 	#region 声明周期函数
@@ -101,14 +102,23 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 		}
 	}
 
+
+
 	private void BindGridCallbacks()
 	{
 		if (dataCompt?.PlayerInventoryPlayerInventoryView != null)
 		{
 			dataCompt.PlayerInventoryPlayerInventoryView.BindCallbacks(
 				(containerId, part, pos) => HandleTryTake(containerId, part, pos),
-				(containerId, part, pos, rotated) => HandleTryPlace(containerId, part, pos, rotated));
+				(containerId, part, pos, rotated) => HandleTryPlace(containerId, part, pos, rotated),
+				(equipType) => HandleTryEquipTake(equipType),
+				(equipType) => HandleTryEquipPlace(equipType),
+				(fromSlot, toSlot) => HandleTryEquipSwap(fromSlot, toSlot),
+				(equipType) => HandleEquipBeginDrag(equipType),
+				(equipType, item) => HandleEquipReturn(equipType, item));
 		}
+
+
 
 		if (dataCompt?.SceneInventorySceneContainerView != null)
 		{
@@ -116,18 +126,14 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 				(containerId, part, pos) => HandleTryTake(containerId, part, pos),
 				(containerId, part, pos, rotated) => HandleTryPlace(containerId, part, pos, rotated));
 		}
-		else if (dataCompt?.SceneInventorySceneContainerView != null)
-		{
-			dataCompt.SceneInventorySceneContainerView.BindCallbacks(
-				(containerId, part, pos) => HandleTryTake(containerId, part, pos),
-				(containerId, part, pos, rotated) => HandleTryPlace(containerId, part, pos, rotated));
-		}
+
 	}
 
 	private void RefreshAll()
 	{
 		RefreshPlayer();
 		RefreshInteract();
+
 	}
 
 	private void RefreshPlayer()
@@ -149,6 +155,8 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 		dataCompt.SceneInventorySceneContainerView.RenderAll();
 
 	}
+
+
 
 	private bool HandleTryTake(string id, int partIndex, Vector2Int pos)
 	{
@@ -216,6 +224,7 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 		{
 			draggingItem = null;
 			draggingOriginPlacement = null;
+			draggingOriginEquipSlot = null;
 			return true;
 		}
 
@@ -236,6 +245,115 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 			return true;
 
 		return false;
+	}
+
+	private bool HandleTryEquipTake(EquipmentSlotType slot)
+	{
+		if (draggingItem != null) return false;
+		if (inventorySystem == null) return false;
+
+		if (inventorySystem.TryUnequipItem(slot, out var item))
+		{
+			if (TryAutoPlaceToPlayerContainers(item))
+			{
+				return true;
+			}
+
+			// No space in player containers: discard the item.
+			draggingItem = null;
+			draggingOriginEquipSlot = null;
+			return true;
+		}
+
+		return false;
+	}
+
+	private bool HandleTryEquipPlace(EquipmentSlotType slot)
+	{
+		if (draggingItem == null) return false;
+		if (inventorySystem == null) return false;
+
+		var equipment = inventorySystem.GetPlayerEquipment();
+		if (equipment != null && equipment.GetItem(slot) != null) return false;
+
+		var placed = inventorySystem.TryEquipItem(slot, draggingItem, out _);
+		if (placed)
+		{
+			draggingItem = null;
+			draggingOriginPlacement = null;
+			draggingOriginEquipSlot = null;
+			return true;
+		}
+
+		if (draggingOriginEquipSlot.HasValue)
+		{
+			inventorySystem.TryEquipItem(draggingOriginEquipSlot.Value, draggingItem, out _);
+			draggingOriginEquipSlot = null;
+			draggingItem = null;
+		}
+
+		return false;
+	}
+
+	private bool HandleTryEquipSwap(EquipmentSlotType fromSlot, EquipmentSlotType toSlot)
+	{
+		if (inventorySystem == null) return false;
+		var fromItem = draggingItem;
+		var swapped = inventorySystem.TrySwapEquip(fromSlot, toSlot, fromItem);
+		if (swapped)
+		{
+			draggingItem = null;
+			draggingOriginEquipSlot = null;
+		}
+		return swapped;
+	}
+
+	private bool TryAutoPlaceToPlayerContainers(ItemInstance item)
+	{
+		if (item == null) return false;
+		var model = this.GetModel<InventoryContainerModel>();
+		if (model == null) return false;
+
+		var chestId = model.GetPlayerContainerId(InventoryContainerType.ChestRig);
+		if (!string.IsNullOrEmpty(chestId) && inventorySystem.TryAutoPlace(chestId, item)) return true;
+
+		var backpackId = model.GetPlayerContainerId(InventoryContainerType.Backpack);
+		if (!string.IsNullOrEmpty(backpackId) && inventorySystem.TryAutoPlace(backpackId, item)) return true;
+
+		var pocketId = model.GetPlayerContainerId(InventoryContainerType.Pocket);
+		if (!string.IsNullOrEmpty(pocketId) && inventorySystem.TryAutoPlace(pocketId, item)) return true;
+
+		return false;
+	}
+
+	private ItemInstance HandleEquipBeginDrag(EquipmentSlotType slot)
+	{
+		if (draggingItem != null) return null;
+		if (inventorySystem == null) return null;
+
+		if (inventorySystem.TryUnequipItem(slot, out var item))
+		{
+			draggingItem = item;
+			draggingOriginEquipSlot = slot;
+			return item;
+		}
+
+		return null;
+	}
+
+	private bool HandleEquipReturn(EquipmentSlotType slot, ItemInstance item)
+	{
+		if (inventorySystem == null || item == null)
+		{
+			draggingItem = null;
+			draggingOriginEquipSlot = null;
+			return false;
+		}
+
+		var placed = inventorySystem.TryEquipItem(slot, item, out _);
+		draggingItem = null;
+		draggingOriginEquipSlot = null;
+		return placed;
 	}
 	#endregion
 

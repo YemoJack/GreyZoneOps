@@ -35,6 +35,9 @@ public class InventorySystem : AbstractSystem
         return GetContainer(id)?.GetGrid(partIndex);
     }
 
+    public EquipmentContainer GetPlayerEquipment()
+        => _model.GetPlayerEquipment();
+
     private IEnumerable<InventoryGrid> GetCandidateGrids(string id, int partIndex)
     {
         var container = GetContainer(id);
@@ -70,6 +73,84 @@ public class InventorySystem : AbstractSystem
             }
         }
         return false;
+    }
+
+    public bool TryEquipItem(EquipmentSlotType slot, ItemInstance item, out ItemInstance replaced)
+    {
+        replaced = null;
+        if (item == null || item.Definition == null) return false;
+        if (!CanEquip(slot, item.Definition.Category)) return false;
+        if (_model.PlayerEquipment == null) return false;
+
+        var equipped = _model.PlayerEquipment.TryEquip(slot, item, out replaced);
+        if (equipped) NotifyChanged();
+        return equipped;
+    }
+
+    public bool TryUnequipItem(EquipmentSlotType slot, out ItemInstance item)
+    {
+        item = null;
+        if (_model.PlayerEquipment == null) return false;
+        var unequipped = _model.PlayerEquipment.TryUnequip(slot, out item);
+        if (unequipped) NotifyChanged();
+        return unequipped;
+    }
+
+    public bool TrySwapEquip(EquipmentSlotType fromSlot, EquipmentSlotType toSlot)
+    {
+        if (_model.PlayerEquipment == null) return false;
+        if (fromSlot == toSlot) return false;
+
+        var equipment = _model.PlayerEquipment;
+        var fromItem = equipment.GetItem(fromSlot);
+        return TrySwapEquipInternal(equipment, fromSlot, toSlot, fromItem);
+    }
+
+    public bool TrySwapEquip(EquipmentSlotType fromSlot, EquipmentSlotType toSlot, ItemInstance fromItem)
+    {
+        if (_model.PlayerEquipment == null) return false;
+        if (fromSlot == toSlot) return false;
+
+        var equipment = _model.PlayerEquipment;
+        return TrySwapEquipInternal(equipment, fromSlot, toSlot, fromItem);
+    }
+
+    private bool TrySwapEquipInternal(
+        EquipmentContainer equipment,
+        EquipmentSlotType fromSlot,
+        EquipmentSlotType toSlot,
+        ItemInstance fromItem)
+    {
+        if (fromItem == null || fromItem.Definition == null) return false;
+
+        var toItem = equipment.GetItem(toSlot);
+        if (toItem == null) return false;
+        if (!CanEquip(toSlot, fromItem.Definition.Category)) return false;
+        if (toItem != null && (toItem.Definition == null || !CanEquip(fromSlot, toItem.Definition.Category)))
+            return false;
+
+        equipment.TryEquip(toSlot, fromItem, out _);
+        equipment.TryEquip(fromSlot, toItem, out _);
+        NotifyChanged();
+        return true;
+    }
+
+    private bool CanEquip(EquipmentSlotType slot, ItemCategory category)
+    {
+        switch (slot)
+        {
+            case EquipmentSlotType.Weapon1:
+            case EquipmentSlotType.Weapon2:
+            case EquipmentSlotType.Weapon3:
+            case EquipmentSlotType.Weapon4:
+                return category == ItemCategory.Weapon;
+            case EquipmentSlotType.Helmet:
+                return category == ItemCategory.helmet;
+            case EquipmentSlotType.Armor:
+                return category == ItemCategory.Armor;
+            default:
+                return false;
+        }
     }
 
     public bool TryMoveItem(

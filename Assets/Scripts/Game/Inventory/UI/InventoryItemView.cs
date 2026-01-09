@@ -59,6 +59,21 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         SetSize(p.Size, rotated);
     }
 
+    public void BindDrag(ItemInstance item, Vector2 cellSize, Vector2 spacing)
+    {
+        if (item == null || item.Definition == null) return;
+        placement = null;
+        countText.text = item.Count > 1 ? item.Count.ToString() : "";
+        var size = item.Definition.Size;
+        var w = size.x;
+        var h = size.y;
+        var width = cellSize.x * w + spacing.x * Mathf.Max(0, w - 1);
+        var height = cellSize.y * h + spacing.y * Mathf.Max(0, h - 1);
+        rect.sizeDelta = new Vector2(width, height);
+        rect.anchoredPosition = Vector2.zero;
+        if (icon != null) icon.enabled = true;
+    }
+
     public void SetDragCallbacks(System.Func<bool> onBegin, System.Func<Vector2Int, bool, bool> onDrop)
     {
         this.onBegin = onBegin;
@@ -115,6 +130,19 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
             canvasGroup.alpha = 1f;
         }
 
+        var equipSlot = FindEquipmentSlotUnderPointer(e.position);
+        if (equipSlot != null)
+        {
+            var handled = equipSlot.TryHandleDrop();
+            RestoreParent();
+            if (handled) return;
+            if (onDrop != null)
+            {
+                onDrop.Invoke(new Vector2Int(-1, -1), rotated);
+            }
+            return;
+        }
+
         var gridPos = ScreenToCell(e.position, e.pressEventCamera, out var targetGrid);
         var isOutside = targetGrid == null;
         if (isOutside)
@@ -137,6 +165,11 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         Debug.Log($"Item {placement.Item.InstanceId} OnEndDrag endPos {gridPos} placed:{placed} target:{target?.name}");
 
         // 恢复父节点，具体位置会在后续刷新时由绑定更新
+        RestoreParent();
+    }
+
+    private void RestoreParent()
+    {
         var targetParent = itemRoot != null ? (Transform)itemRoot : originalParent;
         if (targetParent != null)
         {
@@ -271,6 +304,25 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         {
             var gv = r.gameObject.GetComponentInParent<InventoryGridView>();
             if (gv != null) return gv;
+        }
+        return null;
+    }
+
+    private EquipmentSlotView FindEquipmentSlotUnderPointer(Vector2 screenPos)
+    {
+        var results = new System.Collections.Generic.List<RaycastResult>();
+        var es = EventSystem.current;
+        if (es == null) return null;
+
+        var eventData = new PointerEventData(es)
+        {
+            position = screenPos
+        };
+        es.RaycastAll(eventData, results);
+        foreach (var r in results)
+        {
+            var slot = r.gameObject.GetComponentInParent<EquipmentSlotView>();
+            if (slot != null) return slot;
         }
         return null;
     }

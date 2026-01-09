@@ -14,13 +14,13 @@ public enum InventoryContainerType
 public class InventoryContainerModel : AbstractModel
 {
     public Dictionary<string, InventoryContainer> Containers;
-    public Dictionary<InventoryContainerType, InventoryContainer> PlayerContainers;
+    public EquipmentContainer PlayerEquipment;
 
 
     protected override void OnInit()
     {
         Containers = new Dictionary<string, InventoryContainer>();
-        PlayerContainers = new Dictionary<InventoryContainerType, InventoryContainer>();
+        PlayerEquipment = new EquipmentContainer();
 
         LoadPlayerContainerConfig();
         LoadContainerConfig(0);
@@ -36,29 +36,26 @@ public class InventoryContainerModel : AbstractModel
         {
             InventoryContainer inventoryContainer = CreateInventoryContainer(container);
             Containers[inventoryContainer.InstanceId] = inventoryContainer;
-            if (PlayerContainers.ContainsKey(inventoryContainer.Type))
+            if (!PlayerEquipment.TryAddContainer(inventoryContainer))
             {
-                Debug.LogError($"InventoryContainerModel LoadPlayerContainerConfig 玩家背包数据已经存在相同的类型 {inventoryContainer.Type} {inventoryContainer.ContainerName}");
-                continue;
+                Debug.LogError($"InventoryContainerModel LoadPlayerContainerConfig Duplicate container type: {inventoryContainer.Type} {inventoryContainer.ContainerName}");
             }
-            PlayerContainers[inventoryContainer.Type] = inventoryContainer;
         }
     }
 
     public string GetPlayerContainerId(InventoryContainerType type)
     {
-        return PlayerContainers.TryGetValue(type, out var container) ? container.InstanceId : null;
+        return PlayerEquipment.GetContainerId(type);
     }
 
     public string GetPlayerContainerName(InventoryContainerType type)
     {
+        return PlayerEquipment.GetContainerName(type);
+    }
 
-        if (PlayerContainers.TryGetValue(type, out InventoryContainer container))
-        {
-            return container.ContainerName;
-        }
-
-        return null;
+    public EquipmentContainer GetPlayerEquipment()
+    {
+        return PlayerEquipment;
     }
 
     public void LoadContainerConfig(int mapId)
@@ -103,3 +100,4 @@ public class InventoryContainerModel : AbstractModel
 
 
 }
+

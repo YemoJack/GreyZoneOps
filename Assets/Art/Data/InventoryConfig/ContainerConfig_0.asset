@@ -16,7 +16,7 @@ MonoBehaviour:
   containerConfigs:
   - containerId: 101
     containerName: Box1
-    containerType: 3
+    containerType: 4
     partGridDatas:
     - partIndex: 0
       Size: {x: 5, y: 5}

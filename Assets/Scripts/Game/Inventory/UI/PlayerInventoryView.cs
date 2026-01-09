@@ -6,11 +6,12 @@ using UnityEngine;
 public class PlayerInventoryView : MonoBehaviour, IController
 {
 
-
+    private Transform equipmentSlotRoot;
     private Transform pocketRoot;
     public RectTransform chestRoot;
     public RectTransform backpackRoot;
 
+    private EquipmentView equipmentView;
     private ContainerView chest;
     private ContainerView backpack;
 
@@ -52,6 +53,13 @@ public class PlayerInventoryView : MonoBehaviour, IController
         if (pocket != null)
             pocket.containerId = model.GetPlayerContainerId(InventoryContainerType.Pocket);
 
+        equipmentSlotRoot = transform.GetChild("EquipmentSlot");
+        equipmentView = equipmentSlotRoot?.GetComponent<EquipmentView>();
+        if (equipmentView != null)
+        {
+            equipmentView.InitEquipment();
+        }
+
     }
 
     private ContainerView CreateContainerView(string containerName, RectTransform root)
@@ -66,7 +74,12 @@ public class PlayerInventoryView : MonoBehaviour, IController
 
 
     public void BindCallbacks(System.Func<string, int, Vector2Int, bool> tryTake,
-        System.Func<string, int, Vector2Int, bool, bool> tryPlace)
+                            System.Func<string, int, Vector2Int, bool, bool> tryPlace,
+                            System.Func<EquipmentSlotType, bool> tryEquipTake,
+                            System.Func<EquipmentSlotType, bool> tryEquipPlace,
+                            System.Func<EquipmentSlotType, EquipmentSlotType, bool> tryEquipSwap,
+                            System.Func<EquipmentSlotType, ItemInstance> beginEquipDrag,
+                            System.Func<EquipmentSlotType, ItemInstance, bool> returnEquipDrag)
     {
         if (chest != null)
         {
@@ -81,7 +94,16 @@ public class PlayerInventoryView : MonoBehaviour, IController
             pocket.BindCallbacks(tryTake, tryPlace);
         }
 
+        if (equipmentView != null)
+        {
+            equipmentView.BindCallbacks(tryEquipTake, tryEquipPlace, tryEquipSwap, beginEquipDrag, returnEquipDrag);
+        }
+
     }
+
+
+
+
 
 
     /// <summary>刷新容器内所有分格。</summary>
@@ -99,7 +121,19 @@ public class PlayerInventoryView : MonoBehaviour, IController
         {
             pocket.RenderAll();
         }
+
+        if (equipmentView != null)
+        {
+            equipmentView.RenderAll();
+        }
+
     }
+
+
+
+
+
+
 
     public IArchitecture GetArchitecture()
     {

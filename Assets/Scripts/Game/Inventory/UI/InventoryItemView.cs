@@ -29,6 +29,7 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
     private RectTransform canvasRect;
     private Camera canvasCamera;
     private Vector2 pointerOffset = Vector2.zero;
+    private ContainerView originContainerView;
 
     private void Awake()
     {
@@ -85,6 +86,7 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         if (onBegin != null && !onBegin.Invoke())
             return;
 
+        originContainerView = GetComponentInParent<ContainerView>();
         originalParent = rect.parent;
         originalAnchoredPos = rect.anchoredPosition;
         currentTargetGrid = null;
@@ -148,7 +150,9 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         if (isOutside)
         {
             // 特殊标记：完全拖出任何网格，交由上层判定为丢弃
-            gridPos = new Vector2Int(int.MinValue, int.MinValue);
+            gridPos = IsInsideAllowedArea(e.position, e.pressEventCamera)
+                ? new Vector2Int(-1, -1)
+                : new Vector2Int(int.MinValue, int.MinValue);
         }
 
         var target = targetGrid;
@@ -325,5 +329,25 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
             if (slot != null) return slot;
         }
         return null;
+    }
+
+    private bool IsInsideAllowedArea(Vector2 screenPos, Camera cam)
+    {
+        if (originContainerView == null) return false;
+        var playerView = originContainerView.GetComponentInParent<PlayerInventoryView>();
+        if (playerView != null)
+        {
+            var rect = playerView.transform as RectTransform;
+            return rect != null && RectTransformUtility.RectangleContainsScreenPoint(rect, screenPos, cam);
+        }
+
+        var sceneView = originContainerView.GetComponentInParent<SceneContainerView>();
+        if (sceneView != null)
+        {
+            var rect = sceneView.transform as RectTransform;
+            return rect != null && RectTransformUtility.RectangleContainsScreenPoint(rect, screenPos, cam);
+        }
+
+        return false;
     }
 }

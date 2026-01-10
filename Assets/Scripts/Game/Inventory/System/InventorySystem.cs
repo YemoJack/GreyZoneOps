@@ -11,7 +11,7 @@ public struct InventoryChangedEvent
 }
 
 
-public class InventorySystem : AbstractSystem
+public class InventorySystem : AbstractSystem, ICanSendCommand
 {
     private InventoryContainerModel _model;
 
@@ -133,6 +133,12 @@ public class InventorySystem : AbstractSystem
         equipment.TryEquip(fromSlot, toItem, out _);
         NotifyChanged();
         return true;
+    }
+
+    public void DropItem(ItemInstance item)
+    {
+        if (item == null) return;
+        this.SendCommand(new CmdDropItem(item));
     }
 
     private bool CanEquip(EquipmentSlotType slot, ItemCategory category)

@@ -191,6 +191,7 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 		// int.MinValue 标记：完全拖出网格，丢弃
 		if (pos.x == int.MinValue || pos.y == int.MinValue)
 		{
+			DropItem(draggingItem);
 			draggingItem = null;
 			draggingOriginPlacement = null;
 			this.SendEvent(new InventoryChangedEvent());
@@ -254,16 +255,17 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 
 		if (inventorySystem.TryUnequipItem(slot, out var item))
 		{
-			if (TryAutoPlaceToPlayerContainers(item))
-			{
-				return true;
-			}
-
-			// No space in player containers: discard the item.
-			draggingItem = null;
-			draggingOriginEquipSlot = null;
+		if (TryAutoPlaceToPlayerContainers(item))
+		{
 			return true;
 		}
+
+		// No space in player containers: discard the item.
+		DropItem(item);
+		draggingItem = null;
+		draggingOriginEquipSlot = null;
+		return true;
+	}
 
 		return false;
 	}
@@ -354,6 +356,21 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 		draggingItem = null;
 		draggingOriginEquipSlot = null;
 		return placed;
+	}
+
+	public void ClearDraggingItem()
+	{
+		draggingItem = null;
+		draggingOriginEquipSlot = null;
+		draggingOriginPlacement = null;
+		draggingOriginId = null;
+		draggingOriginPartIndex = 0;
+	}
+
+	public void DropItem(ItemInstance item)
+	{
+		if (inventorySystem == null || item == null) return;
+		inventorySystem.DropItem(item);
 	}
 	#endregion
 

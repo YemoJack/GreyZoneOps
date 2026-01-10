@@ -175,9 +175,14 @@ public class EquipmentSlotView : MonoBehaviour, IController, IPointerClickHandle
             }
         }
 
-        if (!placed && onReturnDrag != null)
+        if (!placed && onReturnDrag != null && IsInsideAllowedArea(eventData.position, eventData.pressEventCamera))
         {
             onReturnDrag.Invoke(slotType, item);
+        }
+        else
+        {
+            DropItem(item);
+            ClearDraggingState();
         }
 
         RestoreParent();
@@ -297,6 +302,32 @@ public class EquipmentSlotView : MonoBehaviour, IController, IPointerClickHandle
             return new Vector2Int(-1, -1);
 
         return new Vector2Int(x, y);
+    }
+
+    private bool IsInsideAllowedArea(Vector2 screenPos, Camera cam)
+    {
+        var playerView = GetComponentInParent<PlayerInventoryView>();
+        if (playerView == null) return false;
+        var rect = playerView.transform as RectTransform;
+        return rect != null && RectTransformUtility.RectangleContainsScreenPoint(rect, screenPos, cam);
+    }
+
+    private void ClearDraggingState()
+    {
+        var window = UIModule.Instance.GetWindow<InventoryWindow>();
+        if (window != null)
+        {
+            window.ClearDraggingItem();
+        }
+    }
+
+    private void DropItem(ItemInstance item)
+    {
+        var window = UIModule.Instance.GetWindow<InventoryWindow>();
+        if (window != null)
+        {
+            window.DropItem(item);
+        }
     }
 
     public IArchitecture GetArchitecture()

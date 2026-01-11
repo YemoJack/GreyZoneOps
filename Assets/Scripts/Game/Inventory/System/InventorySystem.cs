@@ -154,6 +154,10 @@ public class InventorySystem : AbstractSystem, ICanSendCommand
                 return category == ItemCategory.helmet;
             case EquipmentSlotType.Armor:
                 return category == ItemCategory.Armor;
+            case EquipmentSlotType.ChestRig:
+                return category == ItemCategory.ChestRig;
+            case EquipmentSlotType.Backpack:
+                return category == ItemCategory.Backpack;
             default:
                 return false;
         }

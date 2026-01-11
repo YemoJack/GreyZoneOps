@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
+    public Image bgIcon;
     public Image icon;
     public Text countText;
     private CanvasGroup canvasGroup;
@@ -58,6 +59,8 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         countText.text = p.Item.Count > 1 ? p.Item.Count.ToString() : "";
         rect.anchoredPosition = CellToLocal(p.Pos);
         SetSize(p.Size, rotated);
+
+        icon.sprite = p.Item.Definition.icon;
     }
 
     public void BindDrag(ItemInstance item, Vector2 cellSize, Vector2 spacing)
@@ -73,6 +76,8 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         rect.sizeDelta = new Vector2(width, height);
         rect.anchoredPosition = Vector2.zero;
         if (icon != null) icon.enabled = true;
+
+        icon.sprite = item.Definition.icon;
     }
 
     public void SetDragCallbacks(System.Func<bool> onBegin, System.Func<Vector2Int, bool, bool> onDrop)
@@ -109,7 +114,7 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
             canvasGroup.blocksRaycasts = false;
             canvasGroup.alpha = 0.8f;
         }
-        Debug.Log($"Item {placement.Item.InstanceId} OnBeginDrag startPos{placement.Pos}");
+        Debug.Log($"Item OnBeginDrag id: {placement.Item.Definition.Id} Name: {placement.Item.Definition.Name} startPos{placement.Pos}\n InstanceId {placement.Item.InstanceId}  ");
 
         // 初始时就让物品中心对齐指针
         pointerOffset = CalculatePointerOffset(e);
@@ -166,7 +171,9 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
             // targetGrid 为空视为丢弃，传递 (-1,-1) 让上层决定如何处理
             placed = onDrop.Invoke(gridPos, rotated);
         }
-        Debug.Log($"Item {placement.Item.InstanceId} OnEndDrag endPos {gridPos} placed:{placed} target:{target?.name}");
+
+        Debug.Log($"Item OnEndDrag  id: {placement.Item.Definition.Id} Name: {placement.Item.Definition.Name} endPos {gridPos} placed:{placed} target:{target?.name}\n InstanceId {placement.Item.InstanceId} ");
+
 
         // 恢复父节点，具体位置会在后续刷新时由绑定更新
         RestoreParent();

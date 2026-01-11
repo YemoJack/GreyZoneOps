@@ -56,8 +56,21 @@ MonoBehaviour:
       AssetTags: 
       ActiveRuleName: EnableGroup
       Collectors:
-      - CollectPath: Assets/Art/Data/InventoryConfig
-        CollectorGUID: f8343ae9d682d9346995b915c8b08e2d
+      - CollectPath: Assets/Art/Data
+        CollectorGUID: 621ca93fcad303f499bef59fe4e81da8
+        CollectorType: 0
+        AddressRuleName: AddressByFileName
+        PackRuleName: PackDirectory
+        FilterRuleName: CollectAll
+        AssetTags: 
+        UserData: 
+    - GroupName: Weapon
+      GroupDesc: 
+      AssetTags: 
+      ActiveRuleName: EnableGroup
+      Collectors:
+      - CollectPath: Assets/Art/Prefabs/Weapons
+        CollectorGUID: aba3c6ed422891e418d034af5687c916
         CollectorType: 0
         AddressRuleName: AddressByFileName
         PackRuleName: PackDirectory

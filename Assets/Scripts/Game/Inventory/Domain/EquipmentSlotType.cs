@@ -5,5 +5,7 @@ public enum EquipmentSlotType
     Weapon3,
     Weapon4,
     Helmet,
-    Armor
+    Armor,
+    ChestRig,
+    Backpack
 }

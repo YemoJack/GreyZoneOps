@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 648429450ed3a7948aa8158b972661bd, type: 3}
+  m_Name: ContainerItem_22
+  m_EditorClassIdentifier: 
+  Id: 101
+  Name: ChestRig1
+  Size: {x: 2, y: 2}
+  icon: {fileID: 21300000, guid: ca4e997d3fe743b48abd10541fd77f57, type: 3}
+  MaxStack: 1
+  CanRotate: 0
+  Category: 5
+  containerConfig: {fileID: 11400000, guid: fb655c8693ae09a4ba5991df16e14cc5, type: 2}

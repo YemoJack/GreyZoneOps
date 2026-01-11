@@ -22,25 +22,7 @@ public class InventoryContainerModel : AbstractModel
         Containers = new Dictionary<string, InventoryContainer>();
         PlayerEquipment = new EquipmentContainer();
 
-        LoadPlayerContainerConfig();
         LoadContainerConfig(0);
-    }
-
-    public void LoadPlayerContainerConfig()
-    {
-        SOPlayerInventoryConfig config =
-            this.GetUtility<IResLoader>().LoadSync<SOPlayerInventoryConfig>("PlayerContainerConfig");
-        if (config == null) return;
-
-        foreach (var container in config.containerConfigs)
-        {
-            InventoryContainer inventoryContainer = CreateInventoryContainer(container);
-            Containers[inventoryContainer.InstanceId] = inventoryContainer;
-            if (!PlayerEquipment.TryAddContainer(inventoryContainer))
-            {
-                Debug.LogError($"InventoryContainerModel LoadPlayerContainerConfig Duplicate container type: {inventoryContainer.Type} {inventoryContainer.ContainerName}");
-            }
-        }
     }
 
     public string GetPlayerContainerId(InventoryContainerType type)
@@ -84,7 +66,7 @@ public class InventoryContainerModel : AbstractModel
         return null;
     }
 
-    private InventoryContainer CreateInventoryContainer(ContainerConfig config)
+    private InventoryContainer CreateInventoryContainer(SOContainerConfig config)
     {
         InventoryContainer container = new InventoryContainer(config.containerType);
         container.InstanceId = config.containerId.ToString();

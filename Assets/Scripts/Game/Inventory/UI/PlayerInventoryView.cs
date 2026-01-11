@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using QFramework;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerInventoryView : MonoBehaviour, IController
 {
@@ -11,47 +13,73 @@ public class PlayerInventoryView : MonoBehaviour, IController
     public RectTransform chestRoot;
     public RectTransform backpackRoot;
 
-    private EquipmentView equipmentView;
-    private ContainerView chest;
-    private ContainerView backpack;
+    private Vector2 chestOrBackpackSize;
 
-    private ContainerView pocket;
+    private EquipmentView equipmentView;
+    private ContainerView chestView;
+    private ContainerView backpackView;
+
+    private ContainerView pocketView;
+
+    private InventoryContainerModel model;
+
+
+    System.Func<string, int, Vector2Int, bool> tryTake;
+    System.Func<string, int, Vector2Int, bool, bool> tryPlace;
+    System.Func<EquipmentSlotType, bool> tryEquipTake;
+    System.Func<EquipmentSlotType, bool> tryEquipPlace;
+    System.Func<EquipmentSlotType, EquipmentSlotType, bool> tryEquipSwap;
+    System.Func<EquipmentSlotType, ItemInstance> beginEquipDrag;
+    System.Func<EquipmentSlotType, ItemInstance, bool> returnEquipDrag;
 
     public void InitPlayerInventory()
     {
-        var model = this.GetModel<InventoryContainerModel>();
+        model = this.GetModel<InventoryContainerModel>();
         if (model == null) return;
 
-        if (chest == null)
+        chestOrBackpackSize = chestRoot.sizeDelta;
+        if (chestView == null)
         {
-            chest = CreateContainerView(
+            if (model.PlayerEquipment.GetContainer(InventoryContainerType.ChestRig) != null)
+            {
+                chestView = CreateContainerView(
                 model.GetPlayerContainerName(InventoryContainerType.ChestRig),
                 chestRoot);
+                chestView.container = model.PlayerEquipment.GetContainer(InventoryContainerType.ChestRig);
+            }
+
+
         }
-        if (backpack == null)
+        if (backpackView == null)
         {
-            backpack = CreateContainerView(
+            if (model.PlayerEquipment.GetContainer(InventoryContainerType.Backpack) != null)
+            {
+                backpackView = CreateContainerView(
                 model.GetPlayerContainerName(InventoryContainerType.Backpack),
                 backpackRoot);
+                backpackView.container = model.PlayerEquipment.GetContainer(InventoryContainerType.Backpack);
+            }
         }
 
-        if (chest != null)
+        if (chestView != null)
         {
-            chest.containerId = model.GetPlayerContainerId(InventoryContainerType.ChestRig);
-
-            chestRoot.sizeDelta = new Vector2(chestRoot.sizeDelta.x, (chest.transform as RectTransform).sizeDelta.y + 10f);
+            LayoutElement layoutElement = chestRoot.GetComponent<LayoutElement>();
+            layoutElement.preferredHeight = (chestView.transform as RectTransform).sizeDelta.y + 10f;
         }
-        if (backpack != null)
+        if (backpackView != null)
         {
-            backpack.containerId = model.GetPlayerContainerId(InventoryContainerType.Backpack);
 
-            backpackRoot.sizeDelta = new Vector2(backpackRoot.sizeDelta.x, (backpack.transform as RectTransform).sizeDelta.y + 10f);
+            LayoutElement layoutElement = backpackRoot.GetComponent<LayoutElement>();
+            layoutElement.preferredHeight = (backpackView.transform as RectTransform).sizeDelta.y + 10f;
         }
 
         pocketRoot = transform.GetChild("Pocket");
-        pocket = pocketRoot?.GetComponent<ContainerView>();
-        if (pocket != null)
-            pocket.containerId = model.GetPlayerContainerId(InventoryContainerType.Pocket);
+        pocketView = pocketRoot?.GetComponent<ContainerView>();
+        if (model.PlayerEquipment.GetContainer(InventoryContainerType.Pocket) != null)
+        {
+            pocketView.container = model.PlayerEquipment.GetContainer(InventoryContainerType.Pocket);
+        }
+
 
         equipmentSlotRoot = transform.GetChild("EquipmentSlot");
         equipmentView = equipmentSlotRoot?.GetComponent<EquipmentView>();
@@ -81,17 +109,17 @@ public class PlayerInventoryView : MonoBehaviour, IController
                             System.Func<EquipmentSlotType, ItemInstance> beginEquipDrag,
                             System.Func<EquipmentSlotType, ItemInstance, bool> returnEquipDrag)
     {
-        if (chest != null)
+        if (chestView != null)
         {
-            chest.BindCallbacks(tryTake, tryPlace);
+            chestView.BindCallbacks(tryTake, tryPlace);
         }
-        if (backpack != null)
+        if (backpackView != null)
         {
-            backpack.BindCallbacks(tryTake, tryPlace);
+            backpackView.BindCallbacks(tryTake, tryPlace);
         }
-        if (pocket != null)
+        if (pocketView != null)
         {
-            pocket.BindCallbacks(tryTake, tryPlace);
+            pocketView.BindCallbacks(tryTake, tryPlace);
         }
 
         if (equipmentView != null)
@@ -99,27 +127,92 @@ public class PlayerInventoryView : MonoBehaviour, IController
             equipmentView.BindCallbacks(tryEquipTake, tryEquipPlace, tryEquipSwap, beginEquipDrag, returnEquipDrag);
         }
 
+        this.tryTake = tryTake;
+        this.tryPlace = tryPlace;
+        this.tryEquipTake = tryEquipTake;
+        this.tryEquipPlace = tryEquipPlace;
+        this.tryEquipSwap = tryEquipSwap;
+        this.beginEquipDrag = beginEquipDrag;
+        this.returnEquipDrag = returnEquipDrag;
     }
-
-
-
 
 
 
     /// <summary>刷新容器内所有分格。</summary>
     public void RenderAll()
     {
-        if (chest != null)
+
+        if (model.PlayerEquipment.GetContainer(InventoryContainerType.ChestRig) != null)
         {
-            chest.RenderAll();
+            if (chestView == null)
+            {
+                chestView = CreateContainerView(model.GetPlayerContainerName(InventoryContainerType.ChestRig), chestRoot);
+            }
+
+            chestView.container = model.PlayerEquipment.GetContainer(InventoryContainerType.ChestRig);
+
+
+            InventoryContainer container = this.GetSystem<InventorySystem>().GetPlayerEquipment().GetContainer(InventoryContainerType.ChestRig);
+            chestView.RenderAll(container);
+
+            chestView.BindCallbacks(tryTake, tryPlace);
         }
-        if (backpack != null)
+        else
         {
-            backpack.RenderAll();
+            if (chestView != null)
+            {
+                Destroy(chestView.gameObject);
+                chestView = null;
+                LayoutElement layoutElement = chestRoot.GetComponent<LayoutElement>();
+                layoutElement.preferredHeight = chestOrBackpackSize.y;
+            }
         }
-        if (pocket != null)
+
+
+        if (model.PlayerEquipment.GetContainer(InventoryContainerType.Backpack) != null)
         {
-            pocket.RenderAll();
+            if (backpackView == null)
+            {
+                backpackView = CreateContainerView(model.GetPlayerContainerName(InventoryContainerType.Backpack), backpackRoot);
+            }
+
+            backpackView.container = model.PlayerEquipment.GetContainer(InventoryContainerType.Backpack);
+
+
+            InventoryContainer container = this.GetSystem<InventorySystem>().GetPlayerEquipment().GetContainer(InventoryContainerType.Backpack);
+            backpackView.RenderAll(container);
+
+            backpackView.BindCallbacks(tryTake, tryPlace);
+        }
+        else
+        {
+            if (backpackView != null)
+            {
+                Destroy(backpackView.gameObject);
+                backpackView = null;
+                LayoutElement layoutElement = backpackRoot.GetComponent<LayoutElement>();
+                layoutElement.preferredHeight = chestOrBackpackSize.y;
+            }
+        }
+
+        if (chestView != null)
+        {
+            LayoutElement layoutElement = chestRoot.GetComponent<LayoutElement>();
+            layoutElement.preferredHeight = (chestView.transform as RectTransform).sizeDelta.y + 10f;
+        }
+        if (backpackView != null)
+        {
+
+            LayoutElement layoutElement = backpackRoot.GetComponent<LayoutElement>();
+            layoutElement.preferredHeight = (backpackView.transform as RectTransform).sizeDelta.y + 10f;
+        }
+
+
+
+        if (pocketView != null)
+        {
+            InventoryContainer container = this.GetSystem<InventorySystem>().GetPlayerEquipment().GetContainer(InventoryContainerType.Pocket);
+            pocketView.RenderAll(container);
         }
 
         if (equipmentView != null)

@@ -176,7 +176,7 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 		if (inventorySystem.TryTakeItemAt(id, pos, out var item, notify: false, partIndex: partIndex))
 		{
 			draggingItem = item;
-			Debug.Log($"draggingItem {draggingItem.Definition.Id}");
+			//Debug.Log($"draggingItem {draggingItem.Definition.Id}");
 			return true;
 		}
 
@@ -255,17 +255,17 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 
 		if (inventorySystem.TryUnequipItem(slot, out var item))
 		{
-		if (TryAutoPlaceToPlayerContainers(item))
-		{
+			if (TryAutoPlaceToPlayerContainers(item))
+			{
+				return true;
+			}
+
+			// No space in player containers: discard the item.
+			DropItem(item);
+			draggingItem = null;
+			draggingOriginEquipSlot = null;
 			return true;
 		}
-
-		// No space in player containers: discard the item.
-		DropItem(item);
-		draggingItem = null;
-		draggingOriginEquipSlot = null;
-		return true;
-	}
 
 		return false;
 	}

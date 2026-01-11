@@ -7,8 +7,6 @@ using UnityEngine;
 /// </summary>
 public class ContainerView : MonoBehaviour, IController
 {
-    [HideInInspector]
-    public string containerId;
     public InventoryContainer container;
 
     [Tooltip("容器下的分格视图列表，partIndex 与配置中的 partIndex 对应。")]
@@ -18,10 +16,8 @@ public class ContainerView : MonoBehaviour, IController
     private System.Func<string, int, Vector2Int, bool, bool> onTryPlace;
 
 
-    private void Start()
-    {
-        container = this.GetSystem<InventorySystem>().GetContainer(containerId);
-    }
+
+
 
 
     /// <summary>绑定容器内所有分格的交互回调。</summary>
@@ -29,6 +25,7 @@ public class ContainerView : MonoBehaviour, IController
         System.Func<string, int, Vector2Int, bool> tryTake,
         System.Func<string, int, Vector2Int, bool, bool> tryPlace)
     {
+
         onTryTake = tryTake;
         onTryPlace = tryPlace;
 
@@ -47,9 +44,9 @@ public class ContainerView : MonoBehaviour, IController
 
 
     /// <summary>刷新容器内所有分格。</summary>
-    public void RenderAll()
+    public void RenderAll(InventoryContainer container)
     {
-        container = this.GetSystem<InventorySystem>().GetContainer(containerId);
+        //container = this.GetSystem<InventorySystem>().GetContainer(containerId);
 
         foreach (var gv in gridViewList)
         {

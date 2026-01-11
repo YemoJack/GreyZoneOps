@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class EquipmentSlotView : MonoBehaviour, IController, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     public EquipmentSlotType slotType;
+    public Image bgIcon;
     public Image icon;
     public Text nameText;
     public InventoryItemView dragItemPrefab;
@@ -63,6 +64,12 @@ public class EquipmentSlotView : MonoBehaviour, IController, IPointerClickHandle
         {
             nameText.text = item != null && item.Definition != null ? item.Definition.Name : "";
         }
+        if (icon != null)
+        {
+            icon.sprite = item != null && item.Definition != null ? item.Definition.icon : null;
+        }
+
+        //bgIcon.raycastTarget = item != null && item.Definition != null ? true : false;
     }
 
     public bool TryHandleDrop()

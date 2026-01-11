@@ -23,7 +23,7 @@ public class SceneContainerView : MonoBehaviour, IController
 
         if (containerView != null)
         {
-            containerView.containerId = container.InstanceId;
+            containerView.container = container;
         }
     }
 
@@ -50,7 +50,7 @@ public class SceneContainerView : MonoBehaviour, IController
     {
         if (containerView != null)
         {
-            containerView.RenderAll();
+            containerView.RenderAll(containerView.container);
         }
     }
 

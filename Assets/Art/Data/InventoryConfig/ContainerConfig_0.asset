@@ -14,17 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mapId: 0
   containerConfigs:
-  - containerId: 101
-    containerName: Box1
-    containerType: 4
-    partGridDatas:
-    - partIndex: 0
-      Size: {x: 5, y: 5}
-  - containerId: 102
-    containerName: PlayerBag1
-    containerType: 0
-    partGridDatas:
-    - partIndex: 0
-      Size: {x: 6, y: 4}
-    - partIndex: 1
-      Size: {x: 6, y: 3}
+  - {fileID: 11400000, guid: 40972aa55c69d014c861abc489aaa1ce, type: 2}
+  - {fileID: 11400000, guid: 7e498f08f571c9042b8434cb5def26ba, type: 2}
+  - {fileID: 11400000, guid: fb655c8693ae09a4ba5991df16e14cc5, type: 2}
+  - {fileID: 11400000, guid: 64b893db96b9f564fb53742dc9c0bfe4, type: 2}

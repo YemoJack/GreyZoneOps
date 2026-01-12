@@ -25,8 +25,8 @@ MonoBehaviour:
     AutoCollectShaders: 1
     IgnoreRuleName: NormalIgnoreRule
     Groups:
-    - GroupName: effect
-      GroupDesc: "\u7279\u6548"
+    - GroupName: Prefabs
+      GroupDesc: "\u9884\u5236\u4F53"
       AssetTags: 
       ActiveRuleName: EnableGroup
       Collectors:
@@ -38,17 +38,20 @@ MonoBehaviour:
         FilterRuleName: CollectPrefab
         AssetTags: 
         UserData: 
-    - GroupName: UI
-      GroupDesc: 
-      AssetTags: 
-      ActiveRuleName: EnableGroup
-      Collectors:
       - CollectPath: Assets/Art/Prefabs/UI
         CollectorGUID: 42f3298e472c0174e9c7eab1fef38708
         CollectorType: 0
         AddressRuleName: AddressByFileName
-        PackRuleName: PackSeparately
-        FilterRuleName: CollectPrefab
+        PackRuleName: PackDirectory
+        FilterRuleName: CollectAll
+        AssetTags: 
+        UserData: 
+      - CollectPath: Assets/Art/Prefabs/Weapons
+        CollectorGUID: aba3c6ed422891e418d034af5687c916
+        CollectorType: 0
+        AddressRuleName: AddressByFileName
+        PackRuleName: PackDirectory
+        FilterRuleName: CollectAll
         AssetTags: 
         UserData: 
     - GroupName: Config
@@ -58,19 +61,6 @@ MonoBehaviour:
       Collectors:
       - CollectPath: Assets/Art/Data
         CollectorGUID: 621ca93fcad303f499bef59fe4e81da8
-        CollectorType: 0
-        AddressRuleName: AddressByFileName
-        PackRuleName: PackDirectory
-        FilterRuleName: CollectAll
-        AssetTags: 
-        UserData: 
-    - GroupName: Weapon
-      GroupDesc: 
-      AssetTags: 
-      ActiveRuleName: EnableGroup
-      Collectors:
-      - CollectPath: Assets/Art/Prefabs/Weapons
-        CollectorGUID: aba3c6ed422891e418d034af5687c916
         CollectorType: 0
         AddressRuleName: AddressByFileName
         PackRuleName: PackDirectory

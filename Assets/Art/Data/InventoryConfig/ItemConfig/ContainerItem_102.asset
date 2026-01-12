@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 648429450ed3a7948aa8158b972661bd, type: 3}
-  m_Name: ContainerItem_22
+  m_Name: ContainerItem_102
   m_EditorClassIdentifier: 
-  Id: 101
-  Name: ChestRig1
-  Size: {x: 2, y: 2}
-  icon: {fileID: 21300000, guid: ca4e997d3fe743b48abd10541fd77f57, type: 3}
+  Id: 102
+  Name: Backpack1
+  Size: {x: 3, y: 3}
+  icon: {fileID: 21300000, guid: a1d3580b7e041a14eb886cfec03b6d69, type: 3}
   MaxStack: 1
   CanRotate: 0
-  Category: 5
-  containerConfig: {fileID: 11400000, guid: fb655c8693ae09a4ba5991df16e14cc5, type: 2}
+  Category: 6
+  containerConfig: {fileID: 11400000, guid: 40972aa55c69d014c861abc489aaa1ce, type: 2}

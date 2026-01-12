@@ -372,6 +372,20 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 		if (inventorySystem == null || item == null) return;
 		inventorySystem.DropItem(item);
 	}
+
+	public bool TryPlaceEquipItemToContainer(ItemInstance item, string containerId, int partIndex, Vector2Int pos, bool rotated)
+	{
+		if (inventorySystem == null || item == null) return false;
+		if (string.IsNullOrEmpty(containerId)) return false;
+		var placed = inventorySystem.TryPlaceItem(containerId, item, pos, rotated, partIndex);
+		if (placed)
+		{
+			draggingItem = null;
+			draggingOriginPlacement = null;
+			draggingOriginEquipSlot = null;
+		}
+		return placed;
+	}
 	#endregion
 
 }

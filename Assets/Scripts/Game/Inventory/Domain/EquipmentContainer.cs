@@ -66,11 +66,6 @@ public class EquipmentContainer
         if (container == null) return false;
         if (!_containers.ContainsKey(container.Type)) return false;
         _containers.Remove(container.Type);
-        InventoryContainerModel model = GameArchitecture.Interface.GetModel<InventoryContainerModel>();
-        if (!model.Containers.TryGetValue(container.InstanceId, out InventoryContainer container1))
-        {
-            model.Containers.Remove(container.InstanceId);
-        }
         return true;
     }
 
@@ -97,6 +92,10 @@ public class EquipmentContainer
         replaced = null;
         if (!_slots.ContainsKey(slot)) return false;
         replaced = _slots[slot];
+        if (replaced != null)
+        {
+            UnequipItem(slot, replaced);
+        }
         _slots[slot] = item;
         EquipItem(slot, item);
         return true;
@@ -125,34 +124,18 @@ public class EquipmentContainer
             case EquipmentSlotType.Armor:
                 break;
             case EquipmentSlotType.ChestRig:
-                InventoryContainer chest = GetContainer(InventoryContainerType.ChestRig);
+                var chest = GetOrCreateContainer(item, InventoryContainerType.ChestRig);
                 if (chest != null)
                 {
-                    TryRemoveContainer(chest);
+                    TryAddContainer(chest);
                 }
-                chest = new InventoryContainer(InventoryContainerType.ChestRig);
-                SOContainerItemDefinition config = item.Definition as SOContainerItemDefinition;
-                chest.ContainerName = config.containerConfig.containerName;
-                foreach (var part in config.containerConfig.partGridDatas)
-                {
-                    chest.AddGrid(part.Size);
-                }
-                TryAddContainer(chest);
                 break;
             case EquipmentSlotType.Backpack:
-                InventoryContainer backpack = GetContainer(InventoryContainerType.ChestRig);
+                var backpack = GetOrCreateContainer(item, InventoryContainerType.Backpack);
                 if (backpack != null)
                 {
-                    TryRemoveContainer(backpack);
+                    TryAddContainer(backpack);
                 }
-                backpack = new InventoryContainer(InventoryContainerType.ChestRig);
-                SOContainerItemDefinition config1 = item.Definition as SOContainerItemDefinition;
-                backpack.ContainerName = config1.containerConfig.containerName;
-                foreach (var part in config1.containerConfig.partGridDatas)
-                {
-                    backpack.AddGrid(part.Size);
-                }
-                TryAddContainer(backpack);
                 break;
             default:
                 break;
@@ -176,16 +159,18 @@ public class EquipmentContainer
             case EquipmentSlotType.Armor:
                 break;
             case EquipmentSlotType.ChestRig:
-                InventoryContainer chest = GetContainer(InventoryContainerType.ChestRig);
+                var chest = GetContainer(InventoryContainerType.ChestRig);
                 if (chest != null)
                 {
+                    item.AttachedContainer = chest;
                     TryRemoveContainer(chest);
                 }
                 break;
             case EquipmentSlotType.Backpack:
-                InventoryContainer backpack = GetContainer(InventoryContainerType.ChestRig);
+                var backpack = GetContainer(InventoryContainerType.Backpack);
                 if (backpack != null)
                 {
+                    item.AttachedContainer = backpack;
                     TryRemoveContainer(backpack);
                 }
                 break;
@@ -193,6 +178,29 @@ public class EquipmentContainer
                 break;
         }
 
+    }
+
+    private InventoryContainer GetOrCreateContainer(ItemInstance item, InventoryContainerType type)
+    {
+        if (item == null) return null;
+        if (item.AttachedContainer != null && item.AttachedContainer.Type == type)
+        {
+            item.AttachedContainer.ParentContainerId = null;
+            return item.AttachedContainer;
+        }
+
+        var config = item.Definition as SOContainerItemDefinition;
+        if (config == null || config.containerConfig == null) return null;
+
+        var container = new InventoryContainer(type);
+        container.ContainerName = config.containerConfig.containerName;
+        foreach (var part in config.containerConfig.partGridDatas)
+        {
+            container.AddGrid(part.Size);
+        }
+        item.AttachedContainer = container;
+        container.ParentContainerId = null;
+        return container;
     }
 
 

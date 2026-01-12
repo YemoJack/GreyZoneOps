@@ -8,6 +8,7 @@ public class ItemInstance
     public SOItemDefinition Definition;
     public int Count;
     public bool Rotated;
+    public InventoryContainer AttachedContainer;
 
     public ItemInstance(SOItemDefinition def, int count = 1)
     {

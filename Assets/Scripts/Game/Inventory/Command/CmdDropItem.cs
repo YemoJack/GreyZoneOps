@@ -14,6 +14,7 @@ public class CmdDropItem : AbstractCommand
     {
         if (_item == null) return;
         var pos = GetPlayerPosition();
+        Debug.Log($"CmdDropItem {_item.Definition.Id} {_item.InstanceId}");
         SpawnFallbackCube(pos);
     }
 

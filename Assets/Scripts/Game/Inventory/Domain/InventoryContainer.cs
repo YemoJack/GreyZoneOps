@@ -8,6 +8,7 @@ public class InventoryContainer
 
     public string ContainerName;
     public InventoryContainerType Type;
+    public string ParentContainerId;
     public readonly List<InventoryGrid> PartGrids = new List<InventoryGrid>();
 
     public InventoryContainer(InventoryContainerType type)
@@ -39,4 +40,3 @@ public class InventoryContainer
         PartGrids.Add(new InventoryGrid(w, h));
     }
 }
-

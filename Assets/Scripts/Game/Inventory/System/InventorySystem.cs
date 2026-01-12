@@ -13,6 +13,7 @@ public struct InventoryChangedEvent
 
 public class InventorySystem : AbstractSystem, ICanSendCommand
 {
+    private const int MaxContainerNestDepth = 1;
     private InventoryContainerModel _model;
 
     private void NotifyChanged()
@@ -62,12 +63,14 @@ public class InventorySystem : AbstractSystem, ICanSendCommand
         bool rotated,
         int partIndex = -1)
     {
+        if (!CanPlaceInContainer(id, item)) return false;
         // 这里可以加战斗中限制、容器规则等
         foreach (var grid in GetCandidateGrids(id, partIndex))
         {
             var placed = grid.PlaceOrStack(item, pos, rotated);
             if (placed)
             {
+                SetContainerParentIfNeeded(item, id);
                 NotifyChanged();
                 return true;
             }
@@ -200,6 +203,7 @@ public class InventorySystem : AbstractSystem, ICanSendCommand
         ItemInstance item,
         int partIndex = -1)
     {
+        if (!CanPlaceInContainer(id, item)) return false;
         var grids = GetCandidateGrids(id, partIndex);
 
         // 优先向现有堆叠补充
@@ -220,6 +224,7 @@ public class InventorySystem : AbstractSystem, ICanSendCommand
                 var placed = grid.Place(item, pos, rotated);
                 if (placed)
                 {
+                    SetContainerParentIfNeeded(item, id);
                     NotifyChanged();
                     return true;
                 }
@@ -239,6 +244,7 @@ public class InventorySystem : AbstractSystem, ICanSendCommand
         {
             if (grid.GetPlacement(item) != null && grid.Remove(item))
             {
+                ClearContainerParentIfNeeded(item);
                 if (notify) NotifyChanged();
                 return true;
             }
@@ -258,6 +264,7 @@ public class InventorySystem : AbstractSystem, ICanSendCommand
             var taken = grid.TryTakeAt(pos, out item);
             if (taken)
             {
+                ClearContainerParentIfNeeded(item);
                 if (notify) NotifyChanged();
                 return true;
             }
@@ -284,5 +291,97 @@ public class InventorySystem : AbstractSystem, ICanSendCommand
         }
         if (changed) NotifyChanged();
         return changed;
+    }
+
+    private bool CanPlaceInContainer(string containerId, ItemInstance item)
+    {
+        if (item == null) return false;
+        if (!IsContainerItem(item)) return true;
+        var container = EnsureAttachedContainer(item);
+        if (container == null) return false;
+        var targetDepth = GetContainerDepth(containerId);
+        var itemDepth = GetContainerSubtreeDepth(container.InstanceId);
+        return targetDepth + itemDepth <= MaxContainerNestDepth;
+    }
+
+    private int GetContainerDepth(string containerId)
+    {
+        if (string.IsNullOrEmpty(containerId)) return 0;
+        var depth = 0;
+        var currentId = containerId;
+        var visited = new HashSet<string>();
+        while (!string.IsNullOrEmpty(currentId) && _model.Containers.TryGetValue(currentId, out var container))
+        {
+            if (!visited.Add(currentId)) break;
+            if (string.IsNullOrEmpty(container.ParentContainerId)) break;
+            depth++;
+            currentId = container.ParentContainerId;
+        }
+        return depth;
+    }
+
+    private int GetContainerSubtreeDepth(string containerId)
+    {
+        if (string.IsNullOrEmpty(containerId)) return 0;
+        return GetContainerSubtreeDepthInternal(containerId, new HashSet<string>());
+    }
+
+    private int GetContainerSubtreeDepthInternal(string containerId, HashSet<string> visited)
+    {
+        if (!visited.Add(containerId)) return 0;
+        if (!_model.Containers.TryGetValue(containerId, out var container) || container == null) return 0;
+
+        var maxChildDepth = 0;
+        foreach (var kvp in _model.Containers)
+        {
+            var child = kvp.Value;
+            if (child == null) continue;
+            if (child.ParentContainerId != containerId) continue;
+
+            var depth = GetContainerSubtreeDepthInternal(child.InstanceId, visited);
+            if (depth > maxChildDepth) maxChildDepth = depth;
+        }
+
+        return 1 + maxChildDepth;
+    }
+
+    private bool IsContainerItem(ItemInstance item)
+    {
+        return item != null && item.Definition is SOContainerItemDefinition;
+    }
+
+    private InventoryContainer EnsureAttachedContainer(ItemInstance item)
+    {
+        if (item == null) return null;
+        if (item.AttachedContainer != null) return item.AttachedContainer;
+        var def = item.Definition as SOContainerItemDefinition;
+        if (def == null || def.containerConfig == null) return null;
+
+        var container = new InventoryContainer(def.containerConfig.containerType);
+        container.ContainerName = def.containerConfig.containerName;
+        foreach (var part in def.containerConfig.partGridDatas)
+        {
+            container.AddGrid(part.Size);
+        }
+        item.AttachedContainer = container;
+        if (!_model.Containers.ContainsKey(container.InstanceId))
+        {
+            _model.Containers[container.InstanceId] = container;
+        }
+        return container;
+    }
+
+    private void SetContainerParentIfNeeded(ItemInstance item, string containerId)
+    {
+        if (!IsContainerItem(item)) return;
+        var container = EnsureAttachedContainer(item);
+        if (container == null) return;
+        container.ParentContainerId = containerId;
+    }
+
+    private void ClearContainerParentIfNeeded(ItemInstance item)
+    {
+        if (item == null || item.AttachedContainer == null) return;
+        item.AttachedContainer.ParentContainerId = null;
     }
 }

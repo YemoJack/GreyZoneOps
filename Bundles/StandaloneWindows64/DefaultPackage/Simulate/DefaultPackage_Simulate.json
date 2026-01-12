@@ -9,7 +9,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/1/11 21:59:59",
+    "PackageNote": "2026/1/12 20:07:49",
     "AssetList": [
         {
             "Address": "Container_1001",
@@ -52,8 +52,16 @@
             "DependBundleIDs": []
         },
         {
-            "Address": "ContainerItem_22",
-            "AssetPath": "Assets/Art/Data/InventoryConfig/ItemConfig/ContainerItem_22.asset",
+            "Address": "ContainerItem_101",
+            "AssetPath": "Assets/Art/Data/InventoryConfig/ItemConfig/ContainerItem_101.asset",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 2,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "ContainerItem_102",
+            "AssetPath": "Assets/Art/Data/InventoryConfig/ItemConfig/ContainerItem_102.asset",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 2,
@@ -294,7 +302,7 @@
             "UnityCRC": 0,
             "FileHash": "35d63d508afe26d8a9ae5d09aab0004f",
             "FileCRC": 0,
-            "FileSize": 6211,
+            "FileSize": 6873,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -434,7 +442,7 @@
             "UnityCRC": 0,
             "FileHash": "50501177804990d19f89592cf0dc8e7f",
             "FileCRC": 0,
-            "FileSize": 124495,
+            "FileSize": 126761,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

@@ -178,8 +178,26 @@ public class EquipmentSlotView : MonoBehaviour, IController, IPointerClickHandle
             var pos = ScreenToCell(targetGrid, eventData.position, eventData.pressEventCamera, item.Definition.Size);
             if (pos.x >= 0 && pos.y >= 0)
             {
-                placed = targetGrid.OnTryPlace(targetGrid.partIndex, pos, false);
+                var window = UIModule.Instance.GetWindow<InventoryWindow>();
+                var containerView = targetGrid.GetComponentInParent<ContainerView>();
+                var containerId = containerView != null && containerView.container != null
+                    ? containerView.container.InstanceId
+                    : null;
+                if (window != null && !string.IsNullOrEmpty(containerId))
+                {
+                    placed = window.TryPlaceEquipItemToContainer(item, containerId, targetGrid.partIndex, pos, false);
+                }
+                else
+                {
+                    placed = targetGrid.OnTryPlace(targetGrid.partIndex, pos, false);
+                }
             }
+        }
+
+        if (placed)
+        {
+            RestoreParent();
+            return;
         }
 
         if (!placed && onReturnDrag != null && IsInsideAllowedArea(eventData.position, eventData.pressEventCamera))

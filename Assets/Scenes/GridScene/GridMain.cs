@@ -104,6 +104,13 @@ public class GridMain : MonoBehaviour, IController
             bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(id, itemInstance);
             Debug.Log($"TryAutoPlace {isok}");
         }
+        if (Input.GetKeyDown(KeyCode.Alpha0))
+        {
+            ItemInstance itemInstance = new ItemInstance(itemDataList[9]);
+
+            bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(id, itemInstance);
+            Debug.Log($"TryAutoPlace {isok}");
+        }
 
     }
 

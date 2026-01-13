@@ -63,26 +63,31 @@ public partial class PlayerSystem : AbstractSystem, IUpdateSystem, ICanSendComma
 
     private void HandleWeaponInput()
     {
-        var currentWeapon = weaponSystem.GetCurrentWeapon() as FirearmWeapon;
+        var currentWeapon = weaponSystem.GetCurrentWeapon();
 
-        if (currentWeapon != null && inputSys.FireModeSwitchPressed)
+        if (currentWeapon.Config.WeaponType == WeaponType.Firearm)
         {
-            currentWeapon.SwitchFireMode();
+            FirearmWeapon firearmWeapon = currentWeapon as FirearmWeapon;
+            if (firearmWeapon != null && inputSys.FireModeSwitchPressed)
+            {
+                firearmWeapon.SwitchFireMode();
+            }
+
+            bool shouldAutoFire = firearmWeapon != null && firearmWeapon.IsAutomatic && inputSys.FireHold;
+            bool shouldBurstFire = firearmWeapon != null && firearmWeapon.IsBurstMode && inputSys.FirePressed;
+            bool shouldSingleFire = firearmWeapon != null && firearmWeapon.IsSingleMode && inputSys.FirePressed;
+
+            if (shouldAutoFire || shouldBurstFire || shouldSingleFire)
+            {
+                this.SendCommand<CmdStartAttack>();
+            }
+
+            if (inputSys.ReloadPressed)
+            {
+                this.SendCommand<CmdReloadWeapon>();
+            }
         }
 
-        bool shouldAutoFire = currentWeapon != null && currentWeapon.IsAutomatic && inputSys.FireHold;
-        bool shouldBurstFire = currentWeapon != null && currentWeapon.IsBurstMode && inputSys.FirePressed;
-        bool shouldSingleFire = currentWeapon != null && currentWeapon.IsSingleMode && inputSys.FirePressed;
-
-        if (shouldAutoFire || shouldBurstFire || shouldSingleFire)
-        {
-            this.SendCommand<CmdStartAttack>();
-        }
-
-        if (inputSys.ReloadPressed)
-        {
-            this.SendCommand<CmdReloadWeapon>();
-        }
 
         if (inputSys.Mouse2Pressed)
         {

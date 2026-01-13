@@ -9,7 +9,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/1/12 20:07:49",
+    "PackageNote": "2026/1/13 12:14:04",
     "AssetList": [
         {
             "Address": "Container_1001",
@@ -192,7 +192,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/Inventory/Box1.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 8,
+            "BundleID": 7,
             "DependBundleIDs": []
         },
         {
@@ -200,7 +200,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/Inventory/CellView.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 9,
+            "BundleID": 7,
             "DependBundleIDs": []
         },
         {
@@ -208,7 +208,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/Inventory/Chest1.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 10,
+            "BundleID": 7,
             "DependBundleIDs": []
         },
         {
@@ -216,7 +216,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/Inventory/ContainerView.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 11,
+            "BundleID": 7,
             "DependBundleIDs": []
         },
         {
@@ -224,7 +224,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/Inventory/EquipSlotView.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 12,
+            "BundleID": 7,
             "DependBundleIDs": []
         },
         {
@@ -232,7 +232,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/Inventory/GridView.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 13,
+            "BundleID": 7,
             "DependBundleIDs": []
         },
         {
@@ -240,7 +240,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/Inventory/ItemView.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 14,
+            "BundleID": 7,
             "DependBundleIDs": []
         },
         {
@@ -248,7 +248,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/Inventory/PlayerBag1.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 15,
+            "BundleID": 7,
             "DependBundleIDs": []
         },
         {
@@ -256,7 +256,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/InventoryWindow.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 16,
+            "BundleID": 6,
             "DependBundleIDs": []
         },
         {
@@ -264,7 +264,7 @@
             "AssetPath": "Assets/Art/Prefabs/Weapons/Gun/Wep_Pistol_Gold.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 17,
+            "BundleID": 8,
             "DependBundleIDs": []
         },
         {
@@ -272,7 +272,7 @@
             "AssetPath": "Assets/Art/Prefabs/Weapons/Melee/Wep_Knife_01.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 18,
+            "BundleID": 9,
             "DependBundleIDs": []
         }
     ],
@@ -338,111 +338,21 @@
             "DependBundleIDs": []
         },
         {
-            "BundleName": "assets_art_prefabs_ui_gamewindow.bundle",
+            "BundleName": "assets_art_prefabs_ui.bundle",
             "UnityCRC": 0,
-            "FileHash": "c305abc368acb2768d44af7f4d882938",
+            "FileHash": "530a24183c422b16027444c7d49d3a49",
             "FileCRC": 0,
-            "FileSize": 14373,
+            "FileSize": 147260,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
         },
         {
-            "BundleName": "assets_art_prefabs_ui_inventory_backpack1.bundle",
+            "BundleName": "assets_art_prefabs_ui_inventory.bundle",
             "UnityCRC": 0,
-            "FileHash": "d39c54db4261bdfcf4c1f416196917cf",
+            "FileHash": "b71109352a8ec323d7a010cb1c1c8540",
             "FileCRC": 0,
-            "FileSize": 8332,
-            "Encrypted": false,
-            "Tags": [],
-            "DependBundleIDs": []
-        },
-        {
-            "BundleName": "assets_art_prefabs_ui_inventory_box1.bundle",
-            "UnityCRC": 0,
-            "FileHash": "73e80a8a3178519eebc7cdcb80118ec2",
-            "FileCRC": 0,
-            "FileSize": 7940,
-            "Encrypted": false,
-            "Tags": [],
-            "DependBundleIDs": []
-        },
-        {
-            "BundleName": "assets_art_prefabs_ui_inventory_cellview.bundle",
-            "UnityCRC": 0,
-            "FileHash": "1ce9c3d9521a8070e09f274cef7f794e",
-            "FileCRC": 0,
-            "FileSize": 2640,
-            "Encrypted": false,
-            "Tags": [],
-            "DependBundleIDs": []
-        },
-        {
-            "BundleName": "assets_art_prefabs_ui_inventory_chest1.bundle",
-            "UnityCRC": 0,
-            "FileHash": "4363b0d06040c1b85bc61d0e1112b252",
-            "FileCRC": 0,
-            "FileSize": 8326,
-            "Encrypted": false,
-            "Tags": [],
-            "DependBundleIDs": []
-        },
-        {
-            "BundleName": "assets_art_prefabs_ui_inventory_containerview.bundle",
-            "UnityCRC": 0,
-            "FileHash": "476975a1ec1dc0a18b52ce255524dd4b",
-            "FileCRC": 0,
-            "FileSize": 2640,
-            "Encrypted": false,
-            "Tags": [],
-            "DependBundleIDs": []
-        },
-        {
-            "BundleName": "assets_art_prefabs_ui_inventory_equipslotview.bundle",
-            "UnityCRC": 0,
-            "FileHash": "913b43ade11d4ef907fb38a183a10d38",
-            "FileCRC": 0,
-            "FileSize": 7463,
-            "Encrypted": false,
-            "Tags": [],
-            "DependBundleIDs": []
-        },
-        {
-            "BundleName": "assets_art_prefabs_ui_inventory_gridview.bundle",
-            "UnityCRC": 0,
-            "FileHash": "83ddac79d39dfa210149f521c808467c",
-            "FileCRC": 0,
-            "FileSize": 6164,
-            "Encrypted": false,
-            "Tags": [],
-            "DependBundleIDs": []
-        },
-        {
-            "BundleName": "assets_art_prefabs_ui_inventory_itemview.bundle",
-            "UnityCRC": 0,
-            "FileHash": "3f195cb9231ea0bfd4c1d7e7f43f1220",
-            "FileCRC": 0,
-            "FileSize": 7557,
-            "Encrypted": false,
-            "Tags": [],
-            "DependBundleIDs": []
-        },
-        {
-            "BundleName": "assets_art_prefabs_ui_inventory_playerbag1.bundle",
-            "UnityCRC": 0,
-            "FileHash": "2bd75968216fe4e8f80d50269e535eae",
-            "FileCRC": 0,
-            "FileSize": 13427,
-            "Encrypted": false,
-            "Tags": [],
-            "DependBundleIDs": []
-        },
-        {
-            "BundleName": "assets_art_prefabs_ui_inventorywindow.bundle",
-            "UnityCRC": 0,
-            "FileHash": "50501177804990d19f89592cf0dc8e7f",
-            "FileCRC": 0,
-            "FileSize": 126761,
+            "FileSize": 64489,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

@@ -5,6 +5,7 @@ public class InputSys : AbstractSystem, IUpdateSystem
 {
 
     private IGameLoop updateScheduler;
+    private bool inputEnabled = true;
 
     // ------- Axis -------
     public Vector3 MoveAxis { get; private set; }
@@ -24,8 +25,23 @@ public class InputSys : AbstractSystem, IUpdateSystem
     public bool Crouch { get; private set; }
     public bool Sprint { get; private set; }
 
-    public bool LeftAltHold { get; private set; }
+    public bool Tab { get; private set; }
 
+    public bool InputEnabled => inputEnabled;
+
+    public void SetInputEnabled(bool enabled)
+    {
+        if (inputEnabled == enabled)
+        {
+            return;
+        }
+
+        inputEnabled = enabled;
+        if (!inputEnabled)
+        {
+            ClearInput();
+        }
+    }
 
     // 辅助：返回常用 Vector2 用于移动或旋转
     public Vector2 Move2D => new Vector2(MoveAxis.x, MoveAxis.z);
@@ -39,6 +55,12 @@ public class InputSys : AbstractSystem, IUpdateSystem
 
     public void OnUpdate(float deltaTime)
     {
+        if (!inputEnabled)
+        {
+            ClearInput();
+            return;
+        }
+
         // -------- Movement input (x,z) --------
         MoveAxis = new Vector3(
             Input.GetAxisRaw("Horizontal"),  // X
@@ -66,6 +88,23 @@ public class InputSys : AbstractSystem, IUpdateSystem
         Sprint = Input.GetKey(KeyCode.LeftShift);
         Crouch = Input.GetKey(KeyCode.LeftControl);
 
-        LeftAltHold = Input.GetKey(KeyCode.LeftAlt);
+        Tab = Input.GetKey(KeyCode.Tab);
+    }
+
+    private void ClearInput()
+    {
+        MoveAxis = Vector3.zero;
+        LookAxis = Vector3.zero;
+
+        FirePressed = false;
+        FireHold = false;
+        AimHold = false;
+        Mouse2Pressed = false;
+        FireModeSwitchPressed = false;
+        ReloadPressed = false;
+        Jump = false;
+        Crouch = false;
+        Sprint = false;
+        Tab = false;
     }
 }

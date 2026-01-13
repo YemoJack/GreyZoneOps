@@ -36,9 +36,23 @@ public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
 
         this.SendEvent<EventPlayerInit>(new EventPlayerInit());
 
+        LockCursor(true);
+
     }
 
-
+    public void LockCursor(bool isLocked)
+    {
+        if (isLocked)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+    }
 
 
     // Update is called once per frame
@@ -46,7 +60,105 @@ public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
     {
         if (updateScheduler != null)
             updateScheduler.Tick(Time.deltaTime);
+
+
+
+        TestInventoryWindow();
     }
+
+
+    #region  测试部分
+
+    private string containerId = "1003";
+    public List<SOItemDefinition> itemDataList;
+
+
+    private void TestInventoryWindow()
+    {
+
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            LockCursor(false);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            ItemInstance itemInstance = new ItemInstance(itemDataList[0]);
+
+            bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(containerId, itemInstance);
+            Debug.Log($"TryAutoPlace {isok}");
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            ItemInstance itemInstance = new ItemInstance(itemDataList[1]);
+
+            bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(containerId, itemInstance);
+            Debug.Log($"TryAutoPlace {isok}");
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            ItemInstance itemInstance = new ItemInstance(itemDataList[2]);
+
+            bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(containerId, itemInstance);
+            Debug.Log($"TryAutoPlace {isok}");
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha4))
+        {
+            ItemInstance itemInstance = new ItemInstance(itemDataList[3]);
+
+            bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(containerId, itemInstance);
+            Debug.Log($"TryAutoPlace {isok}");
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha5))
+        {
+            ItemInstance itemInstance = new ItemInstance(itemDataList[4]);
+
+            bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(containerId, itemInstance);
+            Debug.Log($"TryAutoPlace {isok}");
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha6))
+        {
+            ItemInstance itemInstance = new ItemInstance(itemDataList[5]);
+
+            bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(containerId, itemInstance);
+            Debug.Log($"TryAutoPlace {isok}");
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha7))
+        {
+            ItemInstance itemInstance = new ItemInstance(itemDataList[6]);
+
+            bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(containerId, itemInstance);
+            Debug.Log($"TryAutoPlace {isok}");
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha8))
+        {
+            ItemInstance itemInstance = new ItemInstance(itemDataList[7]);
+
+            bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(containerId, itemInstance);
+            Debug.Log($"TryAutoPlace {isok}");
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha9))
+        {
+            ItemInstance itemInstance = new ItemInstance(itemDataList[8]);
+
+            bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(containerId, itemInstance);
+            Debug.Log($"TryAutoPlace {isok}");
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha0))
+        {
+            ItemInstance itemInstance = new ItemInstance(itemDataList[9]);
+
+            bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(containerId, itemInstance);
+            Debug.Log($"TryAutoPlace {isok}");
+        }
+    }
+
+
+
+    #endregion
+
+
 
     public IArchitecture GetArchitecture()
     {

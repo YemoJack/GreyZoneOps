@@ -138,5 +138,10 @@ public class GameWindow : WindowBase
 
 	#endregion
 	#region UI组件事件
+	public void OnPlayerInventoryButtonClick()
+	{
+		UIModule.Instance.PopUpWindow<InventoryWindow>();
+
+	}
 	#endregion
 }

@@ -15,6 +15,7 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 	public InventoryWindowDataComponent dataCompt;
 
 	private InventorySystem inventorySystem;
+	private InputSys inputSys;
 
 	private ItemInstance draggingItem;
 	private string draggingOriginId;
@@ -30,6 +31,7 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 		dataCompt = gameObject.GetComponent<InventoryWindowDataComponent>();
 		dataCompt.InitComponent(this);
 		inventorySystem = this.GetSystem<InventorySystem>();
+		inputSys = this.GetSystem<InputSys>();
 		if (inventorySystem == null)
 		{
 			Debug.LogError("InventorySystem is Null");
@@ -41,6 +43,10 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 	public override void OnShow()
 	{
 		base.OnShow();
+		if (inputSys != null)
+		{
+			inputSys.SetInputEnabled(false);
+		}
 		InitPlayerInventory();
 		InitSceneContainer();
 		BindGridCallbacks();
@@ -52,6 +58,10 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 	public override void OnHide()
 	{
 		UnregisterInventoryEvents();
+		if (inputSys != null)
+		{
+			inputSys.SetInputEnabled(true);
+		}
 		base.OnHide();
 	}
 
@@ -59,6 +69,10 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 	public override void OnDestroy()
 	{
 		UnregisterInventoryEvents();
+		if (inputSys != null)
+		{
+			inputSys.SetInputEnabled(true);
+		}
 		base.OnDestroy();
 	}
 	#endregion

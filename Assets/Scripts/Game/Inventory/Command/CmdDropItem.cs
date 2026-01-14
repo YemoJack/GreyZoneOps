@@ -15,7 +15,7 @@ public class CmdDropItem : AbstractCommand
         if (_item == null) return;
         var pos = GetPlayerPosition();
         Debug.Log($"CmdDropItem {_item.Definition.Id} {_item.InstanceId}");
-        SpawnFallbackCube(pos);
+        SpawnFallbackWorldItem(pos);
     }
 
     private Vector3 GetPlayerPosition()
@@ -27,11 +27,20 @@ public class CmdDropItem : AbstractCommand
         return cam != null ? cam.transform.position : Vector3.zero;
     }
 
-    private void SpawnFallbackCube(Vector3 pos)
+    private async void SpawnFallbackWorldItem(Vector3 pos)
     {
-        var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        cube.name = "DroppedItem";
-        cube.transform.position = pos + new Vector3(0f, 0.2f, 0f);
-        cube.transform.localScale = Vector3.one * 0.3f;
+        IResLoader resLoader = this.GetUtility<IResLoader>();
+        GameObject obj = await resLoader.LoadAsync<GameObject>(_item.Definition.Name);
+        if (obj == null)
+        {
+            Debug.LogError("SpawnFallbackWorldItem is Null");
+            return;
+        }
+        var worldItem = GameObject.Instantiate(obj, pos, Quaternion.identity);
+        worldItem.name = "DroppedItem";
+        worldItem.transform.position = pos;
+        worldItem.transform.localScale = Vector3.one;
+        WorldItemInteractable itemInteractable = worldItem.AddComponent<WorldItemInteractable>();
+        itemInteractable.Item = _item;
     }
 }

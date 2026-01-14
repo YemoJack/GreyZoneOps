@@ -3,33 +3,45 @@ using UnityEngine;
 
 public class WorldItemInteractable : MonoBehaviour, IInteractable, IController, ICanSendCommand
 {
-    public SOItemDefinition Definition;
-    public int Count = 1;
+    [HideInInspector]
+    public ItemInstance Item;
     public string PromptOverride;
 
     public bool CanInteract(InteractContext ctx)
     {
-        return Definition != null;
+
+        return Item != null && Item.Definition != null;
     }
 
     public InteractInfo GetInfo(InteractContext ctx)
     {
-        var name = Definition != null ? Definition.Name : "Item";
+
+        var def = Item != null ? Item.Definition : null;
+        var name = def != null ? def.Name : "Item";
         var prompt = string.IsNullOrEmpty(PromptOverride) ? $"Pick up {name}" : PromptOverride;
         return new InteractInfo
         {
             Prompt = prompt,
-            CanInteract = Definition != null,
-            Icon = Definition != null ? Definition.icon : null
+            CanInteract = def != null,
+            Icon = def != null ? def.icon : null
         };
     }
 
     public void Interact(InteractContext ctx)
     {
-        if (Definition == null) return;
-        var amount = Mathf.Max(1, Count);
-        this.SendCommand(new CmdPickupItem(Definition, amount, gameObject));
+        if (Item == null || Item.Definition == null || Item.Count <= 0) return;
+        this.SendCommand(new CmdPickupItem(Item, gameObject));
     }
+
+    private void Start()
+    {
+        if (Item == null || Item.Definition == null)
+        {
+            Debug.LogError("WorldItem is Null");
+        }
+    }
+
+
 
     public IArchitecture GetArchitecture()
     {

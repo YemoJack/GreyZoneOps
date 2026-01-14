@@ -28,5 +28,6 @@ public class GameArchitecture : Architecture<GameArchitecture>
         RegisterSystem(new WeaponSystem());
         RegisterSystem(new BulletManager());
         RegisterSystem(new InventorySystem());
+        RegisterSystem(new InteractionSystem());
     }
 }

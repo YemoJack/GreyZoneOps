@@ -72,6 +72,7 @@ public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
     private string containerId = "1003";
     public List<SOItemDefinition> itemDataList;
 
+    private bool isShowCursor = false;
 
     private void TestInventoryWindow()
     {
@@ -79,7 +80,8 @@ public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
 
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            LockCursor(false);
+            LockCursor(isShowCursor);
+            isShowCursor = !isShowCursor;
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha1))

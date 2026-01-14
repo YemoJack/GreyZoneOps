@@ -13,7 +13,7 @@ public struct InventoryChangedEvent
 
 public class InventorySystem : AbstractSystem, ICanSendCommand
 {
-    private const int MaxContainerNestDepth = 1;
+    private const int MaxContainerNestDepth = 2;
     private InventoryContainerModel _model;
 
     private void NotifyChanged()
@@ -230,6 +230,24 @@ public class InventorySystem : AbstractSystem, ICanSendCommand
                 }
             }
         }
+
+        return false;
+    }
+
+    public bool TryAutoPlaceToPlayerContainers(ItemInstance item)
+    {
+        if (item == null) return false;
+        var model = this.GetModel<InventoryContainerModel>();
+        if (model == null) return false;
+
+        var chestId = model.GetPlayerContainerId(InventoryContainerType.ChestRig);
+        if (!string.IsNullOrEmpty(chestId) && TryAutoPlace(chestId, item)) return true;
+
+        var backpackId = model.GetPlayerContainerId(InventoryContainerType.Backpack);
+        if (!string.IsNullOrEmpty(backpackId) && TryAutoPlace(backpackId, item)) return true;
+
+        var pocketId = model.GetPlayerContainerId(InventoryContainerType.Pocket);
+        if (!string.IsNullOrEmpty(pocketId) && TryAutoPlace(pocketId, item)) return true;
 
         return false;
     }

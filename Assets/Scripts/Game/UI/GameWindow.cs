@@ -9,6 +9,7 @@ using UnityEngine.UI;
 using UnityEngine;
 using ZMUIFrameWork;
 using QFramework;
+using System;
 
 public class GameWindow : WindowBase
 {
@@ -22,6 +23,8 @@ public class GameWindow : WindowBase
 
 	private IUnRegister weaponChangeUnregister;
 	private IUnRegister ammoChangeUnregister;
+
+	private IUnRegister interacttargetChangeUnregister;
 
 
 	#region 声明周期函数
@@ -62,6 +65,8 @@ public class GameWindow : WindowBase
 	{
 		weaponChangeUnregister = this.RegisterEvent<EventPlayerChangeWeapon>(OnWeaponChanged);
 		ammoChangeUnregister = this.RegisterEvent<EventWeaponAmmoChanged>(OnAmmoChanged);
+		interacttargetChangeUnregister = this.RegisterEvent<EventInteractTargetChanged>(OnInteracttargetChange);
+
 	}
 
 	private void UnregisterEvents()
@@ -71,7 +76,16 @@ public class GameWindow : WindowBase
 
 		ammoChangeUnregister?.UnRegister();
 		ammoChangeUnregister = null;
+
+		interacttargetChangeUnregister?.UnRegister();
+		interacttargetChangeUnregister = null;
 	}
+
+	private void OnInteracttargetChange(EventInteractTargetChanged e)
+	{
+		dataCompt.InteractPromptText.text = e.Info.Prompt;
+	}
+
 
 	private void RefreshCurrentWeaponUI()
 	{

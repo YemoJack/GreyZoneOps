@@ -26,6 +26,7 @@ public class InputSys : AbstractSystem, IUpdateSystem
     public bool Sprint { get; private set; }
 
     public bool Tab { get; private set; }
+    public bool InteractPressed { get; private set; }
 
     public bool InputEnabled => inputEnabled;
 
@@ -89,6 +90,7 @@ public class InputSys : AbstractSystem, IUpdateSystem
         Crouch = Input.GetKey(KeyCode.LeftControl);
 
         Tab = Input.GetKey(KeyCode.Tab);
+        InteractPressed = Input.GetKeyDown(KeyCode.E);
     }
 
     private void ClearInput()
@@ -106,5 +108,6 @@ public class InputSys : AbstractSystem, IUpdateSystem
         Crouch = false;
         Sprint = false;
         Tab = false;
+        InteractPressed = false;
     }
 }

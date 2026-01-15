@@ -10,12 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 783451b3c2eee154db42c5f6ea06f2db, type: 3}
-  m_Name: Item_34
+  m_Name: Armor_1
   m_EditorClassIdentifier: 
-  Id: 7
-  Name: 34
-  Size: {x: 3, y: 4}
-  icon: {fileID: 21300000, guid: a1d3580b7e041a14eb886cfec03b6d69, type: 3}
+  Id: 2
+  Name: "\u62A4\u75321"
+  ResName: Item_Armor_1
+  Size: {x: 2, y: 1}
+  icon: {fileID: 21300000, guid: 8ab7556d8c658924ea275ec6028bd5fb, type: 3}
   MaxStack: 1
   CanRotate: 0
   Category: 2

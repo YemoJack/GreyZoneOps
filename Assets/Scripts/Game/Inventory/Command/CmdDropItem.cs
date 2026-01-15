@@ -30,7 +30,7 @@ public class CmdDropItem : AbstractCommand
     private async void SpawnFallbackWorldItem(Vector3 pos)
     {
         IResLoader resLoader = this.GetUtility<IResLoader>();
-        GameObject obj = await resLoader.LoadAsync<GameObject>(_item.Definition.Name);
+        GameObject obj = await resLoader.LoadAsync<GameObject>(_item.Definition.ResName);
         if (obj == null)
         {
             Debug.LogError("SpawnFallbackWorldItem is Null");
@@ -40,6 +40,7 @@ public class CmdDropItem : AbstractCommand
         worldItem.name = "DroppedItem";
         worldItem.transform.position = pos;
         worldItem.transform.localScale = Vector3.one;
+        worldItem.layer = LayerMask.NameToLayer("Interactable");
         WorldItemInteractable itemInteractable = worldItem.AddComponent<WorldItemInteractable>();
         itemInteractable.Item = _item;
     }

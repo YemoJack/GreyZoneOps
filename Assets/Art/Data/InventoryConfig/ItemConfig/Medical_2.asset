@@ -10,12 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 783451b3c2eee154db42c5f6ea06f2db, type: 3}
-  m_Name: Item_22
+  m_Name: Medical_2
   m_EditorClassIdentifier: 
-  Id: 3
-  Name: 22
+  Id: 5
+  Name: "\u836F\u54C12"
+  ResName: Item_Medical_2
   Size: {x: 2, y: 2}
-  icon: {fileID: 21300000, guid: b36c0f26845a2414fa6c473bdd922aaf, type: 3}
+  icon: {fileID: 21300000, guid: 1fa1a1dae70edec4d9f7782ca752e7ee, type: 3}
   MaxStack: 1
   CanRotate: 0
-  Category: 1
+  Category: 4

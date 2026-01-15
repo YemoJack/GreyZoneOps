@@ -1,6 +1,8 @@
 using QFramework;
 using UnityEngine;
 
+
+
 public struct EventInteractTargetChanged
 {
     public IInteractable Target;

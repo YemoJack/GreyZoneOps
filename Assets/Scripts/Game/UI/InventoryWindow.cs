@@ -160,11 +160,6 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 	private void RefreshInteract()
 	{
 		if (inventorySystem == null) return;
-		if (dataCompt?.SceneInventorySceneContainerView != null)
-		{
-			dataCompt?.SceneInventorySceneContainerView.RenderAll();
-			return;
-		}
 		if (dataCompt?.SceneInventorySceneContainerView == null) return;
 		dataCompt.SceneInventorySceneContainerView.RenderAll();
 

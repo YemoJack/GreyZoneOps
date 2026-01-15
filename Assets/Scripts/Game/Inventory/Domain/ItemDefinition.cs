@@ -18,6 +18,7 @@ public class SOItemDefinition : ScriptableObject
 {
     public int Id;
     public string Name;
+    public string ResName;
     public Vector2Int Size;
     public Sprite icon;
     public int MaxStack = 1;

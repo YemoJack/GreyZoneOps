@@ -10,12 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 783451b3c2eee154db42c5f6ea06f2db, type: 3}
-  m_Name: Item_44
+  m_Name: Beer
   m_EditorClassIdentifier: 
-  Id: 10
-  Name: 44
-  Size: {x: 4, y: 4}
-  icon: {fileID: 21300000, guid: b917b2211c26c144d8a6be3b290ef37d, type: 3}
+  Id: 7
+  Name: "\u6536\u96C6\u72691"
+  ResName: Item_Beer
+  Size: {x: 1, y: 2}
+  icon: {fileID: 21300000, guid: 6fe1077e732457746a57f93c20840d49, type: 3}
   MaxStack: 1
   CanRotate: 0
-  Category: 2
+  Category: 7

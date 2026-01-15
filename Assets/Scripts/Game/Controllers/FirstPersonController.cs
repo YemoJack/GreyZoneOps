@@ -301,6 +301,7 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         }
         catch (Exception e)
         {
+            Debug.LogError(e);
             // ignore cancellation when switching aim states or disabling
         }
     }

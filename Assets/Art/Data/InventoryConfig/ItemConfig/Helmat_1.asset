@@ -10,12 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 783451b3c2eee154db42c5f6ea06f2db, type: 3}
-  m_Name: Item_23
+  m_Name: Helmat_1
   m_EditorClassIdentifier: 
-  Id: 4
-  Name: 23
-  Size: {x: 2, y: 3}
-  icon: {fileID: 21300000, guid: 8ab7556d8c658924ea275ec6028bd5fb, type: 3}
+  Id: 3
+  Name: "\u5934\u76D41"
+  ResName: Item_Helmat_1
+  Size: {x: 2, y: 2}
+  icon: {fileID: 21300000, guid: b36c0f26845a2414fa6c473bdd922aaf, type: 3}
   MaxStack: 1
   CanRotate: 0
-  Category: 2
+  Category: 1

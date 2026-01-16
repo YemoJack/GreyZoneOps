@@ -7,24 +7,24 @@ public class SceneContainerView : MonoBehaviour, IController
     public RectTransform containerRoot;
 
     private ContainerView containerView;
+    private string currentContainerId;
 
     public void InitSceneContainer()
     {
         var model = this.GetModel<InventoryContainerModel>();
         if (model == null) return;
 
-        var container = model.GetFirstContainerByType(InventoryContainerType.LootBox);
-        if (container == null) return;
-
-        if (containerView == null)
+        InventoryContainer container = null;
+        if (!string.IsNullOrEmpty(currentContainerId))
         {
-            containerView = CreateContainerView(container.ContainerName, containerRoot);
+            container = model.GetContainer(currentContainerId);
+        }
+        if (container == null)
+        {
+            container = model.GetFirstContainerByType(InventoryContainerType.LootBox);
         }
 
-        if (containerView != null)
-        {
-            containerView.container = container;
-        }
+        SetContainer(container);
     }
 
     private ContainerView CreateContainerView(string containerName, RectTransform root)
@@ -51,6 +51,42 @@ public class SceneContainerView : MonoBehaviour, IController
         if (containerView != null)
         {
             containerView.RenderAll(containerView.container);
+        }
+    }
+
+    public void SetContainerById(string containerId)
+    {
+        if (string.IsNullOrEmpty(containerId)) return;
+        if (currentContainerId == containerId) return;
+        currentContainerId = containerId;
+
+        var model = this.GetModel<InventoryContainerModel>();
+        if (model == null) return;
+        var container = model.GetContainer(containerId);
+        SetContainer(container);
+    }
+
+    private void SetContainer(InventoryContainer container)
+    {
+        if (container == null || containerRoot == null)
+        {
+            return;
+        }
+
+        if (containerView == null || containerView.container == null ||
+            containerView.container.ContainerName != container.ContainerName)
+        {
+            if (containerView != null)
+            {
+                Destroy(containerView.gameObject);
+            }
+            containerView = CreateContainerView(container.ContainerName, containerRoot);
+        }
+
+        if (containerView != null)
+        {
+            containerView.container = container;
+            currentContainerId = container.InstanceId;
         }
     }
 

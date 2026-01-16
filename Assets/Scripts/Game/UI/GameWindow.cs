@@ -25,6 +25,7 @@ public class GameWindow : WindowBase
 	private IUnRegister ammoChangeUnregister;
 
 	private IUnRegister interacttargetChangeUnregister;
+	private IUnRegister openContainerUnregister;
 
 
 	#region 声明周期函数
@@ -66,6 +67,7 @@ public class GameWindow : WindowBase
 		weaponChangeUnregister = this.RegisterEvent<EventPlayerChangeWeapon>(OnWeaponChanged);
 		ammoChangeUnregister = this.RegisterEvent<EventWeaponAmmoChanged>(OnAmmoChanged);
 		interacttargetChangeUnregister = this.RegisterEvent<EventInteractTargetChanged>(OnInteracttargetChange);
+		openContainerUnregister = this.RegisterEvent<EventOpenContainer>(OnOpenContainer);
 
 	}
 
@@ -79,11 +81,25 @@ public class GameWindow : WindowBase
 
 		interacttargetChangeUnregister?.UnRegister();
 		interacttargetChangeUnregister = null;
+
+		openContainerUnregister?.UnRegister();
+		openContainerUnregister = null;
 	}
 
 	private void OnInteracttargetChange(EventInteractTargetChanged e)
 	{
 		dataCompt.InteractPromptText.text = e.Info.Prompt;
+	}
+
+	private void OnOpenContainer(EventOpenContainer e)
+	{
+		if (string.IsNullOrEmpty(e.ContainerId)) return;
+		UIModule.Instance.PopUpWindow<InventoryWindow>();
+		var window = UIModule.Instance.GetWindow<InventoryWindow>();
+		if (window != null)
+		{
+			window.SetSceneContainer(e.ContainerId);
+		}
 	}
 
 

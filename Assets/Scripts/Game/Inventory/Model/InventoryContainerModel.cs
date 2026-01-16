@@ -42,7 +42,7 @@ public class InventoryContainerModel : AbstractModel
 
     public void LoadContainerConfig(int mapId)
     {
-        SOInventoryContainerConfig config = this.GetUtility<IResLoader>().LoadSync<SOInventoryContainerConfig>($"ContainerConfig_{mapId}");
+        SOInventoryContainerConfig config = this.GetUtility<IResLoader>().LoadSync<SOInventoryContainerConfig>($"Cfg_MapConfig_{mapId}");
         if (config != null)
         {
             foreach (var container in config.containerConfigs)
@@ -66,6 +66,11 @@ public class InventoryContainerModel : AbstractModel
         return null;
     }
 
+    public InventoryContainer GetContainer(string id)
+    {
+        return Containers.TryGetValue(id, out var container) ? container : null;
+    }
+
     private InventoryContainer CreateInventoryContainer(SOContainerConfig config)
     {
         InventoryContainer container = new InventoryContainer(config.containerType);
@@ -82,4 +87,3 @@ public class InventoryContainerModel : AbstractModel
 
 
 }
-

@@ -23,6 +23,7 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 	private ItemPlacement draggingOriginPlacement;
 	private EquipmentSlotType? draggingOriginEquipSlot;
 	private IUnRegister inventoryChangedUnreg;
+	private IUnRegister openContainerUnreg;
 
 	#region 声明周期函数
 	//调用机制与Mono Awake一致
@@ -92,12 +93,15 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 	private void RegisterInventoryEvents()
 	{
 		inventoryChangedUnreg = this.RegisterEvent<InventoryChangedEvent>(_ => RefreshAll());
+		openContainerUnreg = this.RegisterEvent<EventOpenContainer>(OnOpenContainer);
 	}
 
 	private void UnregisterInventoryEvents()
 	{
 		inventoryChangedUnreg?.UnRegister();
 		inventoryChangedUnreg = null;
+		openContainerUnreg?.UnRegister();
+		openContainerUnreg = null;
 	}
 
 	private void InitPlayerInventory()
@@ -163,6 +167,11 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 		if (dataCompt?.SceneInventorySceneContainerView == null) return;
 		dataCompt.SceneInventorySceneContainerView.RenderAll();
 
+	}
+
+	private void OnOpenContainer(EventOpenContainer e)
+	{
+		SetSceneContainer(e.ContainerId);
 	}
 
 
@@ -394,6 +403,14 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 			draggingOriginEquipSlot = null;
 		}
 		return placed;
+	}
+
+	public void SetSceneContainer(string containerId)
+	{
+		if (string.IsNullOrEmpty(containerId)) return;
+		if (dataCompt?.SceneInventorySceneContainerView == null) return;
+		dataCompt.SceneInventorySceneContainerView.SetContainerById(containerId);
+		RefreshInteract();
 	}
 	#endregion
 

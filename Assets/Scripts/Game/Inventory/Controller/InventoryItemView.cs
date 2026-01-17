@@ -137,20 +137,23 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
             canvasGroup.alpha = 1f;
         }
 
-        var equipSlot = FindEquipmentSlotUnderPointer(e.position);
-        if (equipSlot != null)
+        var gridPos = ScreenToCell(e.position, e.pressEventCamera, out var targetGrid);
+        if (targetGrid == null)
         {
-            var handled = equipSlot.TryHandleDrop();
-            RestoreParent();
-            if (handled) return;
-            if (onDrop != null)
+            var equipSlot = FindEquipmentSlotUnderPointer(e.position);
+            if (equipSlot != null)
             {
-                onDrop.Invoke(new Vector2Int(-1, -1), rotated);
+                var handled = equipSlot.TryHandleDrop();
+                RestoreParent();
+                if (handled) return;
+                if (onDrop != null)
+                {
+                    onDrop.Invoke(new Vector2Int(-1, -1), rotated);
+                }
+                return;
             }
-            return;
         }
 
-        var gridPos = ScreenToCell(e.position, e.pressEventCamera, out var targetGrid);
         var isOutside = targetGrid == null;
         if (isOutside)
         {

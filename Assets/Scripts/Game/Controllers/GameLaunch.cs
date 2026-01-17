@@ -34,7 +34,7 @@ public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
         UIModule.Instance.Initialize();
         UIModule.Instance.PopUpWindow<GameWindow>();
 
-        this.SendEvent<EventPlayerInit>(new EventPlayerInit());
+        this.SendEvent<EventGameInit>(new EventGameInit());
 
         LockCursor(true);
 

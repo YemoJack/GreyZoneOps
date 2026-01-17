@@ -19,10 +19,10 @@ public class InteractorView : MonoBehaviour, IController
             ViewCamera = Camera.main;
         }
 
-        this.RegisterEvent<EventPlayerInit>(OnInit).UnRegisterWhenGameObjectDestroyed(this);
+        this.RegisterEvent<EventGameInit>(OnInit).UnRegisterWhenGameObjectDestroyed(this);
     }
 
-    private void OnInit(EventPlayerInit e)
+    private void OnInit(EventGameInit e)
     {
         _system = this.GetSystem<InteractionSystem>();
         _system?.SetInteractor(this);

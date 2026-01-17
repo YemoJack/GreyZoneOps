@@ -8,9 +8,14 @@ public class SceneContainerView : MonoBehaviour, IController
 
     private ContainerView containerView;
     private string currentContainerId;
+    private System.Func<string, int, Vector2Int, bool> onTryTake;
+    private System.Func<string, int, Vector2Int, bool, bool> onTryPlace;
+
+    public bool IsVisible => gameObject.activeSelf;
 
     public void InitSceneContainer()
     {
+        if (!IsVisible) return;
         var model = this.GetModel<InventoryContainerModel>();
         if (model == null) return;
 
@@ -40,14 +45,14 @@ public class SceneContainerView : MonoBehaviour, IController
     public void BindCallbacks(System.Func<string, int, Vector2Int, bool> tryTake,
         System.Func<string, int, Vector2Int, bool, bool> tryPlace)
     {
-        if (containerView != null)
-        {
-            containerView.BindCallbacks(tryTake, tryPlace);
-        }
+        onTryTake = tryTake;
+        onTryPlace = tryPlace;
+        ApplyCallbacks();
     }
 
     public void RenderAll()
     {
+        if (!IsVisible) return;
         if (containerView != null)
         {
             containerView.RenderAll(containerView.container);
@@ -87,6 +92,21 @@ public class SceneContainerView : MonoBehaviour, IController
         {
             containerView.container = container;
             currentContainerId = container.InstanceId;
+            ApplyCallbacks();
+        }
+    }
+
+    public void SetVisible(bool visible)
+    {
+        if (gameObject.activeSelf == visible) return;
+        gameObject.SetActive(visible);
+    }
+
+    private void ApplyCallbacks()
+    {
+        if (containerView != null && onTryTake != null && onTryPlace != null)
+        {
+            containerView.BindCallbacks(onTryTake, onTryPlace);
         }
     }
 

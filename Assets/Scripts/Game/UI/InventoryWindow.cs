@@ -24,6 +24,7 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 	private EquipmentSlotType? draggingOriginEquipSlot;
 	private IUnRegister inventoryChangedUnreg;
 	private IUnRegister openContainerUnreg;
+	private InventoryOpenContext openContext = InventoryOpenContext.FromBackpack();
 
 	#region 声明周期函数
 	//调用机制与Mono Awake一致
@@ -49,8 +50,8 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 			inputSys.SetInputEnabled(false);
 		}
 		InitPlayerInventory();
-		InitSceneContainer();
 		BindGridCallbacks();
+		ApplyOpenContext(openContext);
 		RegisterInventoryEvents();
 		RefreshAll();
 	}
@@ -165,13 +166,14 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 	{
 		if (inventorySystem == null) return;
 		if (dataCompt?.SceneInventorySceneContainerView == null) return;
+		if (!dataCompt.SceneInventorySceneContainerView.IsVisible) return;
 		dataCompt.SceneInventorySceneContainerView.RenderAll();
 
 	}
 
 	private void OnOpenContainer(EventOpenContainer e)
 	{
-		SetSceneContainer(e.ContainerId);
+		ApplyOpenContext(ResolveOpenContext(e));
 	}
 
 
@@ -407,10 +409,40 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 
 	public void SetSceneContainer(string containerId)
 	{
-		if (string.IsNullOrEmpty(containerId)) return;
+		ApplyOpenContext(InventoryOpenContext.FromContainer(containerId));
+	}
+
+	public void ApplyOpenContext(InventoryOpenContext context)
+	{
+		openContext = context;
+
 		if (dataCompt?.SceneInventorySceneContainerView == null) return;
-		dataCompt.SceneInventorySceneContainerView.SetContainerById(containerId);
+		var showScene = openContext.ShowSceneContainer;
+		dataCompt.SceneInventorySceneContainerView.SetVisible(showScene);
+
+		if (!showScene) return;
+
+		if (!string.IsNullOrEmpty(openContext.ContainerId))
+		{
+			dataCompt.SceneInventorySceneContainerView.SetContainerById(openContext.ContainerId);
+		}
+
+		InitSceneContainer();
 		RefreshInteract();
+	}
+
+	private InventoryOpenContext ResolveOpenContext(EventOpenContainer e)
+	{
+		var context = e.OpenContext;
+		if (!string.IsNullOrEmpty(e.ContainerId) && string.IsNullOrEmpty(context.ContainerId))
+		{
+			context = InventoryOpenContext.FromContainer(e.ContainerId);
+		}
+		if (context.Source == InventoryOpenSource.BackpackButton && !string.IsNullOrEmpty(context.ContainerId))
+		{
+			context = context.WithContainer(context.ContainerId);
+		}
+		return context;
 	}
 	#endregion
 

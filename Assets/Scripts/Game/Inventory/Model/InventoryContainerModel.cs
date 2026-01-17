@@ -15,6 +15,7 @@ public class InventoryContainerModel : AbstractModel
 {
     public Dictionary<string, InventoryContainer> Containers;
     public EquipmentContainer PlayerEquipment;
+    public SOInventoryContainerConfig CurrentMapConfig { get; private set; }
 
 
     protected override void OnInit()
@@ -22,7 +23,7 @@ public class InventoryContainerModel : AbstractModel
         Containers = new Dictionary<string, InventoryContainer>();
         PlayerEquipment = new EquipmentContainer();
 
-        LoadContainerConfig(0);
+        LoadMapConfig(0);
     }
 
     public string GetPlayerContainerId(InventoryContainerType type)
@@ -40,17 +41,25 @@ public class InventoryContainerModel : AbstractModel
         return PlayerEquipment;
     }
 
-    public void LoadContainerConfig(int mapId)
+    public void LoadMapConfig(int mapId)
     {
-        SOInventoryContainerConfig config = this.GetUtility<IResLoader>().LoadSync<SOInventoryContainerConfig>($"Cfg_MapConfig_{mapId}");
-        if (config != null)
+        CurrentMapConfig = this.GetUtility<IResLoader>().LoadSync<SOInventoryContainerConfig>($"Cfg_MapConfig_{mapId}");
+    }
+
+    public InventoryContainer EnsureContainer(SOContainerConfig config, string overrideInstanceId = null)
+    {
+        if (config == null) return null;
+        var id = !string.IsNullOrEmpty(overrideInstanceId)
+            ? overrideInstanceId
+            : config.containerId.ToString();
+        if (Containers.TryGetValue(id, out var existing))
         {
-            foreach (var container in config.containerConfigs)
-            {
-                InventoryContainer inventoryContainer = CreateInventoryContainer(container);
-                Containers[inventoryContainer.InstanceId] = inventoryContainer;
-            }
+            return existing;
         }
+
+        var container = CreateInventoryContainer(config, overrideInstanceId);
+        Containers[container.InstanceId] = container;
+        return container;
     }
 
     public InventoryContainer GetFirstContainerByType(InventoryContainerType type)
@@ -71,10 +80,12 @@ public class InventoryContainerModel : AbstractModel
         return Containers.TryGetValue(id, out var container) ? container : null;
     }
 
-    private InventoryContainer CreateInventoryContainer(SOContainerConfig config)
+    private InventoryContainer CreateInventoryContainer(SOContainerConfig config, string overrideInstanceId = null)
     {
         InventoryContainer container = new InventoryContainer(config.containerType);
-        container.InstanceId = config.containerId.ToString();
+        container.InstanceId = !string.IsNullOrEmpty(overrideInstanceId)
+            ? overrideInstanceId
+            : config.containerId.ToString();
         container.ContainerName = config.containerName;
         foreach (var part in config.partGridDatas)
         {

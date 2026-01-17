@@ -9,7 +9,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/1/15 14:51:20",
+    "PackageNote": "2026/1/17 15:07:45",
     "AssetList": [
         {
             "Address": "Cfg_CNTR_Backpack1",
@@ -446,7 +446,7 @@
             "UnityCRC": 0,
             "FileHash": "86a50758e664e44f6765a13aa74a453c",
             "FileCRC": 0,
-            "FileSize": 523,
+            "FileSize": 544,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -536,7 +536,7 @@
             "UnityCRC": 0,
             "FileHash": "783fbe9aeb311e51d33da4f4fc8c1390",
             "FileCRC": 0,
-            "FileSize": 723,
+            "FileSize": 765,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -666,7 +666,7 @@
             "UnityCRC": 0,
             "FileHash": "530a24183c422b16027444c7d49d3a49",
             "FileCRC": 0,
-            "FileSize": 149661,
+            "FileSize": 149650,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

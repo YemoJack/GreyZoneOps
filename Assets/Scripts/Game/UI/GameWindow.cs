@@ -93,12 +93,16 @@ public class GameWindow : WindowBase
 
 	private void OnOpenContainer(EventOpenContainer e)
 	{
-		if (string.IsNullOrEmpty(e.ContainerId)) return;
+		var context = ResolveOpenContext(e);
+		if (context.Source != InventoryOpenSource.ContainerInteraction || string.IsNullOrEmpty(context.ContainerId))
+		{
+			return;
+		}
 		UIModule.Instance.PopUpWindow<InventoryWindow>();
 		var window = UIModule.Instance.GetWindow<InventoryWindow>();
 		if (window != null)
 		{
-			window.SetSceneContainer(e.ContainerId);
+			window.ApplyOpenContext(context);
 		}
 	}
 
@@ -171,7 +175,26 @@ public class GameWindow : WindowBase
 	public void OnPlayerInventoryButtonClick()
 	{
 		UIModule.Instance.PopUpWindow<InventoryWindow>();
+		var window = UIModule.Instance.GetWindow<InventoryWindow>();
+		if (window != null)
+		{
+			window.ApplyOpenContext(InventoryOpenContext.FromBackpack());
+		}
 
+	}
+
+	private InventoryOpenContext ResolveOpenContext(EventOpenContainer e)
+	{
+		var context = e.OpenContext;
+		if (!string.IsNullOrEmpty(e.ContainerId) && string.IsNullOrEmpty(context.ContainerId))
+		{
+			context = InventoryOpenContext.FromContainer(e.ContainerId);
+		}
+		if (context.Source == InventoryOpenSource.BackpackButton && !string.IsNullOrEmpty(context.ContainerId))
+		{
+			context = context.WithContainer(context.ContainerId);
+		}
+		return context;
 	}
 	#endregion
 }

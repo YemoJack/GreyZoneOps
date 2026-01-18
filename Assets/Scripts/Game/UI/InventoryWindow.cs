@@ -45,6 +45,7 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 	public override void OnShow()
 	{
 		base.OnShow();
+		SetCursorVisible(true);
 		if (inputSys != null)
 		{
 			inputSys.SetInputEnabled(false);
@@ -64,6 +65,7 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 		{
 			inputSys.SetInputEnabled(true);
 		}
+		SetCursorVisible(false);
 		base.OnHide();
 	}
 
@@ -75,6 +77,7 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 		{
 			inputSys.SetInputEnabled(true);
 		}
+		SetCursorVisible(false);
 		base.OnDestroy();
 	}
 	#endregion
@@ -443,6 +446,12 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 			context = context.WithContainer(context.ContainerId);
 		}
 		return context;
+	}
+
+	private void SetCursorVisible(bool visible)
+	{
+		Cursor.lockState = visible ? CursorLockMode.None : CursorLockMode.Locked;
+		Cursor.visible = visible;
 	}
 	#endregion
 

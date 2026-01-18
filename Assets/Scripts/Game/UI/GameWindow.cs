@@ -1,9 +1,9 @@
-/*---------------------------------
- *Title:UI表现层脚本自动化生成工具
- *Author:ZM 铸梦
+﻿/*---------------------------------
+ *Title:UI琛ㄧ幇灞傝剼鏈嚜鍔ㄥ寲鐢熸垚宸ュ叿
+ *Author:ZM 閾告ⅵ
  *Date:2025/12/14 20:10:50
- *Description:UI 表现层，该层只负责界面的交互、表现相关的更新，不允许编写任何业务逻辑代码
- *注意:以下文件是自动生成的，再次生成不会覆盖原有的代码，会在原有的代码上进行新增，可放心使用
+ *Description:UI 琛ㄧ幇灞傦紝璇ュ眰鍙礋璐ｇ晫闈㈢殑浜や簰銆佽〃鐜扮浉鍏崇殑鏇存柊锛屼笉鍏佽缂栧啓浠讳綍涓氬姟閫昏緫浠ｇ爜
+ *娉ㄦ剰:浠ヤ笅鏂囦欢鏄嚜鍔ㄧ敓鎴愮殑锛屽啀娆＄敓鎴愪笉浼氳鐩栧師鏈夌殑浠ｇ爜锛屼細鍦ㄥ師鏈夌殑浠ｇ爜涓婅繘琛屾柊澧烇紝鍙斁蹇冧娇鐢?
 ---------------------------------*/
 using UnityEngine.UI;
 using UnityEngine;
@@ -26,10 +26,11 @@ public class GameWindow : WindowBase
 
 	private IUnRegister interacttargetChangeUnregister;
 	private IUnRegister openContainerUnregister;
+	private IUnRegister openInventoryUnregister;
 
 
-	#region 声明周期函数
-	//调用机制与Mono Awake一致
+	#region 澹版槑鍛ㄦ湡鍑芥暟
+	//璋冪敤鏈哄埗涓嶮ono Awake涓€鑷?
 	public override void OnAwake()
 	{
 		dataCompt = gameObject.GetComponent<GameWindowDataComponent>();
@@ -40,20 +41,20 @@ public class GameWindow : WindowBase
 		weaponSystem = this.GetSystem<WeaponSystem>();
 		weaponInventoryModel = this.GetModel<WeaponInventoryModel>();
 	}
-	//物体显示时执行
+	//鐗╀綋鏄剧ず鏃舵墽琛?
 	public override void OnShow()
 	{
 		base.OnShow();
 		RegisterEvents();
 		RefreshCurrentWeaponUI();
 	}
-	//物体隐藏时执行
+	//鐗╀綋闅愯棌鏃舵墽琛?
 	public override void OnHide()
 	{
 		base.OnHide();
 		UnregisterEvents();
 	}
-	//物体销毁时执行
+	//鐗╀綋閿€姣佹椂鎵ц
 	public override void OnDestroy()
 	{
 		base.OnDestroy();
@@ -68,6 +69,7 @@ public class GameWindow : WindowBase
 		ammoChangeUnregister = this.RegisterEvent<EventWeaponAmmoChanged>(OnAmmoChanged);
 		interacttargetChangeUnregister = this.RegisterEvent<EventInteractTargetChanged>(OnInteracttargetChange);
 		openContainerUnregister = this.RegisterEvent<EventOpenContainer>(OnOpenContainer);
+		openInventoryUnregister = this.RegisterEvent<EventOpenInventory>(OnOpenInventory);
 
 	}
 
@@ -84,6 +86,9 @@ public class GameWindow : WindowBase
 
 		openContainerUnregister?.UnRegister();
 		openContainerUnregister = null;
+
+		openInventoryUnregister?.UnRegister();
+		openInventoryUnregister = null;
 	}
 
 	private void OnInteracttargetChange(EventInteractTargetChanged e)
@@ -104,6 +109,11 @@ public class GameWindow : WindowBase
 		{
 			window.ApplyOpenContext(context);
 		}
+	}
+
+	private void OnOpenInventory(EventOpenInventory e)
+	{
+		OnPlayerInventoryButtonClick();
 	}
 
 
@@ -151,12 +161,16 @@ public class GameWindow : WindowBase
 	{
 		if (dataCompt != null)
 		{
-			dataCompt.WeaponNameText.text = string.IsNullOrEmpty(weaponName) ? "无武器" : weaponName;
+			dataCompt.WeaponNameText.text = string.IsNullOrEmpty(weaponName) ? string.Empty : weaponName;
 		}
 
 		if (dataCompt.AmmoNumText != null)
 		{
-			if (totalAmmo > 0)
+			if (string.IsNullOrEmpty(weaponName))
+			{
+				dataCompt.AmmoNumText.text = string.Empty;
+			}
+			else if (totalAmmo > 0)
 			{
 				dataCompt.AmmoNumText.text = $"{currentAmmo}/{totalAmmo}";
 			}
@@ -171,7 +185,7 @@ public class GameWindow : WindowBase
 
 
 	#endregion
-	#region UI组件事件
+	#region UI缁勪欢浜嬩欢
 	public void OnPlayerInventoryButtonClick()
 	{
 		UIModule.Instance.PopUpWindow<InventoryWindow>();
@@ -198,3 +212,4 @@ public class GameWindow : WindowBase
 	}
 	#endregion
 }
+

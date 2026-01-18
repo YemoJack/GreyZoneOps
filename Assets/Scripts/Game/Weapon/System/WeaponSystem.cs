@@ -49,6 +49,68 @@ public class WeaponSystem : AbstractSystem
        weaponInventoryModel = this.GetModel<WeaponInventoryModel>();
     }
 
+    public void InitializeLoadout(Transform weaponRoot, EquipmentContainer equipment)
+    {
+        if (weaponRoot == null || equipment == null)
+        {
+            Debug.LogWarning("WeaponSystem InitializeLoadout called with null references.");
+            return;
+        }
+
+        ClearInstantiatedWeapons();
+        weaponInventoryModel.ClearSlots();
+
+        var slots = new[]
+        {
+            EquipmentSlotType.Weapon1,
+            EquipmentSlotType.Weapon2,
+            EquipmentSlotType.Weapon3,
+            EquipmentSlotType.Weapon4
+        };
+
+        foreach (var slot in slots)
+        {
+            var item = equipment.GetItem(slot);
+            if (item == null || item.Definition == null) continue;
+
+            if (!(item.Definition is SOWeaponItemDefinition weaponItem))
+            {
+                Debug.LogWarning($"WeaponSystem: Item in slot {slot} is not a weapon definition.");
+                continue;
+            }
+
+            if (weaponItem.WeaponPrefab == null)
+            {
+                Debug.LogWarning($"WeaponSystem: Weapon prefab missing for item {weaponItem.name}.");
+                continue;
+            }
+
+            var weaponObj = Object.Instantiate(weaponItem.WeaponPrefab, weaponRoot);
+            weaponObj.transform.localPosition = Vector3.zero;
+            weaponObj.transform.localRotation = Quaternion.identity;
+
+            var weapon = weaponObj.GetComponent<WeaponBase>();
+            if (weapon != null)
+            {
+                if (weapon.Config == null && weaponItem.WeaponConfig != null)
+                {
+                    weapon.Config = weaponItem.WeaponConfig;
+                }
+
+                RegisterWeaponInstance(weapon);
+                instantiatedWeapons.Add(weapon);
+                weapon.gameObject.SetActive(false);
+            }
+            else
+            {
+                Debug.LogWarning($"Prefab {weaponItem.WeaponPrefab.name} does not contain a WeaponBase component.");
+                Object.Destroy(weaponObj);
+            }
+        }
+
+        EquipInitialWeapon();
+    }
+
     public void InitializeLoadout(Transform weaponRoot, IEnumerable<GameObject> weaponPrefabs)
     {
         if (weaponRoot == null || weaponPrefabs == null)
@@ -57,7 +119,8 @@ public class WeaponSystem : AbstractSystem
             return;
         }
 
-        instantiatedWeapons.Clear();
+        ClearInstantiatedWeapons();
+        weaponInventoryModel.ClearSlots();
 
         foreach (var weaponPrefab in weaponPrefabs)
         {
@@ -207,6 +270,11 @@ public class WeaponSystem : AbstractSystem
         if (weaponInventoryModel.CurrentSlot == null)
         {
             Debug.LogWarning("EquipInitialWeapon: 无可用武器");
+            this.SendEvent(new EventPlayerChangeWeapon
+            {
+                Slot = null,
+                WeaponInstance = null
+            });
             return false;
         }
 
@@ -262,6 +330,18 @@ public class WeaponSystem : AbstractSystem
             if (weapon == null) continue;
             weapon.gameObject.SetActive(weapon == activeWeapon);
         }
+    }
+
+    private void ClearInstantiatedWeapons()
+    {
+        foreach (var weapon in instantiatedWeapons)
+        {
+            if (weapon == null) continue;
+            Object.Destroy(weapon.gameObject);
+        }
+
+        instantiatedWeapons.Clear();
+        weaponInstances.Clear();
     }
 
 }

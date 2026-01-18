@@ -9,14 +9,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 783451b3c2eee154db42c5f6ea06f2db, type: 3}
-  m_Name: Cfg_Weapon_2
+  m_Script: {fileID: 11500000, guid: cc365b467935fe3499fc970404e009b5, type: 3}
+  m_Name: SOWeaponItem_2
   m_EditorClassIdentifier: 
-  Id: 10
-  Name: "\u6B65\u67AA1"
+  Id: 9
+  Name: "\u624B\u67AA1"
   ResName: Item_Weapon_2
-  Size: {x: 4, y: 2}
+  Size: {x: 2, y: 1}
   icon: {fileID: 21300000, guid: 7d3ce98e50f37af478967c7a164381f3, type: 3}
   MaxStack: 1
   CanRotate: 0
   Category: 0
+  WeaponConfig: {fileID: 11400000, guid: 752ef1527354db24492599137aa003a9, type: 2}
+  WeaponPrefab: {fileID: 8151882401571984160, guid: a68e5c08ae387dc45a2451f6f69a5096,
+    type: 3}

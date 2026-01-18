@@ -9,7 +9,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/1/17 15:07:45",
+    "PackageNote": "2026/1/18 19:24:59",
     "AssetList": [
         {
             "Address": "Cfg_CNTR_Backpack1",
@@ -124,16 +124,16 @@
             "DependBundleIDs": []
         },
         {
-            "Address": "Cfg_Weapon_1",
-            "AssetPath": "Assets/Art/Data/InventoryConfig/ItemConfig/Weapon/Cfg_Weapon_1.asset",
+            "Address": "SOWeaponItem_1",
+            "AssetPath": "Assets/Art/Data/InventoryConfig/ItemConfig/Weapon/SOWeaponItem_1.asset",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 10,
             "DependBundleIDs": []
         },
         {
-            "Address": "Cfg_Weapon_2",
-            "AssetPath": "Assets/Art/Data/InventoryConfig/ItemConfig/Weapon/Cfg_Weapon_2.asset",
+            "Address": "SOWeaponItem_2",
+            "AssetPath": "Assets/Art/Data/InventoryConfig/ItemConfig/Weapon/SOWeaponItem_2.asset",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 10,
@@ -150,6 +150,14 @@
         {
             "Address": "Test_Gun_1",
             "AssetPath": "Assets/Art/Data/WeaponConfig/Test_Gun_1.asset",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 12,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "Test_Gun_2",
+            "AssetPath": "Assets/Art/Data/WeaponConfig/Test_Gun_2.asset",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 12,
@@ -316,6 +324,14 @@
             "DependBundleIDs": []
         },
         {
+            "Address": "Item_Weapon_3",
+            "AssetPath": "Assets/Art/Prefabs/Inventory/Item/Weapon/Item_Weapon_3.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 23,
+            "DependBundleIDs": []
+        },
+        {
             "Address": "GameWindow",
             "AssetPath": "Assets/Art/Prefabs/UI/GameWindow.prefab",
             "AssetGUID": "",
@@ -406,6 +422,14 @@
         {
             "Address": "Wep_Pistol_Gold",
             "AssetPath": "Assets/Art/Prefabs/Weapons/Gun/Wep_Pistol_Gold.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 27,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "Wep_Rifle_Gold",
+            "AssetPath": "Assets/Art/Prefabs/Weapons/Gun/Wep_Rifle_Gold.prefab",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 27,
@@ -526,7 +550,7 @@
             "UnityCRC": 0,
             "FileHash": "f6892c9a1d5f9fcf18da5f3d57bc4a05",
             "FileCRC": 0,
-            "FileSize": 1197,
+            "FileSize": 1560,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -546,7 +570,7 @@
             "UnityCRC": 0,
             "FileHash": "b4c9295c468bf5e3ac4fc1f36149b17d",
             "FileCRC": 0,
-            "FileSize": 1604,
+            "FileSize": 3050,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -656,7 +680,7 @@
             "UnityCRC": 0,
             "FileHash": "4365fb5a967ae8fd3e38ecd8084291c3",
             "FileCRC": 0,
-            "FileSize": 6130,
+            "FileSize": 17639,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -696,7 +720,7 @@
             "UnityCRC": 0,
             "FileHash": "bf6d2980ba828e54df65c3659a6b4aa2",
             "FileCRC": 0,
-            "FileSize": 12827,
+            "FileSize": 25142,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

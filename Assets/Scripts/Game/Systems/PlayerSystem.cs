@@ -63,7 +63,16 @@ public partial class PlayerSystem : AbstractSystem, IUpdateSystem, ICanSendComma
 
     private void HandleWeaponInput()
     {
+        if (weaponSystem == null || inputSys == null)
+        {
+            return;
+        }
+
         var currentWeapon = weaponSystem.GetCurrentWeapon();
+        if (currentWeapon == null || currentWeapon.Config == null)
+        {
+            return;
+        }
 
         if (currentWeapon.Config.WeaponType == WeaponType.Firearm)
         {

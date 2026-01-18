@@ -38,6 +38,12 @@ public class WeaponInventoryModel : AbstractModel
 
     protected override void OnInit() { }
 
+    public void ClearSlots()
+    {
+        slots.Clear();
+        CurrentIndex = -1;
+    }
+
     /// <summary>
     /// 添加或激活一个武器槽位（基于配置）。
     /// </summary>

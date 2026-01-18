@@ -161,8 +161,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: cc74e0e2699aaa340adbc4fcd293295a, type: 2}
   - {fileID: 11400000, guid: b0bf5c850dcbea7448ea29b2293b5af0, type: 2}
   - {fileID: 11400000, guid: da2a1bc092ebb3840bab4676b3a8a4aa, type: 2}
-  - {fileID: 11400000, guid: 49f4c10e0521cc247af839e2acd527fa, type: 2}
-  - {fileID: 11400000, guid: b53c156af6fa13d4a9c55d49977d8332, type: 2}
+  - {fileID: 11400000, guid: 942bb6891618eb741a1d03476b367002, type: 2}
+  - {fileID: 11400000, guid: 6b15a274ad3ab3a42937d2dc9beb813a, type: 2}
   - {fileID: 11400000, guid: e911135dde663c64cb7a93561384f912, type: 2}
   - {fileID: 11400000, guid: af145311e736e2c4384e547c9a6c80d1, type: 2}
   - {fileID: 11400000, guid: 0cc5ce86a00a65d44817709497815b61, type: 2}
@@ -528,16 +528,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 37930f8d49f213e4582d3c1fb404ea8b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  entries:
-  - containerConfig: {fileID: 11400000, guid: 7e498f08f571c9042b8434cb5def26ba, type: 2}
-    containerIdOverride: 
-    prefab: {fileID: 4888194290013900874, guid: b6912c721110d0643852eb519b1af907,
-      type: 3}
-    position: {x: 5, y: 0, z: 0}
-    rotationEuler: {x: 0, y: 0, z: 0}
-    parent: {fileID: 698698789}
-    fallbackType: 4
-    setInteractableLayer: 1
+  mapId: 0
 --- !u!4 &516957536
 Transform:
   m_ObjectHideFlags: 0
@@ -6226,8 +6217,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   WeaponRoot: {fileID: 615182671}
-  weaponObjectList:
-  - {fileID: 2780876524888379992, guid: 117a43dac40aa124cab7b4ceb3e1230e, type: 3}
 --- !u!114 &4416926083347132235
 MonoBehaviour:
   m_ObjectHideFlags: 0

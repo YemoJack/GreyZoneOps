@@ -36,23 +36,9 @@ public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
 
         this.SendEvent<EventGameInit>(new EventGameInit());
 
-        LockCursor(true);
 
     }
 
-    public void LockCursor(bool isLocked)
-    {
-        if (isLocked)
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-        }
-        else
-        {
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-        }
-    }
 
 
     // Update is called once per frame
@@ -72,17 +58,8 @@ public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
     private string containerId = "1003";
     public List<SOItemDefinition> itemDataList;
 
-    private bool isShowCursor = false;
-
     private void TestInventoryWindow()
     {
-
-
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            LockCursor(isShowCursor);
-            isShowCursor = !isShowCursor;
-        }
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {

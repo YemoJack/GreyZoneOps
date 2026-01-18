@@ -396,8 +396,9 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
 
     private void OnWeaponChanged(EventPlayerChangeWeapon weapon)
     {
-        _moveSpeed = weapon.WeaponInstance.Config.moveSpeedMultiplier * MoveSpeed;
-        _sprintSpeed = weapon.WeaponInstance.Config.runSpeedMultiplier * SprintSpeed;
+
+        _moveSpeed = weapon.Slot != null ? weapon.WeaponInstance.Config.moveSpeedMultiplier * MoveSpeed : MoveSpeed;
+        _sprintSpeed = weapon.Slot != null ? weapon.WeaponInstance.Config.runSpeedMultiplier * SprintSpeed : SprintSpeed;
     }
 
 

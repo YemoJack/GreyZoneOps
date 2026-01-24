@@ -6,6 +6,9 @@ using UnityEngine.UI;
 public class InventoryGridView : MonoBehaviour
 {
     private RectTransform rectTrans;
+    private readonly List<InventoryCellView> highlightedCells = new();
+    private Color highlightColor = new Color(1f, 0.9f, 0.3f, 1f);
+    private Color warningColor = new Color(1f, 0.4f, 0.2f, 1f);
 
     [Header("Grid")]
     public RectTransform cellRoot;          // 格子父节点（挂 GridLayoutGroup）
@@ -32,6 +35,7 @@ public class InventoryGridView : MonoBehaviour
     public void Render(InventoryGrid grid)
     {
         rectTrans = transform as RectTransform;
+        ApplyGameConfig();
 
         gridData = grid;
         GridWidth = grid.Width;
@@ -104,6 +108,10 @@ public class InventoryGridView : MonoBehaviour
             var parent = layout != null ? layout.transform : cellRoot;
             var cellObj = Instantiate(cellPrefab, parent);
             var cell = cellObj.GetComponent<InventoryCellView>();
+            if (cell != null)
+            {
+                cell.Init();
+            }
             cells.Add(cell);
         }
     }
@@ -122,5 +130,62 @@ public class InventoryGridView : MonoBehaviour
         foreach (var v in items) Destroy(v.gameObject);
         items.Clear();
     }
-}
 
+    private void ApplyGameConfig()
+    {
+        var settings = GameSettingManager.Instance;
+        if (settings == null || settings.Config == null)
+        {
+            return;
+        }
+
+        highlightColor = settings.Config.InventoryHighlightColor;
+        warningColor = settings.Config.InventoryWarningColor;
+    }
+
+    public void ShowPlacementPreview(ItemInstance item, Vector2Int pos, bool rotated)
+    {
+        ClearPlacementPreview();
+        if (item == null || item.Definition == null || gridData == null)
+        {
+            return;
+        }
+
+        if (pos.x < 0 || pos.y < 0)
+        {
+            return;
+        }
+
+        var size = item.Definition.Size;
+        var w = rotated ? size.y : size.x;
+        var h = rotated ? size.x : size.y;
+        if (pos.x + w > GridWidth || pos.y + h > GridHeight)
+        {
+            return;
+        }
+
+        var canPlace = gridData.CanPlace(item, pos, rotated);
+        var color = canPlace ? highlightColor : warningColor;
+        for (int y = 0; y < h; y++)
+        {
+            for (int x = 0; x < w; x++)
+            {
+                var index = (pos.y + y) * GridWidth + (pos.x + x);
+                if (index < 0 || index >= cells.Count) continue;
+                var cell = cells[index];
+                if (cell == null) continue;
+                cell.SetColor(color);
+                highlightedCells.Add(cell);
+            }
+        }
+    }
+
+    public void ClearPlacementPreview()
+    {
+        for (int i = 0; i < highlightedCells.Count; i++)
+        {
+            highlightedCells[i]?.ResetColor();
+        }
+        highlightedCells.Clear();
+    }
+}

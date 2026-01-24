@@ -19,6 +19,25 @@ public class DoorInteractable : MonoBehaviour, IInteractable
             DoorAnimator = GetComponentInChildren<Animator>();
         }
         _closedRotation = transform.localRotation;
+        ApplyGameConfig();
+    }
+
+    private void ApplyGameConfig()
+    {
+        var settings = GameSettingManager.Instance;
+        if (settings == null || settings.Config == null)
+        {
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(settings.Config.DefaultDoorOpenPrompt))
+        {
+            OpenPrompt = settings.Config.DefaultDoorOpenPrompt;
+        }
+        if (!string.IsNullOrEmpty(settings.Config.DefaultDoorClosePrompt))
+        {
+            ClosePrompt = settings.Config.DefaultDoorClosePrompt;
+        }
     }
 
     public bool CanInteract(InteractContext ctx)

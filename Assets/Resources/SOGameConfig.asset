@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 733448bf06fe8f846a0aa8bf277ccd38, type: 3}
+  m_Name: SOGameConfig
+  m_EditorClassIdentifier: 
+  AxisConfig:
+    MoveHorizontalAxis: Horizontal
+    MoveVerticalAxis: Vertical
+    LookHorizontalAxis: Mouse X
+    LookVerticalAxis: Mouse Y
+  KeyConfig:
+    FireButton: 0
+    AimButton: 1
+    AltButton: 2
+    ReloadKey: 114
+    FireModeSwitchKey: 98
+    JumpKey: 32
+    SprintKey: 304
+    CrouchKey: 306
+    TabKey: 9
+    InteractKey: 101
+  MoveSpeed: 4
+  SprintSpeed: 7
+  SpeedChangeRate: 10
+  JumpHeight: 1.2
+  Gravity: -15
+  GroundedOffset: -0.14
+  GroundedRadius: 0.28
+  MouseSensitivity: 1.2
+  PitchClampMin: -75
+  PitchClampMax: 85
+  InteractRange: 2.5
+  InteractableLayers:
+    serializedVersion: 2
+    m_Bits: 8192
+  InteractTriggerInteraction: 2
+  DefaultDoorOpenPrompt: Open
+  DefaultDoorClosePrompt: Close
+  ItemQualityColors:
+  - Quality: 0
+    Color: {r: 0.86415094, g: 0.86415094, b: 0.86415094, a: 0.7058824}
+  - Quality: 1
+    Color: {r: 0, g: 0.5245282, b: 0.020896569, a: 0.7058824}
+  - Quality: 2
+    Color: {r: 0, g: 0.32543415, b: 0.6981132, a: 0.7058824}
+  - Quality: 3
+    Color: {r: 0.57604855, g: 0, b: 0.6754716, a: 0.7058824}
+  - Quality: 4
+    Color: {r: 0.690566, g: 0.3686394, b: 0, a: 0.7058824}
+  - Quality: 5
+    Color: {r: 0.8037735, g: 0, b: 0, a: 0.7058824}
+  DraggingItemAlpha: 0.8
+  InventoryHighlightColor: {r: 0.58234185, g: 1, b: 0.2980392, a: 0.78431374}
+  InventoryWarningColor: {r: 1, g: 0.24443643, b: 0.19999999, a: 0.78431374}

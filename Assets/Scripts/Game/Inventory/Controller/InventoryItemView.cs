@@ -21,7 +21,7 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
     private ItemPlacement placement;
     private System.Func<bool> onBegin;
     private System.Func<Vector2Int, bool, bool> onDrop;
-    private bool rotated => placement.Rotated;
+    private bool rotated => currentItem != null && currentItem.Rotated;
     private bool dragging;
     private Vector2Int cellSpan = Vector2Int.one;
     private Transform originalParent;
@@ -31,11 +31,26 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
     private Camera canvasCamera;
     private Vector2 pointerOffset = Vector2.zero;
     private ContainerView originContainerView;
+    private ItemInstance currentItem;
+    private InventoryGridView highlightedGrid;
+    private float draggingAlpha = 0.8f;
 
     private void Awake()
     {
         rect = transform as RectTransform;
         canvasGroup = GetComponent<CanvasGroup>();
+        ApplyGameConfig();
+    }
+
+    private void ApplyGameConfig()
+    {
+        var settings = GameSettingManager.Instance;
+        if (settings == null || settings.Config == null)
+        {
+            return;
+        }
+
+        draggingAlpha = settings.Config.DraggingItemAlpha;
     }
 
     public void SetupGrid(
@@ -56,17 +71,20 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
     public void Bind(ItemPlacement p)
     {
         placement = p;
+        currentItem = p.Item;
         countText.text = p.Item.Count > 1 ? p.Item.Count.ToString() : "";
         rect.anchoredPosition = CellToLocal(p.Pos);
         SetSize(p.Size, rotated);
 
         icon.sprite = p.Item.Definition.icon;
+        ApplyQualityColor(p.Item);
     }
 
     public void BindDrag(ItemInstance item, Vector2 cellSize, Vector2 spacing)
     {
         if (item == null || item.Definition == null) return;
         placement = null;
+        currentItem = item;
         countText.text = item.Count > 1 ? item.Count.ToString() : "";
         var size = item.Definition.Size;
         var w = size.x;
@@ -75,9 +93,42 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         var height = cellSize.y * h + spacing.y * Mathf.Max(0, h - 1);
         rect.sizeDelta = new Vector2(width, height);
         rect.anchoredPosition = Vector2.zero;
+        cellSpan = new Vector2Int(item.Rotated ? h : w, item.Rotated ? w : h);
         if (icon != null) icon.enabled = true;
 
         icon.sprite = item.Definition.icon;
+        ApplyQualityColor(item);
+    }
+
+    private void ApplyQualityColor(ItemInstance item)
+    {
+        if (bgIcon == null || item == null || item.Definition == null)
+        {
+            return;
+        }
+
+        var settings = GameSettingManager.Instance;
+        if (settings == null || settings.Config == null)
+        {
+            return;
+        }
+
+        var quality = item.Definition.Quality;
+        var colors = settings.Config.ItemQualityColors;
+        var color = Color.white;
+        if (colors != null)
+        {
+            for (int i = 0; i < colors.Count; i++)
+            {
+                if (colors[i].Quality == quality)
+                {
+                    color = colors[i].Color;
+                    break;
+                }
+            }
+        }
+
+        bgIcon.color = color;
     }
 
     public void SetDragCallbacks(System.Func<bool> onBegin, System.Func<Vector2Int, bool, bool> onDrop)
@@ -91,6 +142,7 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         if (onBegin != null && !onBegin.Invoke())
             return;
 
+        ClearHoverHighlight();
         originContainerView = GetComponentInParent<ContainerView>();
         originalParent = rect.parent;
         originalAnchoredPos = rect.anchoredPosition;
@@ -112,7 +164,7 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         if (canvasGroup != null)
         {
             canvasGroup.blocksRaycasts = false;
-            canvasGroup.alpha = 0.8f;
+            canvasGroup.alpha = draggingAlpha;
         }
         Debug.Log($"Item OnBeginDrag id: {placement.Item.Definition.Id} Name: {placement.Item.Definition.Name} startPos{placement.Pos}\n InstanceId {placement.Item.InstanceId}  ");
 
@@ -125,12 +177,14 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
     {
         if (!dragging) return;
         UpdatePositionToPointer(e);
+        UpdateHoverHighlight(e);
     }
 
     public void OnEndDrag(PointerEventData e)
     {
         if (!dragging) return;
         dragging = false;
+        ClearHoverHighlight();
         if (canvasGroup != null)
         {
             canvasGroup.blocksRaycasts = true;
@@ -180,6 +234,32 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
 
         // 恢复父节点，具体位置会在后续刷新时由绑定更新
         RestoreParent();
+    }
+
+    private void UpdateHoverHighlight(PointerEventData e)
+    {
+        var gridPos = ScreenToCell(e.position, e.pressEventCamera, out var targetGrid);
+        if (targetGrid != highlightedGrid)
+        {
+            highlightedGrid?.ClearPlacementPreview();
+            highlightedGrid = targetGrid;
+        }
+
+        if (targetGrid == null)
+        {
+            return;
+        }
+
+        targetGrid.ShowPlacementPreview(currentItem, gridPos, rotated);
+    }
+
+    private void ClearHoverHighlight()
+    {
+        if (highlightedGrid != null)
+        {
+            highlightedGrid.ClearPlacementPreview();
+            highlightedGrid = null;
+        }
     }
 
     private void RestoreParent()

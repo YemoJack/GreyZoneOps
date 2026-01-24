@@ -20,4 +20,5 @@ MonoBehaviour:
   MaxStack: 1
   CanRotate: 0
   Category: 5
+  Quality: 3
   containerConfig: {fileID: 11400000, guid: fb655c8693ae09a4ba5991df16e14cc5, type: 2}

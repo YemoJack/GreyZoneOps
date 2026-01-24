@@ -12,6 +12,16 @@ public enum ItemCategory
     Collection
 }
 
+public enum ItemQuality
+{
+    White,
+    Green,
+    Blue,
+    Purple,
+    Orange,
+    Red
+}
+
 
 [CreateAssetMenu(fileName = "SOItemDefinition", menuName = "InventoryConfig/SOItemDefinition")]
 public class SOItemDefinition : ScriptableObject
@@ -24,6 +34,7 @@ public class SOItemDefinition : ScriptableObject
     public int MaxStack = 1;
     public bool CanRotate;
     public ItemCategory Category;
+    public ItemQuality Quality = ItemQuality.White;
 }
 
 

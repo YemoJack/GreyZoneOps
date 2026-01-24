@@ -19,7 +19,21 @@ public class InteractorView : MonoBehaviour, IController
             ViewCamera = Camera.main;
         }
 
+        ApplyGameConfig();
         this.RegisterEvent<EventGameInit>(OnInit).UnRegisterWhenGameObjectDestroyed(this);
+    }
+
+    private void ApplyGameConfig()
+    {
+        var settings = GameSettingManager.Instance;
+        if (settings == null || settings.Config == null)
+        {
+            return;
+        }
+
+        Range = settings.Config.InteractRange;
+        InteractableLayers = settings.Config.InteractableLayers;
+        TriggerInteraction = settings.Config.InteractTriggerInteraction;
     }
 
     private void OnInit(EventGameInit e)

@@ -93,7 +93,8 @@ public class GameWindow : WindowBase
 
 	private void OnInteracttargetChange(EventInteractTargetChanged e)
 	{
-		dataCompt.InteractPromptText.text = e.Info.Prompt;
+		if (dataCompt.InteractPromptText != null)
+			dataCompt.InteractPromptText.text = e.Info.Prompt;
 	}
 
 	private void OnOpenContainer(EventOpenContainer e)

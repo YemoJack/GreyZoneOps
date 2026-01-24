@@ -6,6 +6,20 @@ public class InputSys : AbstractSystem, IUpdateSystem
 
     private IGameLoop updateScheduler;
     private bool inputEnabled = true;
+    private string moveHorizontalAxis = "Horizontal";
+    private string moveVerticalAxis = "Vertical";
+    private string lookHorizontalAxis = "Mouse X";
+    private string lookVerticalAxis = "Mouse Y";
+    private int fireButton = 0;
+    private int aimButton = 1;
+    private int altButton = 2;
+    private KeyCode reloadKey = KeyCode.R;
+    private KeyCode fireModeSwitchKey = KeyCode.B;
+    private KeyCode jumpKey = KeyCode.Space;
+    private KeyCode sprintKey = KeyCode.LeftShift;
+    private KeyCode crouchKey = KeyCode.LeftControl;
+    private KeyCode tabKey = KeyCode.Tab;
+    private KeyCode interactKey = KeyCode.E;
 
     // ------- Axis -------
     public Vector3 MoveAxis { get; private set; }
@@ -53,6 +67,34 @@ public class InputSys : AbstractSystem, IUpdateSystem
     {
         updateScheduler = this.GetUtility<IGameLoop>();
         updateScheduler.Register(this);
+        ApplyGameConfig();
+    }
+
+    private void ApplyGameConfig()
+    {
+        var settings = GameSettingManager.Instance;
+        if (settings == null || settings.Config == null)
+        {
+            return;
+        }
+
+        var axis = settings.Config.AxisConfig;
+        if (!string.IsNullOrEmpty(axis.MoveHorizontalAxis)) moveHorizontalAxis = axis.MoveHorizontalAxis;
+        if (!string.IsNullOrEmpty(axis.MoveVerticalAxis)) moveVerticalAxis = axis.MoveVerticalAxis;
+        if (!string.IsNullOrEmpty(axis.LookHorizontalAxis)) lookHorizontalAxis = axis.LookHorizontalAxis;
+        if (!string.IsNullOrEmpty(axis.LookVerticalAxis)) lookVerticalAxis = axis.LookVerticalAxis;
+
+        var keys = settings.Config.KeyConfig;
+        fireButton = keys.FireButton;
+        aimButton = keys.AimButton;
+        altButton = keys.AltButton;
+        reloadKey = keys.ReloadKey;
+        fireModeSwitchKey = keys.FireModeSwitchKey;
+        jumpKey = keys.JumpKey;
+        sprintKey = keys.SprintKey;
+        crouchKey = keys.CrouchKey;
+        tabKey = keys.TabKey;
+        interactKey = keys.InteractKey;
     }
 
     public void OnUpdate(float deltaTime)
@@ -65,34 +107,34 @@ public class InputSys : AbstractSystem, IUpdateSystem
 
         // -------- Movement input (x,z) --------
         MoveAxis = new Vector3(
-            Input.GetAxisRaw("Horizontal"),  // X
+            Input.GetAxisRaw(moveHorizontalAxis),  // X
             0f,                               // Y 一般不用
-            Input.GetAxisRaw("Vertical")      // Z
+            Input.GetAxisRaw(moveVerticalAxis)      // Z
         );
 
         // -------- Look input (yaw, pitch) --------
         LookAxis = new Vector3(
-            Input.GetAxis("Mouse X"),     // yaw
-            Input.GetAxis("Mouse Y"),     // pitch
+            Input.GetAxis(lookHorizontalAxis),     // yaw
+            Input.GetAxis(lookVerticalAxis),     // pitch
             0f                            // roll - 暂不使用
         );
 
         // -------- Buttons --------
-        FirePressed = Input.GetMouseButtonDown(0);
-        FireHold = Input.GetMouseButton(0);
-        Mouse2Pressed = Input.GetMouseButtonDown(2);
+        FirePressed = Input.GetMouseButtonDown(fireButton);
+        FireHold = Input.GetMouseButton(fireButton);
+        Mouse2Pressed = Input.GetMouseButtonDown(altButton);
 
-        AimHold = Input.GetMouseButton(1);
+        AimHold = Input.GetMouseButton(aimButton);
 
-        ReloadPressed = Input.GetKeyDown(KeyCode.R);
-        FireModeSwitchPressed = Input.GetKeyDown(KeyCode.B);
-        Jump = Input.GetKeyDown(KeyCode.Space);
-        Sprint = Input.GetKey(KeyCode.LeftShift);
-        Crouch = Input.GetKey(KeyCode.LeftControl);
+        ReloadPressed = Input.GetKeyDown(reloadKey);
+        FireModeSwitchPressed = Input.GetKeyDown(fireModeSwitchKey);
+        Jump = Input.GetKeyDown(jumpKey);
+        Sprint = Input.GetKey(sprintKey);
+        Crouch = Input.GetKey(crouchKey);
 
-        Tab = Input.GetKey(KeyCode.Tab);
-        TabPressed = Input.GetKeyDown(KeyCode.Tab);
-        InteractPressed = Input.GetKeyDown(KeyCode.E);
+        Tab = Input.GetKey(tabKey);
+        TabPressed = Input.GetKeyDown(tabKey);
+        InteractPressed = Input.GetKeyDown(interactKey);
 
         if (TabPressed)
         {

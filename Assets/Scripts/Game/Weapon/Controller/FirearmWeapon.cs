@@ -61,6 +61,7 @@ public class FirearmWeapon : WeaponBase
     private EPlayerMoveState currentMoveState = EPlayerMoveState.Idle;
     private IUnRegister moveStateUnregister;
     private float firingSpread;
+    private bool initialized;
 
     [HideInInspector]
     /// <summary>垂直后坐力倍率（附件影响）</summary>
@@ -81,14 +82,7 @@ public class FirearmWeapon : WeaponBase
 
     protected override void Start()
     {
-
-        if (Config == null)
-            Debug.LogError($"FirearmWeapon WeaponConfig is null");
-        firearmConfig = Config as SOFirearmConfig;
-        currentAmmo = firearmConfig != null ? firearmConfig.magSize : 0;
-        cmdFireamFire = new CmdFireamFire(this);
-        inputSys = this.GetSystem<InputSys>();
-        objectPoolUtility = this.GetUtility<IObjectPoolUtility>();
+        EnsureInitialized();
 
         if (Config?.impactEffect != null)
         {
@@ -105,6 +99,7 @@ public class FirearmWeapon : WeaponBase
     public override void OnEquip()
     {
         Debug.Log($"FirearmWeapon {InstanceID} is OnEquip");
+        EnsureInitialized();
         currentRecoilOffset = Vector2.zero;
         recoilStepIndex = 0;
         firingSpread = 0f;
@@ -124,6 +119,26 @@ public class FirearmWeapon : WeaponBase
         NotifyAimState(false, firearmConfig != null ? firearmConfig.aimTime : 0.001f);
         moveStateUnregister?.UnRegister();
         moveStateUnregister = null;
+    }
+
+    private void EnsureInitialized()
+    {
+        if (initialized)
+        {
+            return;
+        }
+
+        if (Config == null)
+        {
+            Debug.LogError($"FirearmWeapon WeaponConfig is null");
+        }
+
+        firearmConfig = Config as SOFirearmConfig;
+        currentAmmo = firearmConfig != null ? firearmConfig.magSize : 0;
+        cmdFireamFire = new CmdFireamFire(this);
+        inputSys = this.GetSystem<InputSys>();
+        objectPoolUtility = this.GetUtility<IObjectPoolUtility>();
+        initialized = true;
     }
 
     private void OnDestroy()

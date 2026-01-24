@@ -74,6 +74,7 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
 
     private void OnInit(EventGameInit e)
     {
+        ApplyGameConfig();
         _inputSys = this.GetSystem<InputSys>();
         _weaponSystem = this.GetSystem<WeaponSystem>();
         _controller = GetComponent<CharacterController>();
@@ -115,6 +116,27 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         recoilEventUnregister = this.RegisterEvent<EventWeaponRecoilApplied>(OnWeaponRecoilApplied);
         recoilRecoverUnregister = this.RegisterEvent<EventFireRecoilRecover>(OnRestoreViewAfterFireStops);
         aimEventUnregister = this.RegisterEvent<EventFirearmAimChanged>(OnAimStateChanged);
+    }
+
+    private void ApplyGameConfig()
+    {
+        var settings = GameSettingManager.Instance;
+        if (settings == null || settings.Config == null)
+        {
+            return;
+        }
+
+        MoveSpeed = settings.Config.MoveSpeed;
+        SprintSpeed = settings.Config.SprintSpeed;
+        SpeedChangeRate = settings.Config.SpeedChangeRate;
+        JumpHeight = settings.Config.JumpHeight;
+        Gravity = settings.Config.Gravity;
+        GroundedOffset = settings.Config.GroundedOffset;
+        GroundedRadius = settings.Config.GroundedRadius;
+
+        MouseSensitivity = settings.Config.MouseSensitivity;
+        PitchClampMin = settings.Config.PitchClampMin;
+        PitchClampMax = settings.Config.PitchClampMax;
     }
 
 

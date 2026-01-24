@@ -6,8 +6,6 @@ using UnityEngine;
 
 public class ContainerSpawner : MonoBehaviour, IController
 {
-    public int mapId;
-
     private void Start()
     {
         this.RegisterEvent<EventGameInit>(Spawner).UnRegisterWhenGameObjectDestroyed(this);
@@ -24,10 +22,10 @@ public class ContainerSpawner : MonoBehaviour, IController
         }
 
         var mapConfig = model.CurrentMapConfig;
-        if (mapConfig == null && mapId >= 0)
+        if (mapConfig == null)
         {
-            model.LoadMapConfig(mapId);
-            mapConfig = model.CurrentMapConfig;
+            Debug.LogError("ContainerSpawner mapConfig is null");
+            return;
         }
 
         if (mapConfig != null && mapConfig.sceneContainers.Count > 0)

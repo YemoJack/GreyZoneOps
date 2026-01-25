@@ -38,6 +38,8 @@ MonoBehaviour:
   MouseSensitivity: 1.2
   PitchClampMin: -75
   PitchClampMax: 85
+  RecoilRaiseSpeed: 180
+  RecoilReturnSpeed: 60
   InteractRange: 2.5
   InteractableLayers:
     serializedVersion: 2

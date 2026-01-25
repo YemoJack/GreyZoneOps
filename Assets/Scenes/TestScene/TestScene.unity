@@ -528,7 +528,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 37930f8d49f213e4582d3c1fb404ea8b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mapId: 0
 --- !u!4 &516957536
 Transform:
   m_ObjectHideFlags: 0
@@ -6237,6 +6236,8 @@ MonoBehaviour:
   MouseSensitivity: 1.2
   PitchClampMin: -75
   PitchClampMax: 85
+  RecoilRaiseSpeed: 180
+  RecoilReturnSpeed: 10
   CameraRoot: {fileID: 8338988565591873055}
   PlayerCamera: {fileID: 0}
   Grounded: 1

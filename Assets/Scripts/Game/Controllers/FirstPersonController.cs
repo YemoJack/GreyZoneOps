@@ -1,4 +1,4 @@
-using System.Threading;
+﻿using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using QFramework;
@@ -23,6 +23,11 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
     public float MouseSensitivity = 1.2f;
     public float PitchClampMin = -75f;
     public float PitchClampMax = 85f;
+    [Header("Recoil")]
+    public float RecoilRaiseSpeed = 900f;
+    public float RecoilReturnSpeed = 360f;
+    private float _globalRecoilRaiseSpeed;
+    private float _globalRecoilReturnSpeed;
 
     public Transform CameraRoot;
     public Camera PlayerCamera;
@@ -50,6 +55,8 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
     private bool playerCounteringRecoil;
     private Vector2 viewBeforeRecoil;
     private float viewBeforeRecoilDuration;
+    private Vector2 _recoilTarget;
+    private Vector2 _recoilCurrent;
     private IUnRegister recoilRecoverUnregister;
 
     private float _defaultFov;
@@ -74,6 +81,8 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
 
     private void OnInit(EventGameInit e)
     {
+        _globalRecoilRaiseSpeed = RecoilRaiseSpeed;
+        _globalRecoilReturnSpeed = RecoilReturnSpeed;
         ApplyGameConfig();
         _inputSys = this.GetSystem<InputSys>();
         _weaponSystem = this.GetSystem<WeaponSystem>();
@@ -91,7 +100,7 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         }
         else
         {
-            Debug.LogWarning("FirstPersonController: 未找到用于移动和瞄准的相机/方向引用");
+            Debug.LogWarning("FirstPersonController: 未找到用于移动和瞄准的相机方向引用");
         }
 
         if (_defaultFov <= 0f && PlayerCamera != null)
@@ -137,6 +146,10 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         MouseSensitivity = settings.Config.MouseSensitivity;
         PitchClampMin = settings.Config.PitchClampMin;
         PitchClampMax = settings.Config.PitchClampMax;
+        _globalRecoilRaiseSpeed = settings.Config.RecoilRaiseSpeed;
+        _globalRecoilReturnSpeed = settings.Config.RecoilReturnSpeed;
+        RecoilRaiseSpeed = _globalRecoilRaiseSpeed;
+        RecoilReturnSpeed = _globalRecoilReturnSpeed;
     }
 
 
@@ -170,6 +183,8 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         GroundCheck();
         Look();
         TrackRecoilCompensation();
+        UpdateRecoilSmoothing();
+        ApplyViewRotation();
 
         Move();
         JumpAndGravity();
@@ -190,8 +205,6 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         _yaw += look.x * MouseSensitivity;
         _pitch -= look.y * MouseSensitivity;
         _pitch = Mathf.Clamp(_pitch, PitchClampMin, PitchClampMax);
-
-        ApplyViewRotation();
     }
 
     private void GroundCheck()
@@ -249,27 +262,27 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
             recoilActive = true;
         }
 
+        ApplyWeaponRecoilConfig(currentWeapon.Config as SOFirearmConfig);
         ApplyRecoilToView(evt.RecoilStep);
     }
 
     private void ApplyRecoilToView(Vector2 recoilStep)
     {
-        _yaw += recoilStep.x;
-        _pitch -= recoilStep.y;
-        _pitch = Mathf.Clamp(_pitch, PitchClampMin, PitchClampMax);
-
-        ApplyViewRotation();
+        _recoilTarget += new Vector2(recoilStep.x, -recoilStep.y);
     }
 
     private void ApplyViewRotation()
     {
+        float finalYaw = _yaw + _recoilCurrent.x;
+        float finalPitch = Mathf.Clamp(_pitch + _recoilCurrent.y, PitchClampMin, PitchClampMax);
+
         // 角色身体：只受 yaw 影响
-        transform.rotation = Quaternion.Euler(0f, _yaw, 0f);
+        transform.rotation = Quaternion.Euler(0f, finalYaw, 0f);
 
         // 摄像机：受到 pitch + yaw 影响
         if (CameraRoot != null)
         {
-            CameraRoot.transform.localRotation = Quaternion.Euler(_pitch, 0f, 0f);
+            CameraRoot.transform.localRotation = Quaternion.Euler(finalPitch, 0f, 0f);
         }
     }
 
@@ -348,14 +361,47 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
             return;
         }
 
-
         if (!playerCounteringRecoil)
         {
             RestoreViewAfterFireStops().Forget();
         }
+        else
+        {
+            BakeRecoilIntoView();
+        }
 
         recoilActive = false;
         playerCounteringRecoil = false;
+    }
+
+    private void UpdateRecoilSmoothing()
+    {
+        if (RecoilRaiseSpeed <= 0f || RecoilReturnSpeed <= 0f)
+        {
+            _recoilCurrent = _recoilTarget;
+            return;
+        }
+
+        float maxDeltaX = GetRecoilSpeed(_recoilCurrent.x, _recoilTarget.x) * Time.deltaTime;
+        float maxDeltaY = GetRecoilSpeed(_recoilCurrent.y, _recoilTarget.y) * Time.deltaTime;
+        _recoilCurrent.x = Mathf.MoveTowards(_recoilCurrent.x, _recoilTarget.x, maxDeltaX);
+        _recoilCurrent.y = Mathf.MoveTowards(_recoilCurrent.y, _recoilTarget.y, maxDeltaY);
+    }
+
+    private float GetRecoilSpeed(float current, float target)
+    {
+        float currentAbs = Mathf.Abs(current);
+        float targetAbs = Mathf.Abs(target);
+        return targetAbs > currentAbs ? RecoilRaiseSpeed : RecoilReturnSpeed;
+    }
+
+    private void BakeRecoilIntoView()
+    {
+        _yaw += _recoilCurrent.x;
+        _pitch = Mathf.Clamp(_pitch + _recoilCurrent.y, PitchClampMin, PitchClampMax);
+        _recoilTarget = Vector2.zero;
+        _recoilCurrent = Vector2.zero;
+        ApplyViewRotation();
     }
 
     private async UniTask RestoreViewAfterFireStops()
@@ -368,6 +414,7 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
 
         float targetYaw = viewBeforeRecoil.x;
         float targetPitch = Mathf.Clamp(viewBeforeRecoil.y, PitchClampMin, PitchClampMax);
+        _recoilTarget = Vector2.zero;
 
         while (time < duration)
         {
@@ -388,7 +435,22 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         // 最终保证到达目标位置
         _yaw = targetYaw;
         _pitch = targetPitch;
+        _recoilTarget = Vector2.zero;
+        _recoilCurrent = Vector2.zero;
         ApplyViewRotation();
+    }
+
+    private void ApplyWeaponRecoilConfig(SOFirearmConfig firearmConfig)
+    {
+        if (firearmConfig == null)
+        {
+            RecoilRaiseSpeed = _globalRecoilRaiseSpeed;
+            RecoilReturnSpeed = _globalRecoilReturnSpeed;
+            return;
+        }
+
+        RecoilRaiseSpeed = firearmConfig.recoilRaiseSpeed > 0f ? firearmConfig.recoilRaiseSpeed : _globalRecoilRaiseSpeed;
+        RecoilReturnSpeed = firearmConfig.recoilReturnSpeed > 0f ? firearmConfig.recoilReturnSpeed : _globalRecoilReturnSpeed;
     }
 
 
@@ -418,12 +480,21 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
 
     private void OnWeaponChanged(EventPlayerChangeWeapon weapon)
     {
-
         _moveSpeed = weapon.Slot != null ? weapon.WeaponInstance.Config.moveSpeedMultiplier * MoveSpeed : MoveSpeed;
         _sprintSpeed = weapon.Slot != null ? weapon.WeaponInstance.Config.runSpeedMultiplier * SprintSpeed : SprintSpeed;
+
+        var firearmConfig = weapon.Slot != null ? weapon.WeaponInstance.Config as SOFirearmConfig : null;
+        ApplyWeaponRecoilConfig(firearmConfig);
     }
 
 
 
     public IArchitecture GetArchitecture() => GameArchitecture.Interface;
 }
+
+
+
+
+
+
+

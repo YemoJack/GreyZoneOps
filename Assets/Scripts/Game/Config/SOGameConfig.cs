@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -36,7 +36,7 @@ public struct InputKeyConfig
 [CreateAssetMenu(fileName = "SOGameConfig", menuName = "GameConfig/Global")]
 public class SOGameConfig : ScriptableObject
 {
-    [Header("Input 输入")]
+    [Header("Input 杈撳叆")]
     public InputAxisConfig AxisConfig = new InputAxisConfig
     {
         MoveHorizontalAxis = "Horizontal",
@@ -58,7 +58,7 @@ public class SOGameConfig : ScriptableObject
         InteractKey = KeyCode.E
     };
 
-    [Header("Player Movement 角色移动")]
+    [Header("Player Movement 瑙掕壊绉诲姩")]
     public float MoveSpeed = 4f;
     public float SprintSpeed = 7f;
     public float SpeedChangeRate = 10f;
@@ -67,21 +67,26 @@ public class SOGameConfig : ScriptableObject
     public float GroundedOffset = -0.14f;
     public float GroundedRadius = 0.28f;
 
-    [Header("Player Look 视角")]
+    [Header("Player Look 瑙嗚")]
     public float MouseSensitivity = 1.2f;
     public float PitchClampMin = -75f;
     public float PitchClampMax = 85f;
+    [Header("Player Recoil 后坐力")]
+    public float RecoilRaiseSpeed = 180f;
+    public float RecoilReturnSpeed = 60f;
 
-    [Header("Interaction 交互")]
+    [Header("Interaction 浜や簰")]
     public float InteractRange = 2.5f;
     public LayerMask InteractableLayers = ~0;
     public QueryTriggerInteraction InteractTriggerInteraction = QueryTriggerInteraction.Collide;
     public string DefaultDoorOpenPrompt = "Open";
     public string DefaultDoorClosePrompt = "Close";
 
-    [Header("Inventory 库存系统")]
+    [Header("Inventory 搴撳瓨绯荤粺")]
     public List<ItemQualityColor> ItemQualityColors = new List<ItemQualityColor>();
     public float DraggingItemAlpha = 0.8f;
     public Color InventoryHighlightColor = new Color(1f, 0.9f, 0.3f, 1f);
     public Color InventoryWarningColor = new Color(1f, 0.4f, 0.2f, 1f);
 }
+
+

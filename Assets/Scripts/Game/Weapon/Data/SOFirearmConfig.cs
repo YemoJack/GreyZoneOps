@@ -112,7 +112,20 @@ public class SOFirearmConfig : SOWeaponConfigBase
     /// </summary>
     public Vector2 recoilMulRange = new Vector2(0.4f, 1.4f);
 
+    /// <summary>
+    /// 停止开火后回正持续时间（秒）
+    /// </summary>
     public float recoilDuration = 0.2f;
+
+    /// <summary>
+    /// 上抬速度（度/秒），0 表示使用全局默认值
+    /// </summary>
+    public float recoilRaiseSpeed = 0f;
+
+    /// <summary>
+    /// 回落速度（度/秒），0 表示使用全局默认值
+    /// </summary>
+    public float recoilReturnSpeed = 0f;
 
 
     [Header("操作速度")]

@@ -9,7 +9,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/1/24 17:13:41",
+    "PackageNote": "2026/1/25 14:07:16",
     "AssetList": [
         {
             "Address": "Cfg_CNTR_Backpack1",
@@ -570,7 +570,7 @@
             "UnityCRC": 0,
             "FileHash": "b4c9295c468bf5e3ac4fc1f36149b17d",
             "FileCRC": 0,
-            "FileSize": 3050,
+            "FileSize": 3095,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

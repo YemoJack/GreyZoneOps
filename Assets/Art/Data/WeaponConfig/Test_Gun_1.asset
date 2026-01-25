@@ -52,6 +52,8 @@ MonoBehaviour:
   - {x: 1, y: 1}
   recoilMulRange: {x: 0.4, y: 1.4}
   recoilDuration: 0.2
+  recoilRaiseSpeed: 0
+  recoilReturnSpeed: 0
   reloadTime: 1.5
   aimTime: 0.5
   aimMoveSpeedMultiplier: 0.6

@@ -35,11 +35,16 @@ public partial class PlayerSystem : AbstractSystem, IUpdateSystem, ICanSendComma
 
     protected override void OnInit()
     {
-
+        this.RegisterEvent<EventPlayerSpawned>(OnPlayerSpawned);
     }
 
     public void InitPlayerSystem()
     {
+        if (initialized)
+        {
+            return;
+        }
+
         weaponSystem = this.GetSystem<WeaponSystem>();
         inputSys = this.GetSystem<InputSys>();
 
@@ -134,5 +139,10 @@ public partial class PlayerSystem : AbstractSystem, IUpdateSystem, ICanSendComma
                 CurrentState = moveState
             });
         }
+    }
+
+    private void OnPlayerSpawned(EventPlayerSpawned e)
+    {
+        InitPlayerSystem();
     }
 }

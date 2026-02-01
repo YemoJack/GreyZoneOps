@@ -28,14 +28,20 @@ public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
 
         updateScheduler = this.GetUtility<IGameLoop>();
 
-        this.GetSystem<PlayerSystem>().InitPlayerSystem();
+        var mapBootstrap = FindObjectOfType<MapSceneBootstrap>();
+        if (mapBootstrap != null)
+        {
+            mapBootstrap.StartMap();
+        }
+        else
+        {
+            this.GetSystem<MapSystem>()?.BeginRaid();
+        }
 
+        await UniTask.Yield(PlayerLoopTiming.PostLateUpdate);
 
         UIModule.Instance.Initialize();
         UIModule.Instance.PopUpWindow<GameWindow>();
-
-        this.SendEvent<EventGameInit>(new EventGameInit());
-
 
     }
 
@@ -50,6 +56,7 @@ public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
 
 
         TestInventoryWindow();
+        TestPlayerHealth();
     }
 
 
@@ -130,6 +137,34 @@ public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
 
             bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(containerId, itemInstance);
             Debug.Log($"TryAutoPlace {isok}");
+        }
+    }
+
+    private void TestPlayerHealth()
+    {
+        var healthSystem = this.GetSystem<HealthSystem>();
+        var health = healthSystem?.GetPlayerHealth();
+        if (health == null)
+        {
+            return;
+        }
+
+        if (Input.GetKeyDown(KeyCode.H))
+        {
+            healthSystem.ApplyDamage(10f);
+            Debug.Log($"Player HP -10 => {health.CurrentHealth}/{health.MaxHealth}");
+        }
+
+        if (Input.GetKeyDown(KeyCode.J))
+        {
+            healthSystem.Heal(10f);
+            Debug.Log($"Player HP +10 => {health.CurrentHealth}/{health.MaxHealth}");
+        }
+
+        if (Input.GetKeyDown(KeyCode.K))
+        {
+            healthSystem.ResetHealth();
+            Debug.Log($"Player HP reset => {health.CurrentHealth}/{health.MaxHealth}");
         }
     }
 

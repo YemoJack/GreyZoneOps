@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85e4113a99ff25849ab294856880601e, type: 3}
+  m_Name: Cfg_MapDefinition_0
+  m_EditorClassIdentifier: 
+  mapId: 0
+  mapName: Test0
+  mapResName: Map_0
+  mapCenter: {x: 0, y: 0, z: 0}
+  mapSize: {x: 80, y: 20, z: 80}
+  raidDurationSeconds: 1800
+  regions:
+  - RegionId: 0
+    DisplayName: "\u6D4B\u8BD5\u5730\u533A0"
+    Center: {x: 0, y: 0, z: 0}
+    Size: {x: 40, y: 20, z: 40}
+  - RegionId: 1
+    DisplayName: "\u6D4B\u8BD5\u5730\u533A1"
+    Center: {x: 0, y: 0, z: 0}
+    Size: {x: 40, y: 20, z: 40}
+  spawnPoints:
+  - SpawnId: 0
+    RegionId: 0
+    Position: {x: -1, y: 0, z: -6}
+    Yaw: 0
+  - SpawnId: 1
+    RegionId: 1
+    Position: {x: 43, y: 0, z: 13}
+    Yaw: 0
+  extractionPoints:
+  - ExtractionId: 0
+    DisplayName: "\u5E38\u89C4\u64A4\u79BB\u70B90"
+    RegionId: 0
+    Position: {x: 3, y: 0, z: 13}
+    Radius: 3
+    ExtractDuration: 10
+    EnabledOnStart: 1
+  sceneContainers:
+  - containerConfig: {fileID: 11400000, guid: 7e498f08f571c9042b8434cb5def26ba, type: 2}
+    containerIdOverride: 
+    prefab: {fileID: 4888194290013900874, guid: b6912c721110d0643852eb519b1af907,
+      type: 3}
+    position: {x: 5, y: 0, z: 0}
+    rotationEuler: {x: 0, y: 0, z: 0}
+    fallbackType: 4
+    setInteractableLayer: 1

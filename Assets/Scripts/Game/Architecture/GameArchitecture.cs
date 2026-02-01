@@ -21,13 +21,16 @@ public class GameArchitecture : Architecture<GameArchitecture>
         // 注册 Models
         RegisterModel(new WeaponInventoryModel());
         RegisterModel(new InventoryContainerModel());
+        RegisterModel(new MapModel());
 
         // 注册 Systems
         RegisterSystem(new InputSys());
         RegisterSystem(new PlayerSystem());
+        RegisterSystem(new HealthSystem());
         RegisterSystem(new WeaponSystem());
         RegisterSystem(new BulletManager());
         RegisterSystem(new InventorySystem());
         RegisterSystem(new InteractionSystem());
+        RegisterSystem(new MapSystem());
     }
 }

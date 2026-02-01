@@ -42,6 +42,7 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
     private InputSys _inputSys;
     private Transform _viewTransform;
     private WeaponSystem _weaponSystem;
+    private bool runtimeInitialized;
 
     private float _pitch; // 上下视角
     private float _yaw;   // 左右视角
@@ -75,48 +76,18 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
 
     private void Start()
     {
-        this.RegisterEvent<EventGameInit>(OnInit).UnRegisterWhenGameObjectDestroyed(this);
+        this.RegisterEvent<EventPlayerSpawned>(OnPlayerSpawned).UnRegisterWhenGameObjectDestroyed(this);
     }
 
 
-    private void OnInit(EventGameInit e)
+    private void OnPlayerSpawned(EventPlayerSpawned e)
     {
-        _globalRecoilRaiseSpeed = RecoilRaiseSpeed;
-        _globalRecoilReturnSpeed = RecoilReturnSpeed;
-        ApplyGameConfig();
-        _inputSys = this.GetSystem<InputSys>();
-        _weaponSystem = this.GetSystem<WeaponSystem>();
-        _controller = GetComponent<CharacterController>();
-
-        if (PlayerCamera != null)
+        if (!IsTargetPlayer(e.PlayerTransform))
         {
-            _viewTransform = PlayerCamera.transform;
-            _weaponSystem.BindAimProvider(new CameraAimProvider(PlayerCamera));
-            _defaultFov = PlayerCamera.fieldOfView;
-        }
-        else if (CameraRoot != null)
-        {
-            _viewTransform = CameraRoot;
-        }
-        else
-        {
-            Debug.LogWarning("FirstPersonController: 未找到用于移动和瞄准的相机方向引用");
+            return;
         }
 
-        if (_defaultFov <= 0f && PlayerCamera != null)
-        {
-            _defaultFov = PlayerCamera.fieldOfView;
-        }
-
-        Vector3 rot = transform.eulerAngles;
-        _yaw = rot.y;
-        _pitch = 0f;
-
-        _moveSpeed = MoveSpeed;
-        _sprintSpeed = SprintSpeed;
-        // 鼠标锁定
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        InitializeRuntime();
     }
 
     private void OnEnable()
@@ -177,7 +148,11 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
     {
         if (_inputSys == null)
         {
-            return;
+            InitializeRuntime();
+            if (_inputSys == null)
+            {
+                return;
+            }
         }
 
         GroundCheck();
@@ -188,6 +163,68 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
 
         Move();
         JumpAndGravity();
+    }
+
+    private void InitializeRuntime()
+    {
+        if (runtimeInitialized)
+        {
+            return;
+        }
+
+        _inputSys = this.GetSystem<InputSys>();
+        if (_inputSys == null)
+        {
+            return;
+        }
+
+        _globalRecoilRaiseSpeed = RecoilRaiseSpeed;
+        _globalRecoilReturnSpeed = RecoilReturnSpeed;
+        ApplyGameConfig();
+        _weaponSystem = this.GetSystem<WeaponSystem>();
+        _controller = GetComponent<CharacterController>();
+
+        if (PlayerCamera != null)
+        {
+            _viewTransform = PlayerCamera.transform;
+            _weaponSystem?.BindAimProvider(new CameraAimProvider(PlayerCamera));
+            _defaultFov = PlayerCamera.fieldOfView;
+        }
+        else if (CameraRoot != null)
+        {
+            _viewTransform = CameraRoot;
+        }
+        else
+        {
+            Debug.LogWarning("FirstPersonController: 未找到用于移动和瞄准的相机方向引用");
+        }
+
+        if (_defaultFov <= 0f && PlayerCamera != null)
+        {
+            _defaultFov = PlayerCamera.fieldOfView;
+        }
+
+        Vector3 rot = transform.eulerAngles;
+        _yaw = rot.y;
+        _pitch = 0f;
+
+        _moveSpeed = MoveSpeed;
+        _sprintSpeed = SprintSpeed;
+        // 鼠标锁定
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
+        runtimeInitialized = true;
+    }
+
+    private bool IsTargetPlayer(Transform playerRoot)
+    {
+        if (playerRoot == null)
+        {
+            return false;
+        }
+
+        return playerRoot == transform || playerRoot == transform.root;
     }
 
     // -------------------------
@@ -334,9 +371,9 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
 
             PlayerCamera.fieldOfView = targetFov;
         }
-        catch (Exception e)
+        catch (Exception e) when (e is OperationCanceledException)
         {
-            Debug.LogError(e);
+            //Debug.Log(e);
             // ignore cancellation when switching aim states or disabling
         }
     }

@@ -2,13 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using QFramework;
 
-
-public struct EventGameInit
-{
-
-}
-
-
 public class PlayerController : MonoBehaviour, IController
 {
     public Transform WeaponRoot;
@@ -18,12 +11,16 @@ public class PlayerController : MonoBehaviour, IController
 
     private void Start()
     {
-        this.RegisterEvent<EventGameInit>(OnInit).UnRegisterWhenGameObjectDestroyed(this);
+        this.RegisterEvent<EventPlayerSpawned>(OnPlayerSpawned).UnRegisterWhenGameObjectDestroyed(this);
         this.RegisterEvent<InventoryChangedEvent>(OnInventoryChanged).UnRegisterWhenGameObjectDestroyed(this);
     }
 
-    private void OnInit(EventGameInit e)
+    private void OnPlayerSpawned(EventPlayerSpawned e)
     {
+        if (!IsTargetPlayer(e.PlayerTransform))
+        {
+            return;
+        }
 
         weaponSystem = this.GetSystem<WeaponSystem>();
         inventoryModel = this.GetModel<InventoryContainerModel>();
@@ -67,6 +64,15 @@ public class PlayerController : MonoBehaviour, IController
         return $"{w1}|{w2}|{w3}|{w4}";
     }
 
+    private bool IsTargetPlayer(Transform playerRoot)
+    {
+        if (playerRoot == null)
+        {
+            return false;
+        }
+
+        return playerRoot == transform || playerRoot == transform.root;
+    }
 
 
 

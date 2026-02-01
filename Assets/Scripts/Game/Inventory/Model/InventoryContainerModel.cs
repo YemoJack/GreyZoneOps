@@ -15,15 +15,12 @@ public class InventoryContainerModel : AbstractModel
 {
     public Dictionary<string, InventoryContainer> Containers;
     public EquipmentContainer PlayerEquipment;
-    public SOInventoryContainerConfig CurrentMapConfig { get; private set; }
 
 
     protected override void OnInit()
     {
         Containers = new Dictionary<string, InventoryContainer>();
         PlayerEquipment = new EquipmentContainer();
-
-        LoadMapConfig(0);
     }
 
     public string GetPlayerContainerId(InventoryContainerType type)
@@ -39,11 +36,6 @@ public class InventoryContainerModel : AbstractModel
     public EquipmentContainer GetPlayerEquipment()
     {
         return PlayerEquipment;
-    }
-
-    public void LoadMapConfig(int mapId)
-    {
-        CurrentMapConfig = this.GetUtility<IResLoader>().LoadSync<SOInventoryContainerConfig>($"Cfg_MapConfig_{mapId}");
     }
 
     public InventoryContainer EnsureContainer(SOContainerConfig config, string overrideInstanceId = null)

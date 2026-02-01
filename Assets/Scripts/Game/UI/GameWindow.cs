@@ -1,9 +1,9 @@
 ﻿/*---------------------------------
- *Title:UI琛ㄧ幇灞傝剼鏈嚜鍔ㄥ寲鐢熸垚宸ュ叿
- *Author:ZM 閾告ⅵ
+ *Title:UI表现层脚本自动化生成工具
+ *Author:ZM 铸梦
  *Date:2025/12/14 20:10:50
- *Description:UI 琛ㄧ幇灞傦紝璇ュ眰鍙礋璐ｇ晫闈㈢殑浜や簰銆佽〃鐜扮浉鍏崇殑鏇存柊锛屼笉鍏佽缂栧啓浠讳綍涓氬姟閫昏緫浠ｇ爜
- *娉ㄦ剰:浠ヤ笅鏂囦欢鏄嚜鍔ㄧ敓鎴愮殑锛屽啀娆＄敓鎴愪笉浼氳鐩栧師鏈夌殑浠ｇ爜锛屼細鍦ㄥ師鏈夌殑浠ｇ爜涓婅繘琛屾柊澧烇紝鍙斁蹇冧娇鐢?
+ *Description:UI 表现层，该层只负责界面的交互、表现相关的更新，不允许编写任何业务逻辑代码
+ *注意:以下文件是自动生成的，再次生成不会覆盖原有的代码，会在原有的代码上进行新增，可放心使用
 ---------------------------------*/
 using UnityEngine.UI;
 using UnityEngine;
@@ -27,10 +27,12 @@ public class GameWindow : WindowBase
 	private IUnRegister interacttargetChangeUnregister;
 	private IUnRegister openContainerUnregister;
 	private IUnRegister openInventoryUnregister;
+	private IUnRegister healthChangedUnregister;
+	private IUnRegister healthDeathUnregister;
 
 
-	#region 澹版槑鍛ㄦ湡鍑芥暟
-	//璋冪敤鏈哄埗涓嶮ono Awake涓€鑷?
+	#region 生命周期函数
+	//调用机制与Mono Awake一致
 	public override void OnAwake()
 	{
 		dataCompt = gameObject.GetComponent<GameWindowDataComponent>();
@@ -41,20 +43,21 @@ public class GameWindow : WindowBase
 		weaponSystem = this.GetSystem<WeaponSystem>();
 		weaponInventoryModel = this.GetModel<WeaponInventoryModel>();
 	}
-	//鐗╀綋鏄剧ず鏃舵墽琛?
+	//物体显示时执行
 	public override void OnShow()
 	{
 		base.OnShow();
 		RegisterEvents();
 		RefreshCurrentWeaponUI();
+		RefreshHealthUI();
 	}
-	//鐗╀綋闅愯棌鏃舵墽琛?
+	//物体隐藏时执行
 	public override void OnHide()
 	{
 		base.OnHide();
 		UnregisterEvents();
 	}
-	//鐗╀綋閿€姣佹椂鎵ц
+	//物体销毁时执行
 	public override void OnDestroy()
 	{
 		base.OnDestroy();
@@ -70,6 +73,8 @@ public class GameWindow : WindowBase
 		interacttargetChangeUnregister = this.RegisterEvent<EventInteractTargetChanged>(OnInteracttargetChange);
 		openContainerUnregister = this.RegisterEvent<EventOpenContainer>(OnOpenContainer);
 		openInventoryUnregister = this.RegisterEvent<EventOpenInventory>(OnOpenInventory);
+		healthChangedUnregister = this.RegisterEvent<EventPlayerHealthChanged>(OnPlayerHealthChanged);
+		healthDeathUnregister = this.RegisterEvent<EventPlayerDeath>(OnPlayerDeath);
 
 	}
 
@@ -89,6 +94,12 @@ public class GameWindow : WindowBase
 
 		openInventoryUnregister?.UnRegister();
 		openInventoryUnregister = null;
+
+		healthChangedUnregister?.UnRegister();
+		healthChangedUnregister = null;
+
+		healthDeathUnregister?.UnRegister();
+		healthDeathUnregister = null;
 	}
 
 	private void OnInteracttargetChange(EventInteractTargetChanged e)
@@ -182,11 +193,48 @@ public class GameWindow : WindowBase
 		}
 	}
 
+	private void RefreshHealthUI()
+	{
+		if (dataCompt == null || dataCompt.HealthHealthBarView == null)
+		{
+			return;
+		}
+
+		var health = this.GetSystem<HealthSystem>()?.GetPlayerHealth();
+		if (health == null)
+		{
+			return;
+		}
+
+		dataCompt.HealthHealthBarView.SetValue(health.CurrentHealth, health.MaxHealth);
+	}
+
+	private void OnPlayerHealthChanged(EventPlayerHealthChanged e)
+	{
+		if (dataCompt == null || dataCompt.HealthHealthBarView == null)
+		{
+			return;
+		}
+
+		dataCompt.HealthHealthBarView.SetValue(e.Current, e.Max);
+	}
+
+	private void OnPlayerDeath(EventPlayerDeath e)
+	{
+		if (dataCompt == null || dataCompt.HealthHealthBarView == null)
+		{
+			return;
+		}
+
+		var max = e.Health != null ? e.Health.MaxHealth : 1f;
+		dataCompt.HealthHealthBarView.SetValue(0f, max);
+	}
+
 
 
 
 	#endregion
-	#region UI缁勪欢浜嬩欢
+	#region UI组件事件
 	public void OnPlayerInventoryButtonClick()
 	{
 		UIModule.Instance.PopUpWindow<InventoryWindow>();
@@ -213,4 +261,5 @@ public class GameWindow : WindowBase
 	}
 	#endregion
 }
+
 

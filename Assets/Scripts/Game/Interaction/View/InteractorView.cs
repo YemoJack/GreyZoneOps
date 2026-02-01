@@ -20,7 +20,7 @@ public class InteractorView : MonoBehaviour, IController
         }
 
         ApplyGameConfig();
-        this.RegisterEvent<EventGameInit>(OnInit).UnRegisterWhenGameObjectDestroyed(this);
+        this.RegisterEvent<EventPlayerSpawned>(OnPlayerSpawned).UnRegisterWhenGameObjectDestroyed(this);
     }
 
     private void ApplyGameConfig()
@@ -36,8 +36,13 @@ public class InteractorView : MonoBehaviour, IController
         TriggerInteraction = settings.Config.InteractTriggerInteraction;
     }
 
-    private void OnInit(EventGameInit e)
+    private void OnPlayerSpawned(EventPlayerSpawned e)
     {
+        if (!IsTargetPlayer(e.PlayerTransform))
+        {
+            return;
+        }
+
         _system = this.GetSystem<InteractionSystem>();
         _system?.SetInteractor(this);
     }
@@ -60,6 +65,16 @@ public class InteractorView : MonoBehaviour, IController
         if (RayOrigin != null) return RayOrigin;
         if (ViewCamera != null) return ViewCamera.transform;
         return transform;
+    }
+
+    private bool IsTargetPlayer(Transform playerRoot)
+    {
+        if (playerRoot == null)
+        {
+            return false;
+        }
+
+        return playerRoot == transform || playerRoot == transform.root;
     }
 
     public IArchitecture GetArchitecture()

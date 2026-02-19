@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using QFramework;
@@ -62,6 +63,8 @@ public class FirearmWeapon : WeaponBase
     private IUnRegister moveStateUnregister;
     private float firingSpread;
     private bool initialized;
+    private CancellationTokenSource impactEffectCts;
+    private readonly HashSet<GameObject> impactEffectInstances = new HashSet<GameObject>();
 
     [HideInInspector]
     /// <summary>垂直后坐力倍率（附件影响）</summary>
@@ -83,15 +86,7 @@ public class FirearmWeapon : WeaponBase
     protected override void Start()
     {
         EnsureInitialized();
-
-        if (Config?.impactEffect != null)
-        {
-            impactEffectPool = objectPoolUtility.CreatePool(
-                factory: () => Instantiate(Config.impactEffect),
-                onGet: eff => eff.SetActive(true),
-                onRelease: eff => eff.SetActive(false),
-                maxCount: 24);
-        }
+        EnsureImpactEffectPool();
     }
 
 
@@ -100,6 +95,7 @@ public class FirearmWeapon : WeaponBase
     {
         Debug.Log($"FirearmWeapon {InstanceID} is OnEquip");
         EnsureInitialized();
+        EnsureImpactEffectPool();
         currentRecoilOffset = Vector2.zero;
         recoilStepIndex = 0;
         firingSpread = 0f;
@@ -115,6 +111,7 @@ public class FirearmWeapon : WeaponBase
     {
         isEquipped = false;
         CancelAimTransition();
+        ClearImpactEffectPool();
         SetAimState(false);
         NotifyAimState(false, firearmConfig != null ? firearmConfig.aimTime : 0.001f);
         moveStateUnregister?.UnRegister();
@@ -146,6 +143,7 @@ public class FirearmWeapon : WeaponBase
         moveStateUnregister?.UnRegister();
         moveStateUnregister = null;
         CancelAimTransition();
+        ClearImpactEffectPool();
     }
 
     private void Update()
@@ -289,6 +287,7 @@ public class FirearmWeapon : WeaponBase
 
     private void PlayImpactEffect(RaycastHit hit)
     {
+        EnsureImpactEffectPool();
         if (impactEffectPool != null)
         {
             Quaternion rot = Quaternion.LookRotation(hit.normal);
@@ -297,17 +296,89 @@ public class FirearmWeapon : WeaponBase
 
             // 避免特效嵌入表面
             eff.transform.position += hit.normal * 0.01f;
-            ReleaseImpactEffect(eff, 1f).Forget();
+            var token = impactEffectCts != null
+                ? impactEffectCts.Token
+                : this.GetCancellationTokenOnDestroy();
+            ReleaseImpactEffect(eff, 1f, token).Forget();
         }
     }
 
-    private async UniTask ReleaseImpactEffect(GameObject effect, float delay)
+    private async UniTask ReleaseImpactEffect(GameObject effect, float delay, CancellationToken token)
     {
-        await UniTask.Delay(TimeSpan.FromSeconds(delay));
+        try
+        {
+            await UniTask.Delay(TimeSpan.FromSeconds(delay), cancellationToken: token);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
         if (effect != null)
         {
             impactEffectPool?.Release(effect);
         }
+    }
+
+    private void EnsureImpactEffectPool()
+    {
+        if (impactEffectPool != null || objectPoolUtility == null || Config?.impactEffect == null)
+        {
+            return;
+        }
+
+        impactEffectCts?.Dispose();
+        impactEffectCts = new CancellationTokenSource();
+
+        impactEffectPool = objectPoolUtility.CreatePool(
+            factory: CreateImpactEffectInstance,
+            onGet: eff =>
+            {
+                if (eff != null)
+                {
+                    eff.SetActive(true);
+                }
+            },
+            onRelease: eff =>
+            {
+                if (eff != null)
+                {
+                    eff.SetActive(false);
+                }
+            },
+            maxCount: 24);
+    }
+
+    private GameObject CreateImpactEffectInstance()
+    {
+        var effect = Instantiate(Config.impactEffect);
+        impactEffectInstances.Add(effect);
+        return effect;
+    }
+
+    private void ClearImpactEffectPool()
+    {
+        impactEffectCts?.Cancel();
+        impactEffectCts?.Dispose();
+        impactEffectCts = null;
+
+        impactEffectPool?.Clear();
+        impactEffectPool = null;
+
+        if (impactEffectInstances.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var effect in impactEffectInstances)
+        {
+            if (effect != null)
+            {
+                Destroy(effect);
+            }
+        }
+
+        impactEffectInstances.Clear();
     }
 
 

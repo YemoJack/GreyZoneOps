@@ -7,6 +7,7 @@ public class EquipmentSlotView : MonoBehaviour, IController, IPointerClickHandle
 {
     public EquipmentSlotType slotType;
     public Image bgIcon;
+    public Image iconBG;
     public Image icon;
     public Text nameText;
     public InventoryItemView dragItemPrefab;
@@ -74,7 +75,12 @@ public class EquipmentSlotView : MonoBehaviour, IController, IPointerClickHandle
 
     public bool TryHandleDrop()
     {
-        if (onTryPlace == null) return false;
+        if (onTryPlace == null)
+        {
+            Debug.LogError("EquipmentSlotView onTryPlace is null");
+            return false;
+        }
+
         return onTryPlace.Invoke(slotType);
     }
 
@@ -87,6 +93,7 @@ public class EquipmentSlotView : MonoBehaviour, IController, IPointerClickHandle
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        if (!CanBeginDrag(eventData)) return;
         if (currentItem == null || onBeginDrag == null) return;
 
         draggingItem = onBeginDrag.Invoke(slotType);
@@ -128,6 +135,14 @@ public class EquipmentSlotView : MonoBehaviour, IController, IPointerClickHandle
             pointerOffset = CalculatePointerOffset(eventData);
             UpdatePositionToPointer(eventData);
         }
+    }
+
+    private bool CanBeginDrag(PointerEventData eventData)
+    {
+        if (iconBG == null) return true;
+        var rect = iconBG.rectTransform;
+        if (rect == null) return true;
+        return RectTransformUtility.RectangleContainsScreenPoint(rect, eventData.pressPosition, eventData.pressEventCamera);
     }
 
     public void OnDrag(PointerEventData eventData)

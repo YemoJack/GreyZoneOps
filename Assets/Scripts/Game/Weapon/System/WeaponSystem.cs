@@ -73,7 +73,8 @@ public class WeaponSystem : AbstractSystem
             var item = equipment.GetItem(slot);
             if (item == null || item.Definition == null) continue;
 
-            if (!(item.Definition is SOWeaponItemDefinition weaponItem))
+            var weaponItem = item.Definition;
+            if (weaponItem == null || !weaponItem.IsWeapon)
             {
                 Debug.LogWarning($"WeaponSystem: Item in slot {slot} is not a weapon definition.");
                 continue;
@@ -81,7 +82,7 @@ public class WeaponSystem : AbstractSystem
 
             if (weaponItem.WeaponPrefab == null)
             {
-                Debug.LogWarning($"WeaponSystem: Weapon prefab missing for item {weaponItem.name}.");
+                Debug.LogWarning($"WeaponSystem: Weapon prefab missing for item {weaponItem.Name}.");
                 continue;
             }
 

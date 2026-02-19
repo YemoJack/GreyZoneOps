@@ -23,7 +23,7 @@ public class WorldItemInteractable : MonoBehaviour, IInteractable, IController, 
         {
             Prompt = prompt,
             CanInteract = def != null,
-            Icon = def != null ? def.icon : null
+            Icon = def != null ? def.Icon : null
         };
     }
 

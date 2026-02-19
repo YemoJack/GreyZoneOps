@@ -87,7 +87,8 @@ public class SOGameConfig : ScriptableObject
     public float DraggingItemAlpha = 0.8f;
     public Color InventoryHighlightColor = new Color(1f, 0.9f, 0.3f, 1f);
     public Color InventoryWarningColor = new Color(1f, 0.4f, 0.2f, 1f);
-    public List<SOItemDefinition> SaveItemDefinitions = new List<SOItemDefinition>();
+    public SOItemCatalog ItemCatalog;
+    public SOContainerCatalog ContainerCatalog;
 
     [Header("Map 地图")]
     public int DefaultMapId = 0;

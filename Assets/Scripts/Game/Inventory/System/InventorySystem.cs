@@ -30,8 +30,8 @@ public class InventorySystem : AbstractSystem, ICanSendCommand
     };
 
     private InventoryContainerModel _model;
-    private readonly Dictionary<int, SOItemDefinition> itemDefinitionLookup = new Dictionary<int, SOItemDefinition>();
-    private readonly List<SOItemDefinition> discoveredItemDefinitions = new List<SOItemDefinition>();
+    private readonly Dictionary<int, ItemCatalogEntry> itemDefinitionLookup = new Dictionary<int, ItemCatalogEntry>();
+    private readonly List<ItemCatalogEntry> discoveredItemDefinitions = new List<ItemCatalogEntry>();
 
     private void NotifyChanged()
     {
@@ -508,7 +508,7 @@ public class InventorySystem : AbstractSystem, ICanSendCommand
         if (hasAnySavedItem && !TryBuildItemDefinitionLookup())
         {
             Debug.LogWarning("InventorySystem: item definition lookup is empty. Cannot load inventory. " +
-                             "Please populate SOGameConfig.SaveItemDefinitions or place item definitions under Resources.");
+                             "Please assign SOGameConfig.ItemCatalog.");
             return false;
         }
 
@@ -923,65 +923,66 @@ public class InventorySystem : AbstractSystem, ICanSendCommand
         discoveredItemDefinitions.Clear();
 
         var config = GameSettingManager.Instance?.Config;
-        if (config != null && config.SaveItemDefinitions != null && config.SaveItemDefinitions.Count > 0)
+        if (config != null && config.ItemCatalog != null)
         {
-            RegisterDefinitionsToLookup(config.SaveItemDefinitions);
+            RegisterDefinitionsFromCatalog(config.ItemCatalog);
         }
 
-        // Merge definitions from all available sources; do not early-stop when one source has partial data.
-        var allDefs = Resources.LoadAll<SOItemDefinition>(string.Empty);
-        RegisterDefinitionsToLookup(allDefs);
-
-        RegisterDefinitionsFromLoadedAssets();
-
         RegisterDefinitionsFromCurrentInventory();
-
-#if UNITY_EDITOR
-        RegisterDefinitionsFromEditorDatabase();
-#endif
 
         return discoveredItemDefinitions.Count > 0;
     }
 
-    private void RegisterDefinitionsToLookup(IEnumerable<SOItemDefinition> definitions)
+    private void RegisterDefinitionsFromCatalog(SOItemCatalog catalog)
     {
-        if (definitions == null)
+        if (catalog == null)
         {
             return;
         }
 
-        foreach (var definition in definitions)
+        var entries = catalog.GetEntries();
+        if (entries == null)
         {
-            if (definition == null)
+            return;
+        }
+
+        for (int i = 0; i < entries.Count; i++)
+        {
+            var entry = entries[i];
+            if (entry == null)
             {
                 continue;
             }
 
-            if (!discoveredItemDefinitions.Contains(definition))
-            {
-                discoveredItemDefinitions.Add(definition);
-            }
-
-            if (definition.Id <= 0)
-            {
-                continue;
-            }
-
-            if (!itemDefinitionLookup.ContainsKey(definition.Id))
-            {
-                itemDefinitionLookup[definition.Id] = definition;
-            }
-            else if (itemDefinitionLookup[definition.Id] != definition)
-            {
-                Debug.LogWarning($"InventorySystem: duplicate item definition id={definition.Id}, name={definition.Name}");
-            }
+            RegisterDefinitionToLookup(entry);
         }
     }
 
-    private void RegisterDefinitionsFromLoadedAssets()
+    private void RegisterDefinitionToLookup(ItemCatalogEntry definition)
     {
-        var loadedDefinitions = Resources.FindObjectsOfTypeAll<SOItemDefinition>();
-        RegisterDefinitionsToLookup(loadedDefinitions);
+        if (definition == null)
+        {
+            return;
+        }
+
+        if (!discoveredItemDefinitions.Contains(definition))
+        {
+            discoveredItemDefinitions.Add(definition);
+        }
+
+        if (definition.Id <= 0)
+        {
+            return;
+        }
+
+        if (!itemDefinitionLookup.ContainsKey(definition.Id))
+        {
+            itemDefinitionLookup[definition.Id] = definition;
+        }
+        else if (itemDefinitionLookup[definition.Id] != definition)
+        {
+            Debug.LogWarning($"InventorySystem: duplicate item definition id={definition.Id}, name={definition.Name}");
+        }
     }
 
     private void RegisterDefinitionsFromCurrentInventory()
@@ -1037,18 +1038,7 @@ public class InventorySystem : AbstractSystem, ICanSendCommand
             return;
         }
 
-        if (item.Definition != null && item.Definition.Id > 0)
-        {
-            if (!itemDefinitionLookup.ContainsKey(item.Definition.Id))
-            {
-                itemDefinitionLookup[item.Definition.Id] = item.Definition;
-            }
-        }
-
-        if (item.Definition != null && !discoveredItemDefinitions.Contains(item.Definition))
-        {
-            discoveredItemDefinitions.Add(item.Definition);
-        }
+        RegisterDefinitionToLookup(item.Definition);
 
         if (item.AttachedContainer != null)
         {
@@ -1056,43 +1046,19 @@ public class InventorySystem : AbstractSystem, ICanSendCommand
         }
     }
 
-#if UNITY_EDITOR
-    private void RegisterDefinitionsFromEditorDatabase()
-    {
-        var guids = UnityEditor.AssetDatabase.FindAssets("t:SOItemDefinition");
-        for (int i = 0; i < guids.Length; i++)
-        {
-            var path = UnityEditor.AssetDatabase.GUIDToAssetPath(guids[i]);
-            var definition = UnityEditor.AssetDatabase.LoadAssetAtPath<SOItemDefinition>(path);
-            if (definition == null)
-            {
-                continue;
-            }
-
-            if (!discoveredItemDefinitions.Contains(definition))
-            {
-                discoveredItemDefinitions.Add(definition);
-            }
-
-            if (definition.Id <= 0)
-            {
-                continue;
-            }
-
-            if (!itemDefinitionLookup.ContainsKey(definition.Id))
-            {
-                itemDefinitionLookup[definition.Id] = definition;
-            }
-        }
-    }
-#endif
-
-    private bool TryResolveDefinition(ItemSaveData itemData, out SOItemDefinition definition)
+    private bool TryResolveDefinition(ItemSaveData itemData, out ItemCatalogEntry definition)
     {
         definition = null;
         if (itemData == null)
         {
             return false;
+        }
+
+        if (itemData.DefinitionId > 0 &&
+            itemDefinitionLookup.TryGetValue(itemData.DefinitionId, out definition) &&
+            definition != null)
+        {
+            return true;
         }
 
         for (int i = 0; i < discoveredItemDefinitions.Count; i++)
@@ -1116,11 +1082,6 @@ public class InventorySystem : AbstractSystem, ICanSendCommand
                 definition = candidate;
                 return true;
             }
-        }
-
-        if (itemData.DefinitionId > 0 && itemDefinitionLookup.TryGetValue(itemData.DefinitionId, out definition) && definition != null)
-        {
-            return true;
         }
 
         return false;
@@ -1199,19 +1160,19 @@ public class InventorySystem : AbstractSystem, ICanSendCommand
 
     private bool IsContainerItem(ItemInstance item)
     {
-        return item != null && item.Definition is SOContainerItemDefinition;
+        return item != null && item.Definition != null && item.Definition.IsContainer;
     }
 
     private InventoryContainer EnsureAttachedContainer(ItemInstance item)
     {
         if (item == null) return null;
         if (item.AttachedContainer != null) return item.AttachedContainer;
-        var def = item.Definition as SOContainerItemDefinition;
-        if (def == null || def.containerConfig == null) return null;
+        var containerConfig = item.Definition?.GetRuntimeContainerConfig();
+        if (containerConfig == null) return null;
 
-        var container = new InventoryContainer(def.containerConfig.containerType);
-        container.ContainerName = def.containerConfig.containerName;
-        foreach (var part in def.containerConfig.partGridDatas)
+        var container = new InventoryContainer(containerConfig.containerType);
+        container.ContainerName = containerConfig.containerName;
+        foreach (var part in containerConfig.partGridDatas)
         {
             container.AddGrid(part.Size);
         }

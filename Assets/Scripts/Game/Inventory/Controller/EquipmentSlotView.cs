@@ -67,7 +67,7 @@ public class EquipmentSlotView : MonoBehaviour, IController, IPointerClickHandle
         }
         if (icon != null)
         {
-            icon.sprite = item != null && item.Definition != null ? item.Definition.icon : null;
+            icon.sprite = item != null && item.Definition != null ? item.Definition.Icon : null;
         }
 
         //bgIcon.raycastTarget = item != null && item.Definition != null ? true : false;

@@ -5,12 +5,12 @@ using UnityEngine;
 public class ItemInstance
 {
     public readonly string InstanceId;
-    public SOItemDefinition Definition;
+    public ItemCatalogEntry Definition;
     public int Count;
     public bool Rotated;
     public InventoryContainer AttachedContainer;
 
-    public ItemInstance(SOItemDefinition def, int count = 1)
+    public ItemInstance(ItemCatalogEntry def, int count = 1)
     {
         InstanceId = Guid.NewGuid().ToString("N");
         Definition = def;

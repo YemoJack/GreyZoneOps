@@ -365,11 +365,13 @@ public class MapSystem : AbstractSystem, IUpdateSystem
 
     private void SpawnFromMapDefinition(InventoryContainerModel model, SOMapDefinition definition)
     {
+        var containerCatalog = GameSettingManager.Instance?.Config?.ContainerCatalog;
+
         foreach (var entry in definition.sceneContainers)
         {
             if (entry == null || entry.prefab == null) continue;
 
-            var container = ResolveContainer(model, entry);
+            var container = ResolveContainer(model, entry, containerCatalog);
             var pos = entry.position;
             var rot = Quaternion.Euler(entry.rotationEuler);
             var instance = Object.Instantiate(entry.prefab, pos, rot, null);
@@ -393,27 +395,23 @@ public class MapSystem : AbstractSystem, IUpdateSystem
             {
                 interactable.ContainerId = container.InstanceId;
             }
-            else if (!string.IsNullOrEmpty(entry.containerIdOverride))
-            {
-                interactable.ContainerId = entry.containerIdOverride;
-            }
+
 
             interactable.FallbackType = entry.fallbackType;
         }
     }
 
-    private static InventoryContainer ResolveContainer(InventoryContainerModel model, SceneContainerSpawnConfig entry)
+    private static InventoryContainer ResolveContainer(
+        InventoryContainerModel model,
+        SceneContainerSpawnConfig entry,
+        SOContainerCatalog containerCatalog)
     {
         if (model == null || entry == null) return null;
 
-        if (entry.containerConfig != null)
+        var containerConfig = entry.ResolveContainerConfig(containerCatalog);
+        if (containerConfig != null)
         {
-            return model.EnsureContainer(entry.containerConfig, entry.containerIdOverride);
-        }
-
-        if (!string.IsNullOrEmpty(entry.containerIdOverride))
-        {
-            return model.GetContainer(entry.containerIdOverride);
+            return model.EnsureContainer(containerConfig);
         }
 
         return null;

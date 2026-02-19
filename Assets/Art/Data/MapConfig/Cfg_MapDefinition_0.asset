@@ -45,8 +45,7 @@ MonoBehaviour:
     ExtractDuration: 10
     EnabledOnStart: 1
   sceneContainers:
-  - containerConfig: {fileID: 11400000, guid: 7e498f08f571c9042b8434cb5def26ba, type: 2}
-    containerIdOverride: 
+  - containerConfigId: 1003
     prefab: {fileID: 4888194290013900874, guid: b6912c721110d0643852eb519b1af907,
       type: 3}
     position: {x: 5, y: 0, z: 0}

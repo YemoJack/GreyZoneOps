@@ -1,4 +1,11 @@
-﻿### 已完成的功能
+﻿## 最近更新（数据配置 Catalog 化）
+
+- 物品定义已改为 `SOItemCatalog + ItemCatalogEntry`，运行时不再依赖 `SOItemDefinition`。
+- 容器定义已改为 `SOContainerCatalog + ContainerCatalogEntry`，运行时不再依赖 `SOContainerConfig`。
+- `ItemInstance.Definition` 已切换为 `ItemCatalogEntry`，背包/装备/武器/交互展示链路同步适配。
+- 容器解析统一通过 `ContainerConfigId` 从 `SOContainerCatalog` 查找 `ContainerCatalogEntry`。
+- 地图场景容器生成与容器模型创建已切换到 `ContainerCatalogEntry`。
+### 已完成的功能
 
 #### 架构与启动流程
 - 已搭建基于 QFramework 的整体架构，集中注册 Utility / Model / System（`GameArchitecture`）。
@@ -72,3 +79,4 @@
 
 #### 调试与测试入口
 - 已在 `GameLaunch` 中提供快捷测试：数字键 0-9 可向指定容器自动放入测试物品。
+

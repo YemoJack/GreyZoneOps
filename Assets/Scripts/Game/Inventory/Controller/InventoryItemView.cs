@@ -76,7 +76,7 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         rect.anchoredPosition = CellToLocal(p.Pos);
         SetSize(p.Size, rotated);
 
-        icon.sprite = p.Item.Definition.icon;
+        icon.sprite = p.Item.Definition.Icon;
         ApplyQualityColor(p.Item);
     }
 
@@ -96,7 +96,7 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         cellSpan = new Vector2Int(item.Rotated ? h : w, item.Rotated ? w : h);
         if (icon != null) icon.enabled = true;
 
-        icon.sprite = item.Definition.icon;
+        icon.sprite = item.Definition.Icon;
         ApplyQualityColor(item);
     }
 

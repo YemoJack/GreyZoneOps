@@ -189,12 +189,12 @@ public class EquipmentContainer
             return item.AttachedContainer;
         }
 
-        var config = item.Definition as SOContainerItemDefinition;
-        if (config == null || config.containerConfig == null) return null;
+        var containerConfig = item.Definition?.GetRuntimeContainerConfig();
+        if (containerConfig == null) return null;
 
         var container = new InventoryContainer(type);
-        container.ContainerName = config.containerConfig.containerName;
-        foreach (var part in config.containerConfig.partGridDatas)
+        container.ContainerName = containerConfig.containerName;
+        foreach (var part in containerConfig.partGridDatas)
         {
             container.AddGrid(part.Size);
         }

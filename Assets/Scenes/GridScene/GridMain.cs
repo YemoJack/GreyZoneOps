@@ -11,7 +11,7 @@ public class GridMain : MonoBehaviour, IController
 
     // Start is called before the first frame update
 
-    public List<SOItemDefinition> itemDataList;
+    //public List<SOItemDefinition> itemDataList;
 
     private void Awake()
     {
@@ -36,83 +36,83 @@ public class GridMain : MonoBehaviour, IController
 
     }
 
-    string id = "1003";
+    //string id = "1003";
 
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            ItemInstance itemInstance = new ItemInstance(itemDataList[0]);
+    // private void Update()
+    // {
+    //     if (Input.GetKeyDown(KeyCode.Alpha1))
+    //     {
+    //         ItemInstance itemInstance = new ItemInstance(itemDataList[0]);
 
-            bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(id, itemInstance);
-            Debug.Log($"TryAutoPlace {isok}");
-        }
-        if (Input.GetKeyDown(KeyCode.Alpha2))
-        {
-            ItemInstance itemInstance = new ItemInstance(itemDataList[1]);
+    //         bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(id, itemInstance);
+    //         Debug.Log($"TryAutoPlace {isok}");
+    //     }
+    //     if (Input.GetKeyDown(KeyCode.Alpha2))
+    //     {
+    //         ItemInstance itemInstance = new ItemInstance(itemDataList[1]);
 
-            bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(id, itemInstance);
-            Debug.Log($"TryAutoPlace {isok}");
-        }
-        if (Input.GetKeyDown(KeyCode.Alpha3))
-        {
-            ItemInstance itemInstance = new ItemInstance(itemDataList[2]);
+    //         bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(id, itemInstance);
+    //         Debug.Log($"TryAutoPlace {isok}");
+    //     }
+    //     if (Input.GetKeyDown(KeyCode.Alpha3))
+    //     {
+    //         ItemInstance itemInstance = new ItemInstance(itemDataList[2]);
 
-            bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(id, itemInstance);
-            Debug.Log($"TryAutoPlace {isok}");
-        }
-        if (Input.GetKeyDown(KeyCode.Alpha4))
-        {
-            ItemInstance itemInstance = new ItemInstance(itemDataList[3]);
+    //         bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(id, itemInstance);
+    //         Debug.Log($"TryAutoPlace {isok}");
+    //     }
+    //     if (Input.GetKeyDown(KeyCode.Alpha4))
+    //     {
+    //         ItemInstance itemInstance = new ItemInstance(itemDataList[3]);
 
-            bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(id, itemInstance);
-            Debug.Log($"TryAutoPlace {isok}");
-        }
-        if (Input.GetKeyDown(KeyCode.Alpha5))
-        {
-            ItemInstance itemInstance = new ItemInstance(itemDataList[4]);
+    //         bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(id, itemInstance);
+    //         Debug.Log($"TryAutoPlace {isok}");
+    //     }
+    //     if (Input.GetKeyDown(KeyCode.Alpha5))
+    //     {
+    //         ItemInstance itemInstance = new ItemInstance(itemDataList[4]);
 
-            bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(id, itemInstance);
-            Debug.Log($"TryAutoPlace {isok}");
-        }
-        if (Input.GetKeyDown(KeyCode.Alpha6))
-        {
-            ItemInstance itemInstance = new ItemInstance(itemDataList[5]);
+    //         bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(id, itemInstance);
+    //         Debug.Log($"TryAutoPlace {isok}");
+    //     }
+    //     if (Input.GetKeyDown(KeyCode.Alpha6))
+    //     {
+    //         ItemInstance itemInstance = new ItemInstance(itemDataList[5]);
 
-            bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(id, itemInstance);
-            Debug.Log($"TryAutoPlace {isok}");
-        }
-        if (Input.GetKeyDown(KeyCode.Alpha7))
-        {
-            ItemInstance itemInstance = new ItemInstance(itemDataList[6]);
+    //         bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(id, itemInstance);
+    //         Debug.Log($"TryAutoPlace {isok}");
+    //     }
+    //     if (Input.GetKeyDown(KeyCode.Alpha7))
+    //     {
+    //         ItemInstance itemInstance = new ItemInstance(itemDataList[6]);
 
-            bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(id, itemInstance);
-            Debug.Log($"TryAutoPlace {isok}");
-        }
-        if (Input.GetKeyDown(KeyCode.Alpha8))
-        {
-            ItemInstance itemInstance = new ItemInstance(itemDataList[7]);
+    //         bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(id, itemInstance);
+    //         Debug.Log($"TryAutoPlace {isok}");
+    //     }
+    //     if (Input.GetKeyDown(KeyCode.Alpha8))
+    //     {
+    //         ItemInstance itemInstance = new ItemInstance(itemDataList[7]);
 
-            bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(id, itemInstance);
-            Debug.Log($"TryAutoPlace {isok}");
-        }
-        if (Input.GetKeyDown(KeyCode.Alpha9))
-        {
-            ItemInstance itemInstance = new ItemInstance(itemDataList[8]);
+    //         bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(id, itemInstance);
+    //         Debug.Log($"TryAutoPlace {isok}");
+    //     }
+    //     if (Input.GetKeyDown(KeyCode.Alpha9))
+    //     {
+    //         ItemInstance itemInstance = new ItemInstance(itemDataList[8]);
 
-            bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(id, itemInstance);
-            Debug.Log($"TryAutoPlace {isok}");
-        }
-        if (Input.GetKeyDown(KeyCode.Alpha0))
-        {
-            ItemInstance itemInstance = new ItemInstance(itemDataList[9]);
+    //         bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(id, itemInstance);
+    //         Debug.Log($"TryAutoPlace {isok}");
+    //     }
+    //     if (Input.GetKeyDown(KeyCode.Alpha0))
+    //     {
+    //         ItemInstance itemInstance = new ItemInstance(itemDataList[9]);
 
-            bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(id, itemInstance);
-            Debug.Log($"TryAutoPlace {isok}");
-        }
+    //         bool isok = this.GetSystem<InventorySystem>().TryAutoPlace(id, itemInstance);
+    //         Debug.Log($"TryAutoPlace {isok}");
+    //     }
 
-    }
+    // }
 
 
     public IArchitecture GetArchitecture()

@@ -38,7 +38,7 @@ public class InventoryContainerModel : AbstractModel
         return PlayerEquipment;
     }
 
-    public InventoryContainer EnsureContainer(SOContainerConfig config, string overrideInstanceId = null)
+    public InventoryContainer EnsureContainer(ContainerCatalogEntry config, string overrideInstanceId = null)
     {
         if (config == null) return null;
         var id = !string.IsNullOrEmpty(overrideInstanceId)
@@ -72,7 +72,7 @@ public class InventoryContainerModel : AbstractModel
         return Containers.TryGetValue(id, out var container) ? container : null;
     }
 
-    private InventoryContainer CreateInventoryContainer(SOContainerConfig config, string overrideInstanceId = null)
+    private InventoryContainer CreateInventoryContainer(ContainerCatalogEntry config, string overrideInstanceId = null)
     {
         InventoryContainer container = new InventoryContainer(config.containerType);
         container.InstanceId = !string.IsNullOrEmpty(overrideInstanceId)

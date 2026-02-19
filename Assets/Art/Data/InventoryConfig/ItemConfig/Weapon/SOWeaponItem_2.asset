@@ -20,6 +20,8 @@ MonoBehaviour:
   MaxStack: 1
   CanRotate: 0
   Category: 0
+  Quality: 0
+  Value: 100
   WeaponConfig: {fileID: 11400000, guid: 752ef1527354db24492599137aa003a9, type: 2}
   WeaponPrefab: {fileID: 8151882401571984160, guid: a68e5c08ae387dc45a2451f6f69a5096,
     type: 3}

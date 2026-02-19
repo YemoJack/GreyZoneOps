@@ -35,6 +35,8 @@ public class SOItemDefinition : ScriptableObject
     public bool CanRotate;
     public ItemCategory Category;
     public ItemQuality Quality = ItemQuality.White;
+    [Min(0)]
+    public int Value;
 }
 
 

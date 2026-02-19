@@ -21,4 +21,5 @@ MonoBehaviour:
   CanRotate: 0
   Category: 6
   Quality: 2
+  Value: 100
   containerConfig: {fileID: 11400000, guid: 40972aa55c69d014c861abc489aaa1ce, type: 2}

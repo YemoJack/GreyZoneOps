@@ -21,6 +21,7 @@ MonoBehaviour:
   CanRotate: 0
   Category: 0
   Quality: 5
+  Value: 100
   WeaponConfig: {fileID: 11400000, guid: 328c73dcc3e9f4f438df8cab648ab1b0, type: 2}
   WeaponPrefab: {fileID: 2780876524888379992, guid: 117a43dac40aa124cab7b4ceb3e1230e,
     type: 3}

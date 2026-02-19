@@ -20,3 +20,5 @@ MonoBehaviour:
   MaxStack: 60
   CanRotate: 0
   Category: 3
+  Quality: 0
+  Value: 100

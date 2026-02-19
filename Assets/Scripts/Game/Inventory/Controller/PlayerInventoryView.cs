@@ -12,6 +12,7 @@ public class PlayerInventoryView : MonoBehaviour, IController
     private Transform pocketRoot;
     public RectTransform chestRoot;
     public RectTransform backpackRoot;
+    public Text backpackTotalValueText;
 
     private Vector2 chestOrBackpackSize;
 
@@ -87,6 +88,8 @@ public class PlayerInventoryView : MonoBehaviour, IController
         {
             equipmentView.InitEquipment();
         }
+
+        RefreshPlayerTotalValueText();
 
     }
 
@@ -220,6 +223,93 @@ public class PlayerInventoryView : MonoBehaviour, IController
             equipmentView.RenderAll();
         }
 
+        RefreshPlayerTotalValueText();
+
+    }
+
+    private void RefreshPlayerTotalValueText()
+    {
+        if (backpackTotalValueText == null)
+        {
+            return;
+        }
+
+        int totalValue = 0;
+        var equipment = model?.PlayerEquipment;
+        if (equipment != null)
+        {
+            var countedItemIds = new HashSet<string>();
+            var visitedContainerIds = new HashSet<string>();
+
+            foreach (var slotItem in equipment.Slots.Values)
+            {
+                CollectItemValue(slotItem, countedItemIds, visitedContainerIds, ref totalValue);
+            }
+
+            foreach (var container in equipment.Containers.Values)
+            {
+                CollectContainerValue(container, countedItemIds, visitedContainerIds, ref totalValue);
+            }
+        }
+
+        backpackTotalValueText.text = $"Total Value: {totalValue}";
+    }
+
+    private void CollectItemValue(
+        ItemInstance item,
+        HashSet<string> countedItemIds,
+        HashSet<string> visitedContainerIds,
+        ref int totalValue)
+    {
+        if (item?.Definition == null || string.IsNullOrEmpty(item.InstanceId))
+        {
+            return;
+        }
+
+        if (!countedItemIds.Add(item.InstanceId))
+        {
+            return;
+        }
+
+        int unitValue = Mathf.Max(0, item.Definition.Value);
+        int itemCount = Mathf.Max(0, item.Count);
+        totalValue += unitValue * itemCount;
+
+        if (item.AttachedContainer != null)
+        {
+            CollectContainerValue(item.AttachedContainer, countedItemIds, visitedContainerIds, ref totalValue);
+        }
+    }
+
+    private void CollectContainerValue(
+        InventoryContainer container,
+        HashSet<string> countedItemIds,
+        HashSet<string> visitedContainerIds,
+        ref int totalValue)
+    {
+        if (container == null || string.IsNullOrEmpty(container.InstanceId))
+        {
+            return;
+        }
+
+        if (!visitedContainerIds.Add(container.InstanceId))
+        {
+            return;
+        }
+
+        foreach (var grid in container.PartGrids)
+        {
+            if (grid == null)
+            {
+                continue;
+            }
+
+            foreach (var placement in grid.GetAllPlacements())
+            {
+                var item = placement?.Item;
+                CollectItemValue(item, countedItemIds, visitedContainerIds, ref totalValue);
+            }
+        }
     }
 
 

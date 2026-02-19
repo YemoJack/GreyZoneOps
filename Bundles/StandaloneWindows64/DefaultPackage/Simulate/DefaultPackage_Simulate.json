@@ -9,7 +9,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/2/19 13:32:15",
+    "PackageNote": "2026/2/19 14:33:21",
     "AssetList": [
         {
             "Address": "Cfg_CNTR_Backpack1",
@@ -496,7 +496,7 @@
             "UnityCRC": 0,
             "FileHash": "aa0d08d1220274bb1d186f6797acba09",
             "FileCRC": 0,
-            "FileSize": 595,
+            "FileSize": 621,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -506,7 +506,7 @@
             "UnityCRC": 0,
             "FileHash": "93bb4b21a74934e51941c08d4f5ced04",
             "FileCRC": 0,
-            "FileSize": 609,
+            "FileSize": 622,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -516,7 +516,7 @@
             "UnityCRC": 0,
             "FileHash": "579ad53410d249bf8da593cd4d5abae4",
             "FileCRC": 0,
-            "FileSize": 704,
+            "FileSize": 717,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -526,7 +526,7 @@
             "UnityCRC": 0,
             "FileHash": "7b01f2383e28c6f3bed5bf8118702cb8",
             "FileCRC": 0,
-            "FileSize": 704,
+            "FileSize": 717,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -536,7 +536,7 @@
             "UnityCRC": 0,
             "FileHash": "e22a21cef35596728ef78fa66c63c5a0",
             "FileCRC": 0,
-            "FileSize": 1202,
+            "FileSize": 1254,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -546,7 +546,7 @@
             "UnityCRC": 0,
             "FileHash": "9afe36f3b09ed4b21601f48269ad4cf0",
             "FileCRC": 0,
-            "FileSize": 611,
+            "FileSize": 624,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -556,7 +556,7 @@
             "UnityCRC": 0,
             "FileHash": "3201d49928e47c1b43dbf4ddd261c0e1",
             "FileCRC": 0,
-            "FileSize": 1800,
+            "FileSize": 1878,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -566,7 +566,7 @@
             "UnityCRC": 0,
             "FileHash": "f6892c9a1d5f9fcf18da5f3d57bc4a05",
             "FileCRC": 0,
-            "FileSize": 1573,
+            "FileSize": 1612,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -726,7 +726,7 @@
             "UnityCRC": 0,
             "FileHash": "530a24183c422b16027444c7d49d3a49",
             "FileCRC": 0,
-            "FileSize": 160708,
+            "FileSize": 165318,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

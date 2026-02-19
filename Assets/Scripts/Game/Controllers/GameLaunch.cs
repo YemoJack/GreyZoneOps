@@ -57,6 +57,7 @@ public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
 
         TestInventoryWindow();
         TestPlayerHealth();
+        TestSaveLoad();
     }
 
 
@@ -165,6 +166,27 @@ public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
         {
             healthSystem.ResetHealth();
             Debug.Log($"Player HP reset => {health.CurrentHealth}/{health.MaxHealth}");
+        }
+    }
+
+    private void TestSaveLoad()
+    {
+        var inventorySystem = this.GetSystem<InventorySystem>();
+        if (inventorySystem == null)
+        {
+            return;
+        }
+
+        if (Input.GetKeyDown(KeyCode.F5))
+        {
+            bool ok = inventorySystem.SaveGameData();
+            Debug.Log($"SaveGameData => {ok}");
+        }
+
+        if (Input.GetKeyDown(KeyCode.F9))
+        {
+            bool ok = inventorySystem.LoadGameData();
+            Debug.Log($"LoadGameData => {ok}");
         }
     }
 

@@ -87,9 +87,16 @@ public class SOGameConfig : ScriptableObject
     public float DraggingItemAlpha = 0.8f;
     public Color InventoryHighlightColor = new Color(1f, 0.9f, 0.3f, 1f);
     public Color InventoryWarningColor = new Color(1f, 0.4f, 0.2f, 1f);
+    public List<SOItemDefinition> SaveItemDefinitions = new List<SOItemDefinition>();
 
     [Header("Map 地图")]
     public int DefaultMapId = 0;
+
+    [Header("Save 存档")]
+    public string SaveFileName = "game_save.es3";
+    public bool SaveUseEncryption = false;
+    public string SaveEncryptionPassword = "";
+    public bool SaveUseCompression = false;
 
     [Header("Player 玩家")]
     public string PlayerPrefabName = "Player";

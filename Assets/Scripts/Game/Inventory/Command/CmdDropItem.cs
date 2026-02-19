@@ -12,7 +12,11 @@ public class CmdDropItem : AbstractCommand
 
     protected override void OnExecute()
     {
-        if (_item == null) return;
+        if (_item == null || _item.Definition == null)
+        {
+            Debug.LogWarning("CmdDropItem: item or definition is null.");
+            return;
+        }
         var pos = GetPlayerPosition();
         Debug.Log($"CmdDropItem {_item.Definition.Id} {_item.InstanceId}");
         SpawnFallbackWorldItem(pos);
@@ -29,11 +33,24 @@ public class CmdDropItem : AbstractCommand
 
     private async void SpawnFallbackWorldItem(Vector3 pos)
     {
+        if (string.IsNullOrEmpty(_item.Definition.ResName))
+        {
+            Debug.LogError($"CmdDropItem: ResName is empty, item={_item.Definition.Name} id={_item.Definition.Id}");
+            return;
+        }
+
         IResLoader resLoader = this.GetUtility<IResLoader>();
         GameObject obj = await resLoader.LoadAsync<GameObject>(_item.Definition.ResName);
         if (obj == null)
         {
-            Debug.LogError("SpawnFallbackWorldItem is Null");
+            Debug.LogError($"SpawnFallbackWorldItem is Null, item={_item.Definition.Name}, id={_item.Definition.Id}, res={_item.Definition.ResName}. Create primitive fallback.");
+            var fallback = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            fallback.transform.position = pos;
+            fallback.transform.localScale = Vector3.one * 0.3f;
+            fallback.name = "DroppedItemFallback";
+            fallback.layer = LayerMask.NameToLayer("Interactable");
+            var fallbackInteractable = fallback.AddComponent<WorldItemInteractable>();
+            fallbackInteractable.Item = _item;
             return;
         }
         var worldItem = GameObject.Instantiate(obj, pos, Quaternion.identity);

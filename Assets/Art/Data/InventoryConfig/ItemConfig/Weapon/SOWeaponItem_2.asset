@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cc365b467935fe3499fc970404e009b5, type: 3}
   m_Name: SOWeaponItem_2
   m_EditorClassIdentifier: 
-  Id: 9
+  Id: 10
   Name: "\u624B\u67AA1"
   ResName: Item_Weapon_2
   Size: {x: 2, y: 1}

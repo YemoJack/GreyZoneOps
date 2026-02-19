@@ -6,6 +6,7 @@ public class GameArchitecture : Architecture<GameArchitecture>
     {
         // 注册 Utilities
         RegisterUtility<IResLoader>(new ResLoaderYoo());
+        RegisterUtility<ISaveLoader>(new SaveLoaderEasy());
 
 
     }

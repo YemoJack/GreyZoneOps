@@ -233,7 +233,18 @@ public class ResLoaderYoo : IResLoader
 
     public T LoadSync<T>(string path) where T : Object
     {
-        return YooAssets.LoadAssetSync<T>(path).AssetObject as T;
+        var handle = YooAssets.LoadAssetSync<T>(path);
+        if (handle != null && handle.AssetObject is T res)
+        {
+            return res;
+        }
+
+        var fallback = Resources.Load<T>(path);
+        if (fallback != null)
+        {
+            Debug.LogWarning($"Yoo LoadSync fallback to Resources: {path}");
+        }
+        return fallback;
     }
 
     public void UnloadSync(Object res)
@@ -290,20 +301,30 @@ public class ResLoaderYoo : IResLoader
                 load = await LoadAssetFromPackage<T>(path, checkRemote);
             }
 
-            if (load.AssetObject is T res)
+            if (load != null && load.AssetObject is T res)
             {
                 _assetHandles[path] = load;
                 onLoaded?.Invoke(res);
             }
             else
             {
-                onLoaded?.Invoke(null);
+                var fallback = Resources.Load<T>(path);
+                if (fallback != null)
+                {
+                    Debug.LogWarning($"Yoo LoadAsync fallback to Resources: {path}");
+                }
+                onLoaded?.Invoke(fallback);
             }
         }
         catch (Exception e)
         {
             Debug.LogError($"Load '{path}' Err:{e}");
-            onLoaded?.Invoke(null);
+            var fallback = Resources.Load<T>(path);
+            if (fallback != null)
+            {
+                Debug.LogWarning($"Yoo LoadAsync catch fallback to Resources: {path}");
+            }
+            onLoaded?.Invoke(fallback);
         }
     }
 
@@ -317,17 +338,29 @@ public class ResLoaderYoo : IResLoader
                 load = await LoadAssetFromPackage<T>(path, checkRemote);
             }
 
-            if (load.AssetObject is T res)
+            if (load != null && load.AssetObject is T res)
             {
                 _assetHandles[path] = load;
                 return res;
             }
+
+            var fallback = Resources.Load<T>(path);
+            if (fallback != null)
+            {
+                Debug.LogWarning($"Yoo LoadAsync<T> fallback to Resources: {path}");
+            }
+            return fallback;
         }
         catch (Exception e)
         {
             Debug.LogError($"Load '{path}' Err:{e}");
+            var fallback = Resources.Load<T>(path);
+            if (fallback != null)
+            {
+                Debug.LogWarning($"Yoo LoadAsync<T> catch fallback to Resources: {path}");
+            }
+            return fallback;
         }
-        return null;
     }
 
     public void UnloadAsync(Object res)

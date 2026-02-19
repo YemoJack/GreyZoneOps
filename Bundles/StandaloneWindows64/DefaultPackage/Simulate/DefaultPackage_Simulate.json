@@ -9,7 +9,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/2/19 14:33:21",
+    "PackageNote": "2026/2/19 16:58:09",
     "AssetList": [
         {
             "Address": "Cfg_CNTR_Backpack1",
@@ -92,8 +92,8 @@
             "DependBundleIDs": []
         },
         {
-            "Address": "Cfg_Helmat_1",
-            "AssetPath": "Assets/Art/Data/InventoryConfig/ItemConfig/Helmat/Cfg_Helmat_1.asset",
+            "Address": "Cfg_Helmet_1",
+            "AssetPath": "Assets/Art/Data/InventoryConfig/ItemConfig/Helmat/Cfg_Helmet_1.asset",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 8,
@@ -566,7 +566,7 @@
             "UnityCRC": 0,
             "FileHash": "f6892c9a1d5f9fcf18da5f3d57bc4a05",
             "FileCRC": 0,
-            "FileSize": 1612,
+            "FileSize": 1613,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

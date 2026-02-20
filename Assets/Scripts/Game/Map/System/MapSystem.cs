@@ -22,6 +22,7 @@ public class MapSystem : AbstractSystem, IUpdateSystem
     private SOMapDefinition spawnedMapFor;
     private GameObject mapRoot;
     private GameObject mapInstance;
+    private GameObject extractionEffectsSpawnedForMapInstance;
     private bool mapPrefabReady;
     private bool mapLoadInProgress;
     private int mapLoadSerial;
@@ -44,6 +45,7 @@ public class MapSystem : AbstractSystem, IUpdateSystem
 
         mapModel = this.GetModel<MapModel>();
         inputSys = this.GetSystem<InputSys>();
+        this.RegisterEvent<EventGameFlowStateChanged>(OnGameFlowStateChanged);
         BuildExtractionRuntime();
     }
 
@@ -53,16 +55,18 @@ public class MapSystem : AbstractSystem, IUpdateSystem
         BuildExtractionRuntime();
         spawnedContainersFor = null;
         spawnedMapFor = null;
+        extractionEffectsSpawnedForMapInstance = null;
         mapPrefabReady = false;
         mapLoadInProgress = false;
         StartMapLoadAsync(definition, false);
         this.SendEvent(new EventMapLoaded { Map = definition });
-        spawnedPlayer = false;
-        spawnRetryTimer = 0f;
+        ResetSpawnRuntimeState();
     }
 
     public void BeginRaid()
     {
+        ResetSpawnRuntimeState();
+
         if (mapModel == null)
         {
             mapModel = this.GetModel<MapModel>();
@@ -85,6 +89,7 @@ public class MapSystem : AbstractSystem, IUpdateSystem
         {
             spawnedContainersFor = null;
             spawnedMapFor = null;
+            extractionEffectsSpawnedForMapInstance = null;
             mapPrefabReady = false;
         }
         StartMapLoadAsync(mapModel.CurrentMap, true);
@@ -94,6 +99,7 @@ public class MapSystem : AbstractSystem, IUpdateSystem
     public void EndRaid()
     {
         SetState(MapState.Ended);
+        ResetSpawnRuntimeState();
     }
 
     public void OnUpdate(float deltaTime)
@@ -149,6 +155,27 @@ public class MapSystem : AbstractSystem, IUpdateSystem
             var runtime = new ExtractionRuntime(def);
             extractionPoints.Add(runtime);
         }
+    }
+
+    private void OnGameFlowStateChanged(EventGameFlowStateChanged e)
+    {
+        if (e.Current == GameFlowState.InRaid)
+        {
+            return;
+        }
+
+        ResetSpawnRuntimeState();
+    }
+
+    private void ResetSpawnRuntimeState()
+    {
+        spawnedPlayer = false;
+        spawnRetryTimer = 0f;
+        playerTransform = null;
+        playerRuntime = null;
+        playerInstance = null;
+        activeExtraction = null;
+        lastTimeEvent = -1f;
     }
 
     private void TrySpawnPlayer(string reason)
@@ -242,6 +269,7 @@ public class MapSystem : AbstractSystem, IUpdateSystem
             mapPrefabReady = true;
             mapLoadInProgress = false;
             EnsureSceneContainersSpawned(definition);
+            EnsureExtractionEffectsSpawned(definition);
             NotifyMapPrefabReady(definition);
             if (spawnPlayerAfterLoad)
             {
@@ -286,6 +314,7 @@ public class MapSystem : AbstractSystem, IUpdateSystem
         {
             Object.Destroy(mapInstance);
             mapInstance = null;
+            extractionEffectsSpawnedForMapInstance = null;
         }
 
         var root = GetOrCreateGameRoot();
@@ -295,6 +324,7 @@ public class MapSystem : AbstractSystem, IUpdateSystem
         await UniTask.Yield(PlayerLoopTiming.FixedUpdate);
         Physics.SyncTransforms();
         EnsureSceneContainersSpawned(definition);
+        EnsureExtractionEffectsSpawned(definition);
         mapPrefabReady = true;
         mapLoadInProgress = false;
         NotifyMapPrefabReady(definition);
@@ -345,6 +375,43 @@ public class MapSystem : AbstractSystem, IUpdateSystem
 
         SpawnFromMapDefinition(model, definition);
         spawnedContainersFor = definition;
+        return true;
+    }
+
+    private bool EnsureExtractionEffectsSpawned(SOMapDefinition definition)
+    {
+        if (definition == null || mapInstance == null)
+        {
+            return false;
+        }
+
+        if (extractionEffectsSpawnedForMapInstance == mapInstance)
+        {
+            return true;
+        }
+
+        if (definition.extractionPoints != null)
+        {
+            foreach (var point in definition.extractionPoints)
+            {
+                if (point.ExtractionEffectPrefab == null)
+                {
+                    continue;
+                }
+
+                var fx = Object.Instantiate(
+                    point.ExtractionEffectPrefab,
+                    point.Position,
+                    Quaternion.identity,
+                    mapInstance.transform);
+                if (!string.IsNullOrEmpty(point.ExtractionId))
+                {
+                    fx.name = $"{point.ExtractionEffectPrefab.name}_{point.ExtractionId}";
+                }
+            }
+        }
+
+        extractionEffectsSpawnedForMapInstance = mapInstance;
         return true;
     }
 
@@ -514,13 +581,7 @@ public class MapSystem : AbstractSystem, IUpdateSystem
         for (int i = 0; i < extractionPoints.Count; i++)
         {
             var runtime = extractionPoints[i];
-            if (!runtime.IsActive)
-            {
-                continue;
-            }
-
-            var offset = position - runtime.Definition.Position;
-            if (offset.sqrMagnitude <= runtime.RadiusSqr)
+            if (runtime.IsTriggered(position))
             {
                 candidate = runtime;
                 break;
@@ -578,7 +639,7 @@ public class MapSystem : AbstractSystem, IUpdateSystem
 
     private void CompleteExtraction(ExtractionRuntime runtime)
     {
-        this.SendEvent(new EventExtractionCompleted
+        this.SendEvent(new EventExtractionSucceeded
         {
             ExtractionId = runtime.Definition.ExtractionId
         });
@@ -649,25 +710,115 @@ public class MapSystem : AbstractSystem, IUpdateSystem
 
     private class ExtractionRuntime
     {
+        private readonly IExtractionMatcher matcher;
+
         public MapExtractionPointDefinition Definition { get; }
         public bool IsActive { get; set; }
-        public float RadiusSqr { get; }
         public float Progress { get; set; }
         public float LastProgressEvent { get; set; }
 
         public ExtractionRuntime(MapExtractionPointDefinition definition)
         {
             Definition = definition;
-            RadiusSqr = definition.Radius * definition.Radius;
+            matcher = CreateMatcher(definition);
             IsActive = definition.EnabledOnStart;
             Progress = 0f;
             LastProgressEvent = -1f;
+        }
+
+        public bool IsTriggered(Vector3 playerPosition)
+        {
+            return IsActive && matcher != null && matcher.IsMatched(playerPosition);
         }
 
         public void ResetProgress()
         {
             Progress = 0f;
             LastProgressEvent = -1f;
+        }
+    }
+
+    private static IExtractionMatcher CreateMatcher(MapExtractionPointDefinition definition)
+    {
+        switch (definition.ExtractionType)
+        {
+            case MapExtractionType.Normal:
+            default:
+                return new TriggerAreaMatcher(CreateTrigger(definition));
+        }
+    }
+
+    private static IExtractionTrigger CreateTrigger(MapExtractionPointDefinition definition)
+    {
+        switch (definition.TriggerType)
+        {
+            case MapExtractionTriggerType.Box:
+                return new BoxExtractionTrigger(definition.Position, definition.TriggerBoxSize);
+            case MapExtractionTriggerType.Radius:
+            default:
+                return new RadiusExtractionTrigger(definition.Position, definition.Radius);
+        }
+    }
+
+    private interface IExtractionMatcher
+    {
+        bool IsMatched(Vector3 playerPosition);
+    }
+
+    private interface IExtractionTrigger
+    {
+        bool Contains(Vector3 worldPosition);
+    }
+
+    private class TriggerAreaMatcher : IExtractionMatcher
+    {
+        private readonly IExtractionTrigger trigger;
+
+        public TriggerAreaMatcher(IExtractionTrigger trigger)
+        {
+            this.trigger = trigger;
+        }
+
+        public bool IsMatched(Vector3 playerPosition)
+        {
+            return trigger != null && trigger.Contains(playerPosition);
+        }
+    }
+
+    private class RadiusExtractionTrigger : IExtractionTrigger
+    {
+        private readonly Vector3 center;
+        private readonly float radiusSqr;
+
+        public RadiusExtractionTrigger(Vector3 center, float radius)
+        {
+            this.center = center;
+            var normalizedRadius = Mathf.Max(0f, radius);
+            radiusSqr = normalizedRadius * normalizedRadius;
+        }
+
+        public bool Contains(Vector3 worldPosition)
+        {
+            var offset = worldPosition - center;
+            return offset.sqrMagnitude <= radiusSqr;
+        }
+    }
+
+    private class BoxExtractionTrigger : IExtractionTrigger
+    {
+        private readonly Bounds bounds;
+
+        public BoxExtractionTrigger(Vector3 center, Vector3 size)
+        {
+            bounds = new Bounds(center, new Vector3(
+                Mathf.Max(0f, size.x),
+                Mathf.Max(0f, size.y),
+                Mathf.Max(0f, size.z)));
+        }
+
+        public bool Contains(Vector3 worldPosition)
+        {
+            return bounds.Contains(worldPosition);
         }
     }
 

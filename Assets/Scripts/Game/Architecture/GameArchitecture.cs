@@ -23,8 +23,10 @@ public class GameArchitecture : Architecture<GameArchitecture>
         RegisterModel(new WeaponInventoryModel());
         RegisterModel(new InventoryContainerModel());
         RegisterModel(new MapModel());
+        RegisterModel(new GameFlowModel());
 
         // 注册 Systems
+        RegisterSystem(new GameFlowSystem());
         RegisterSystem(new InputSys());
         RegisterSystem(new PlayerSystem());
         RegisterSystem(new HealthSystem());

@@ -13,6 +13,7 @@
 * GitHub：https://github.com/ZMteacher?tab=repositories
 ----------------------------------------------------------------------------*/
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using QFramework;
 using UnityEditor;
@@ -83,22 +84,19 @@ public class UIModule : IController
     #region 框架初始化接口 (外部调用)
     public void Initialize()
     {
-
-
-
-        mUICamera = GameObject.Find("UICamera").GetComponent<Camera>();
-        mUIRoot = GameObject.Find("UIRoot").transform;
-
-        if (mUICamera == null)
+        if (mUIRoot == null || mUIRoot.gameObject == null)
         {
-            Debug.LogError("UICamera is null");
-            return;
-        }
-        if (mUIRoot == null)
-        {
-            GameObject uiRoot = GameObject.Instantiate(Resources.Load<GameObject>("UIRoot"));
-            if (uiRoot != null)
-                mUIRoot = uiRoot.transform;
+            GameObject uiRootObj = GameObject.Find("UIRoot");
+            if (uiRootObj == null)
+            {
+                uiRootObj = GameObject.Instantiate(Resources.Load<GameObject>("UIRoot"));
+            }
+
+            if (uiRootObj != null)
+            {
+                mUIRoot = uiRootObj.transform;
+                GameObject.DontDestroyOnLoad(mUIRoot.gameObject);
+            }
             else
             {
                 Debug.LogError("UIRoot is null");
@@ -106,12 +104,136 @@ public class UIModule : IController
             }
         }
 
+        if (mUICamera == null || mUICamera.gameObject == null)
+        {
+            var uiCameraObj = GameObject.Find("UICamera");
+            if (uiCameraObj != null)
+            {
+                mUICamera = uiCameraObj.GetComponent<Camera>();
+            }
+
+            if (mUICamera == null && mUIRoot != null)
+            {
+                mUICamera = mUIRoot.GetComponentInChildren<Camera>(true);
+            }
+        }
+
+        if (mUICamera == null)
+        {
+            Debug.LogError("UICamera is null");
+            return;
+        }
+
+        EnsureUICameraStackBinding();
+
 
         mWindowConfig = Resources.Load<WindowConfig>("WindowConfig");
         //在手机上不会触发调用
 #if UNITY_EDITOR
         //mWindowConfig.GeneratorWindowConfig();
 #endif
+    }
+
+    private void EnsureUICameraStackBinding()
+    {
+        if (mUICamera == null)
+        {
+            return;
+        }
+
+        var mainCamera = ResolveMainCamera();
+        if (mainCamera == null || mainCamera == mUICamera)
+        {
+            return;
+        }
+
+        var urpCameraDataType = Type.GetType(
+            "UnityEngine.Rendering.Universal.UniversalAdditionalCameraData, Unity.RenderPipelines.Universal.Runtime");
+        if (urpCameraDataType == null)
+        {
+            return;
+        }
+
+        var mainData = mainCamera.GetComponent(urpCameraDataType);
+        var uiData = mUICamera.GetComponent(urpCameraDataType);
+        if (mainData == null || uiData == null)
+        {
+            return;
+        }
+
+        // Force UI camera as Overlay so it can be stacked by the base camera.
+        var renderTypeProperty = urpCameraDataType.GetProperty("renderType");
+        if (renderTypeProperty != null && renderTypeProperty.CanWrite)
+        {
+            try
+            {
+                var baseValue = Enum.Parse(renderTypeProperty.PropertyType, "Base");
+                renderTypeProperty.SetValue(mainData, baseValue);
+
+                var overlayValue = Enum.Parse(renderTypeProperty.PropertyType, "Overlay");
+                renderTypeProperty.SetValue(uiData, overlayValue);
+            }
+            catch
+            {
+                // Ignore parse/write failures and continue best effort.
+            }
+        }
+
+        var cameraStackProperty = urpCameraDataType.GetProperty("cameraStack");
+        if (cameraStackProperty == null)
+        {
+            return;
+        }
+
+        var stack = cameraStackProperty.GetValue(mainData) as IList;
+        if (stack == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < stack.Count; i++)
+        {
+            if (ReferenceEquals(stack[i], mUICamera))
+            {
+                return;
+            }
+        }
+
+        stack.Add(mUICamera);
+    }
+
+    private Camera ResolveMainCamera()
+    {
+        if (Camera.main != null && Camera.main != mUICamera)
+        {
+            return Camera.main;
+        }
+
+        var allCameras = GameObject.FindObjectsOfType<Camera>(true);
+        for (int i = 0; i < allCameras.Length; i++)
+        {
+            var camera = allCameras[i];
+            if (camera == null || camera == mUICamera)
+            {
+                continue;
+            }
+
+            if (camera.CompareTag("MainCamera"))
+            {
+                return camera;
+            }
+        }
+
+        for (int i = 0; i < allCameras.Length; i++)
+        {
+            var camera = allCameras[i];
+            if (camera != null && camera != mUICamera)
+            {
+                return camera;
+            }
+        }
+
+        return null;
     }
     #endregion
 

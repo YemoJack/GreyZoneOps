@@ -39,6 +39,12 @@ public struct MapSpawnPointDefinition
 [Serializable]
 public struct MapExtractionPointDefinition
 {
+    // Extraction behavior type.
+    // 撤离行为类型。
+    public MapExtractionType ExtractionType;
+    // Trigger area type.
+    // 触发区域类型。
+    public MapExtractionTriggerType TriggerType;
     // Unique extraction id.
     // 撤离点唯一ID。
     public string ExtractionId;
@@ -54,12 +60,35 @@ public struct MapExtractionPointDefinition
     // Trigger radius.
     // 触发半径。
     public float Radius;
+    // Box trigger size when TriggerType is Box (world size).
+    // 当TriggerType为Box时的触发盒尺寸（世界坐标）。
+    public Vector3 TriggerBoxSize;
     // Extract duration in seconds.
     // 撤离耗时（秒）。
     public float ExtractDuration;
+    // Effect prefab spawned when extraction point is generated.
+    // 撤离点生成时实例化的特效预制体。
+    public GameObject ExtractionEffectPrefab;
     // Enabled at raid start.
     // 是否在开局激活。
     public bool EnabledOnStart;
+}
+
+public enum MapExtractionType
+{
+    // Standard extraction: enter trigger area and hold for duration.
+    // 常规撤离：进入触发区并持续倒计时。
+    Normal = 0
+}
+
+public enum MapExtractionTriggerType
+{
+    // Sphere trigger by Position + Radius.
+    // 球形触发：Position + Radius。
+    Radius = 0,
+    // Box trigger by Position + TriggerBoxSize.
+    // 盒形触发：Position + TriggerBoxSize。
+    Box = 1
 }
 
 [CreateAssetMenu(fileName = "SOMapDefinition", menuName = "MapConfig/MapDefinition")]

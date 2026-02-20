@@ -1,4 +1,15 @@
-﻿## 最近更新（数据配置 Catalog 化）
+﻿## 最近更新（流程状态机 + 场景流转）
+
+- 新增全局流程状态机（`GameFlowModel + GameFlowSystem`），统一管理 `StartMenu / LoadingToGame / InRaid / RaidEnded / LoadingToMenu`。
+- `GameLaunch` 已接入流程状态切换：启动、进入开始菜单、进入游戏加载、对局内状态都由统一流程驱动。
+- 新增 `StartScene` 启动流程：先打开 `HomeWindow`，点击 Start 后进入 `GameScene`。
+- 场景切换时新增 `LoadingWindow`，进度条宽度按 `0~1000` 更新，场景加载完成后延迟 `1s` 关闭。
+- 新增 `GameOverWindow`：玩家死亡或撤离成功时弹出；显示“撤离成功/撤离失败”和本局收益。
+- `GameOverWindow` 与 `InventoryWindow` 一致：弹窗期间显示鼠标并禁用玩家输入。
+- `GameOverWindow` 的 Home 按钮支持返回 `StartScene`，并走 Loading 过场（切场景后延迟 1 秒关闭）。
+- `UIModule` 已支持 `UIRoot` 跨场景保留，并在 `Initialize()` 时自动把 `UICamera` 重新加入当前主相机 Stack（URP）。
+- 修复 `MapSystem` 二次开局不生成玩家问题：流程离开对局后会统一重置 `spawnedPlayer` 等运行时状态，保证下一局可正常生成玩家。
+## 最近更新（数据配置 Catalog 化）
 
 - 物品定义已改为 `SOItemCatalog + ItemCatalogEntry`，运行时不再依赖 `SOItemDefinition`。
 - 容器定义已改为 `SOContainerCatalog + ContainerCatalogEntry`，运行时不再依赖 `SOContainerConfig`。
@@ -79,4 +90,5 @@
 
 #### 调试与测试入口
 - 已在 `GameLaunch` 中提供快捷测试：数字键 0-9 可向指定容器自动放入测试物品。
+
 

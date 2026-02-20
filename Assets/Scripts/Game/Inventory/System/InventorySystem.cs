@@ -56,6 +56,31 @@ public class InventorySystem : AbstractSystem, ICanSendCommand
     public EquipmentContainer GetPlayerEquipment()
         => _model.GetPlayerEquipment();
 
+    public int GetCurrentRaidIncome()
+    {
+        int totalValue = 0;
+        var equipment = _model?.PlayerEquipment;
+        if (equipment == null)
+        {
+            return 0;
+        }
+
+        var countedItemIds = new HashSet<string>();
+        var visitedContainerIds = new HashSet<string>();
+
+        foreach (var slotItem in equipment.Slots.Values)
+        {
+            AccumulateItemValue(slotItem, countedItemIds, visitedContainerIds, ref totalValue);
+        }
+
+        foreach (var container in equipment.Containers.Values)
+        {
+            AccumulateContainerValue(container, countedItemIds, visitedContainerIds, ref totalValue);
+        }
+
+        return Mathf.Max(0, totalValue);
+    }
+
     public bool SaveGameData(string key = DefaultGameSaveKey, string filePath = null)
     {
         var saveLoader = this.GetUtility<ISaveLoader>();
@@ -1196,5 +1221,61 @@ public class InventorySystem : AbstractSystem, ICanSendCommand
     {
         if (item == null || item.AttachedContainer == null) return;
         item.AttachedContainer.ParentContainerId = null;
+    }
+
+    private void AccumulateItemValue(
+        ItemInstance item,
+        HashSet<string> countedItemIds,
+        HashSet<string> visitedContainerIds,
+        ref int totalValue)
+    {
+        if (item?.Definition == null || string.IsNullOrEmpty(item.InstanceId))
+        {
+            return;
+        }
+
+        if (!countedItemIds.Add(item.InstanceId))
+        {
+            return;
+        }
+
+        int unitValue = Mathf.Max(0, item.Definition.Value);
+        int itemCount = Mathf.Max(0, item.Count);
+        totalValue += unitValue * itemCount;
+
+        if (item.AttachedContainer != null)
+        {
+            AccumulateContainerValue(item.AttachedContainer, countedItemIds, visitedContainerIds, ref totalValue);
+        }
+    }
+
+    private void AccumulateContainerValue(
+        InventoryContainer container,
+        HashSet<string> countedItemIds,
+        HashSet<string> visitedContainerIds,
+        ref int totalValue)
+    {
+        if (container == null || string.IsNullOrEmpty(container.InstanceId))
+        {
+            return;
+        }
+
+        if (!visitedContainerIds.Add(container.InstanceId))
+        {
+            return;
+        }
+
+        foreach (var grid in container.PartGrids)
+        {
+            if (grid == null)
+            {
+                continue;
+            }
+
+            foreach (var placement in grid.GetAllPlacements())
+            {
+                AccumulateItemValue(placement?.Item, countedItemIds, visitedContainerIds, ref totalValue);
+            }
+        }
     }
 }

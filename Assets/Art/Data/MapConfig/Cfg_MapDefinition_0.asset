@@ -37,12 +37,17 @@ MonoBehaviour:
     Position: {x: 43, y: 0, z: 13}
     Yaw: 0
   extractionPoints:
-  - ExtractionId: 0
+  - ExtractionType: 0
+    TriggerType: 0
+    ExtractionId: 0
     DisplayName: "\u5E38\u89C4\u64A4\u79BB\u70B90"
     RegionId: 0
     Position: {x: 3, y: 0, z: 13}
     Radius: 3
+    TriggerBoxSize: {x: 0, y: 0, z: 0}
     ExtractDuration: 10
+    ExtractionEffectPrefab: {fileID: 5280030519250609322, guid: 71833170b9d940d4bb49fa8a28f4170e,
+      type: 3}
     EnabledOnStart: 1
   sceneContainers:
   - containerConfigId: 1003

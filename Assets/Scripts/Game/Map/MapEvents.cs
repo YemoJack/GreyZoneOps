@@ -57,7 +57,7 @@ public struct EventExtractionCancelled
     public string ExtractionId;
 }
 
-public struct EventExtractionCompleted
+public struct EventExtractionSucceeded
 {
     public string ExtractionId;
 }

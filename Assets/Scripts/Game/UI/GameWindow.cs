@@ -1,4 +1,4 @@
-﻿/*---------------------------------
+/*---------------------------------
  *Title:UI表现层脚本自动化生成工具
  *Author:ZM 铸梦
  *Date:2025/12/14 20:10:50
@@ -29,6 +29,11 @@ public class GameWindow : WindowBase
 	private IUnRegister openInventoryUnregister;
 	private IUnRegister healthChangedUnregister;
 	private IUnRegister healthDeathUnregister;
+	private IUnRegister extractionStartedUnregister;
+	private IUnRegister extractionProgressUnregister;
+	private IUnRegister extractionCancelledUnregister;
+	private IUnRegister extractionSucceededUnregister;
+	private bool gameOverShown;
 
 
 	#region 生命周期函数
@@ -47,9 +52,11 @@ public class GameWindow : WindowBase
 	public override void OnShow()
 	{
 		base.OnShow();
+		gameOverShown = false;
 		RegisterEvents();
 		RefreshCurrentWeaponUI();
 		RefreshHealthUI();
+		ClearExtractionCountdownText();
 	}
 	//物体隐藏时执行
 	public override void OnHide()
@@ -75,6 +82,10 @@ public class GameWindow : WindowBase
 		openInventoryUnregister = this.RegisterEvent<EventOpenInventory>(OnOpenInventory);
 		healthChangedUnregister = this.RegisterEvent<EventPlayerHealthChanged>(OnPlayerHealthChanged);
 		healthDeathUnregister = this.RegisterEvent<EventPlayerDeath>(OnPlayerDeath);
+		extractionStartedUnregister = this.RegisterEvent<EventExtractionStarted>(OnExtractionStarted);
+		extractionProgressUnregister = this.RegisterEvent<EventExtractionProgress>(OnExtractionProgress);
+		extractionCancelledUnregister = this.RegisterEvent<EventExtractionCancelled>(OnExtractionCancelled);
+		extractionSucceededUnregister = this.RegisterEvent<EventExtractionSucceeded>(OnExtractionSucceeded);
 
 	}
 
@@ -100,6 +111,18 @@ public class GameWindow : WindowBase
 
 		healthDeathUnregister?.UnRegister();
 		healthDeathUnregister = null;
+
+		extractionStartedUnregister?.UnRegister();
+		extractionStartedUnregister = null;
+
+		extractionProgressUnregister?.UnRegister();
+		extractionProgressUnregister = null;
+
+		extractionCancelledUnregister?.UnRegister();
+		extractionCancelledUnregister = null;
+
+		extractionSucceededUnregister?.UnRegister();
+		extractionSucceededUnregister = null;
 	}
 
 	private void OnInteracttargetChange(EventInteractTargetChanged e)
@@ -221,13 +244,77 @@ public class GameWindow : WindowBase
 
 	private void OnPlayerDeath(EventPlayerDeath e)
 	{
-		if (dataCompt == null || dataCompt.HealthHealthBarView == null)
+		if (dataCompt != null && dataCompt.HealthHealthBarView != null)
+		{
+			var max = e.Health != null ? e.Health.MaxHealth : 1f;
+			dataCompt.HealthHealthBarView.SetValue(0f, max);
+		}
+		ShowGameOver(false);
+	}
+
+	private void OnExtractionStarted(EventExtractionStarted e)
+	{
+		SetExtractionCountdownText(e.Duration);
+	}
+
+	private void OnExtractionProgress(EventExtractionProgress e)
+	{
+		SetExtractionCountdownText(e.Remaining);
+	}
+
+	private void OnExtractionCancelled(EventExtractionCancelled e)
+	{
+		ClearExtractionCountdownText();
+	}
+
+	private void OnExtractionSucceeded(EventExtractionSucceeded e)
+	{
+		ClearExtractionCountdownText();
+		ShowGameOver(true);
+	}
+
+	private void SetExtractionCountdownText(float seconds)
+	{
+		if (dataCompt == null || dataCompt.ExtractionCountdownText == null)
 		{
 			return;
 		}
 
-		var max = e.Health != null ? e.Health.MaxHealth : 1f;
-		dataCompt.HealthHealthBarView.SetValue(0f, max);
+		var remainingSeconds = Mathf.Max(0, Mathf.CeilToInt(seconds));
+		dataCompt.ExtractionCountdownText.text = remainingSeconds.ToString();
+	}
+
+	private void ClearExtractionCountdownText()
+	{
+		if (dataCompt == null || dataCompt.ExtractionCountdownText == null)
+		{
+			return;
+		}
+
+		dataCompt.ExtractionCountdownText.text = string.Empty;
+	}
+
+	private void ShowGameOver(bool extractedSuccessfully)
+	{
+		if (gameOverShown)
+		{
+			return;
+		}
+
+		gameOverShown = true;
+		var income = 0;
+		if (extractedSuccessfully)
+		{
+			income = this.GetSystem<InventorySystem>()?.GetCurrentRaidIncome() ?? 0;
+		}
+
+		var gameOverWindow = UIModule.Instance.PopUpWindow<GameOverWindow>();
+		if (gameOverWindow != null)
+		{
+			gameOverWindow.SetResult(extractedSuccessfully, income);
+		}
+
+		UIModule.Instance.HideWindow<GameWindow>();
 	}
 
 

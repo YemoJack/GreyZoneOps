@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using QFramework;
 using UnityEngine;
 
@@ -15,25 +15,43 @@ public class ContainerView : MonoBehaviour, IController
     private System.Func<string, int, Vector2Int, bool> onTryTake;
     private System.Func<string, int, Vector2Int, bool, bool> onTryPlace;
 
-
-
-
-
-
     /// <summary>绑定容器内所有分格的交互回调。</summary>
     public void BindCallbacks(
         System.Func<string, int, Vector2Int, bool> tryTake,
         System.Func<string, int, Vector2Int, bool, bool> tryPlace)
     {
-
         onTryTake = tryTake;
         onTryPlace = tryPlace;
+
+        if (gridViewList == null)
+        {
+            return;
+        }
 
         foreach (var gv in gridViewList)
         {
             if (gv == null) continue;
-            gv.OnTryTake = (part, pos) => onTryTake?.Invoke(container.InstanceId, gv.partIndex, pos) ?? false;
-            gv.OnTryPlace = (part, pos, rotated) => onTryPlace?.Invoke(container.InstanceId, gv.partIndex, pos, rotated) ?? false;
+            int partIndex = gv.partIndex;
+
+            gv.OnTryTake = (part, pos) =>
+            {
+                if (container == null || string.IsNullOrEmpty(container.InstanceId))
+                {
+                    return false;
+                }
+
+                return onTryTake?.Invoke(container.InstanceId, partIndex, pos) ?? false;
+            };
+
+            gv.OnTryPlace = (part, pos, rotated) =>
+            {
+                if (container == null || string.IsNullOrEmpty(container.InstanceId))
+                {
+                    return false;
+                }
+
+                return onTryPlace?.Invoke(container.InstanceId, partIndex, pos, rotated) ?? false;
+            };
         }
     }
 
@@ -42,23 +60,26 @@ public class ContainerView : MonoBehaviour, IController
         return GameArchitecture.Interface;
     }
 
-
     /// <summary>刷新容器内所有分格。</summary>
-    public void RenderAll(InventoryContainer container)
+    public void RenderAll(InventoryContainer runtimeContainer)
     {
-        //container = this.GetSystem<InventorySystem>().GetContainer(containerId);
+        var currentContainer = runtimeContainer ?? container;
+        if (currentContainer == null || gridViewList == null)
+        {
+            return;
+        }
+
+        container = currentContainer;
 
         foreach (var gv in gridViewList)
         {
             if (gv == null) continue;
 
-            InventoryGrid grid = container.GetGrid(gv.partIndex);
-
-            if (container != null && grid != null)
+            InventoryGrid grid = currentContainer.GetGrid(gv.partIndex);
+            if (grid != null)
             {
                 gv.Render(grid);
             }
         }
     }
 }
-

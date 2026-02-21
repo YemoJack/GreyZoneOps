@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using ZMUIFrameWork;
 using QFramework;
@@ -54,7 +54,7 @@ public class GameOverWindow : WindowBase
 
         if (dataCompt.IncomeText != null)
         {
-            dataCompt.IncomeText.text = $"\u6536\u76CA: {Mathf.Max(0, income)}";
+            dataCompt.IncomeText.text = $"\u6536\u76CA: {income}";
         }
     }
 
@@ -77,13 +77,21 @@ public class GameOverWindow : WindowBase
     private async UniTask ReturnHomeAsync()
     {
         isReturningHome = true;
+
+        var raidInventorySystem = this.GetSystem<InventorySystem>();
+        if (raidInventorySystem != null)
+        {
+            bool saveOk = raidInventorySystem.SaveGameData();
+            Debug.Log($"GameOverWindow: save before return home => {saveOk}");
+        }
+
         this.GetSystem<GameFlowSystem>()?.EnterLoadingToMenu();
 
         UIModule.Instance.DestroyAllWindow();
         var loadingWindow = UIModule.Instance.PopUpWindow<LoadingWindow>();
         loadingWindow?.SetProgressWidth(0f);
 
-        var startSceneName = GameLaunch.Instance != null ? GameLaunch.Instance.StartSceneName : "StartScene";
+        var startSceneName = GameLaunch.Instance != null ? GameLaunch.StartSceneName : "StartScene";
         var loadOp = SceneManager.LoadSceneAsync(startSceneName, LoadSceneMode.Single);
         if (loadOp == null)
         {

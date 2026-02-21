@@ -9,7 +9,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/2/20 19:08:49",
+    "PackageNote": "2026/2/21 17:05:51",
     "AssetList": [
         {
             "Address": "SOContainerCatalog",
@@ -316,6 +316,14 @@
             "DependBundleIDs": []
         },
         {
+            "Address": "UI_Warehouse",
+            "AssetPath": "Assets/Art/Prefabs/UI/Inventory/ContainerViews/UI_Warehouse.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 19,
+            "DependBundleIDs": []
+        },
+        {
             "Address": "EquipSlotView",
             "AssetPath": "Assets/Art/Prefabs/UI/Inventory/EquipSlotView.prefab",
             "AssetGUID": "",
@@ -350,6 +358,14 @@
         {
             "Address": "LoadingWindow",
             "AssetPath": "Assets/Art/Prefabs/UI/LoadingWindow.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 17,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "WarehouseWindow",
+            "AssetPath": "Assets/Art/Prefabs/UI/WarehouseWindow.prefab",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 17,
@@ -556,7 +572,7 @@
             "UnityCRC": 0,
             "FileHash": "530a24183c422b16027444c7d49d3a49",
             "FileCRC": 0,
-            "FileSize": 229484,
+            "FileSize": 378758,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -576,7 +592,7 @@
             "UnityCRC": 0,
             "FileHash": "aea9d9519ede63d3d512fb8df41c6e81",
             "FileCRC": 0,
-            "FileSize": 38037,
+            "FileSize": 45966,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

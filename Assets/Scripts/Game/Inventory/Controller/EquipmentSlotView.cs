@@ -30,6 +30,7 @@ public class EquipmentSlotView : MonoBehaviour, IController, IPointerClickHandle
     private RectTransform canvasRect;
     private Camera canvasCamera;
     private Vector2 pointerOffset = Vector2.zero;
+    private IEquipmentDragHost dragHost;
 
     public EquipmentSlotType SlotType => slotType;
 
@@ -193,7 +194,7 @@ public class EquipmentSlotView : MonoBehaviour, IController, IPointerClickHandle
             var pos = ScreenToCell(targetGrid, eventData.position, eventData.pressEventCamera, item.Definition.Size);
             if (pos.x >= 0 && pos.y >= 0)
             {
-                var window = UIModule.Instance.GetWindow<InventoryWindow>();
+                var window = GetDragHost();
                 var containerView = targetGrid.GetComponentInParent<ContainerView>();
                 var containerId = containerView != null && containerView.container != null
                     ? containerView.container.InstanceId
@@ -354,7 +355,7 @@ public class EquipmentSlotView : MonoBehaviour, IController, IPointerClickHandle
 
     private void ClearDraggingState()
     {
-        var window = UIModule.Instance.GetWindow<InventoryWindow>();
+        var window = GetDragHost();
         if (window != null)
         {
             window.ClearDraggingItem();
@@ -363,11 +364,31 @@ public class EquipmentSlotView : MonoBehaviour, IController, IPointerClickHandle
 
     private void DropItem(ItemInstance item)
     {
-        var window = UIModule.Instance.GetWindow<InventoryWindow>();
+        var window = GetDragHost();
         if (window != null)
         {
             window.DropItem(item);
         }
+    }
+
+    private IEquipmentDragHost GetDragHost()
+    {
+        if (dragHost != null)
+        {
+            return dragHost;
+        }
+
+        MonoBehaviour[] parents = GetComponentsInParent<MonoBehaviour>(true);
+        for (int i = 0; i < parents.Length; i++)
+        {
+            if (parents[i] is IEquipmentDragHost host)
+            {
+                dragHost = host;
+                return dragHost;
+            }
+        }
+
+        return null;
     }
 
     public IArchitecture GetArchitecture()

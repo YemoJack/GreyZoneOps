@@ -1,4 +1,17 @@
-﻿## 最近更新（流程状态机 + 场景流转）
+﻿## 最近更新（仓库持久化 + 收益统计口径）
+
+- 新增局外仓库窗口 `WarehouseWindow`，支持与玩家局外装备区双向拖拽管理物资。
+- 新增 `WarehouseContainerView`，仓库内物品支持拖拽、自动摆放与坐标记忆。
+- 新增持久化模型 `PersistentInventoryModel`，仓库物资以扁平 `Items` 列表保存。
+- 新增持久化脚本拆分：`InventorySystem` 负责局内运行时逻辑，`PersistentInventorySystem` 负责读档/存档。
+- 新增局外装备区持久化（`PlayerLoadoutSaveData`）：局外装备与容器内容可保存并在下次启动恢复。
+- 调整开局逻辑：开始对局时会把局外装备区作为本局带入物资，并在存档中清空局外同批物资，避免重复占有。
+- 收益口径改为净收益：`净收益 = 带出总价值 - 带入总价值`，并用于 `GameOverWindow`、`PlayerProgress`、`PlayerInventoryView` 显示。
+- 新增玩家进度字段 `TotalAsset`（总资产）：`Cash + 仓库物资总价值 + 局外装备区总价值`。
+- 新增 `PlayerDataView` 用于展示玩家进度数据（等级、经验、现金、总对局、成功撤离、总净收益、上局净收益、总资产）。
+- 存档结构升级（当前版本 `v6`）：包含 `PlayerInventory`、`PlayerLoadout`、`PlayerProgress`，并支持仓库物品位置保存。
+
+## 最近更新（流程状态机 + 场景流转）
 
 - 新增全局流程状态机（`GameFlowModel + GameFlowSystem`），统一管理 `StartMenu / LoadingToGame / InRaid / RaidEnded / LoadingToMenu`。
 - `GameLaunch` 已接入流程状态切换：启动、进入开始菜单、进入游戏加载、对局内状态都由统一流程驱动。
@@ -90,5 +103,8 @@
 
 #### 调试与测试入口
 - 已在 `GameLaunch` 中提供快捷测试：数字键 0-9 可向指定容器自动放入测试物品。
+
+
+
 
 

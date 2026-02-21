@@ -3,18 +3,18 @@
  *Author:ZM 铸梦
  *Date:2025/12/15 21:24:18
  *Description:UI 表现层，该层只负责界面的交互、表现相关的更新，不允许编写任何业务逻辑代码
- *注意:以下文件是自动生成的，再次生成不会覆盖原有的代码，会在原有的代码上进行新增，可放心使用
+ *注意:以下文件是自动生成的，再次生成不会覆盖原有的代码，会在原有的代码上进行新增，可放心使�?
 ---------------------------------*/
 using UnityEngine.UI;
 using UnityEngine;
 using ZMUIFrameWork;
 using QFramework;
 
-public class InventoryWindow : WindowBase, IController, ICanSendEvent
+public class InventoryWindow : WindowBase, IController, ICanSendEvent, IEquipmentDragHost
 {
 	public InventoryWindowDataComponent dataCompt;
 
-	private InventorySystem inventorySystem;
+	private InventorySystem raidInventorySystem;
 	private InputSys inputSys;
 
 	private ItemInstance draggingItem;
@@ -27,21 +27,21 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 	private InventoryOpenContext openContext = InventoryOpenContext.FromBackpack();
 
 	#region 声明周期函数
-	//调用机制与Mono Awake一致
+	//调用机制与Mono Awake一�?
 	public override void OnAwake()
 	{
 		dataCompt = gameObject.GetComponent<InventoryWindowDataComponent>();
 		dataCompt.InitComponent(this);
-		inventorySystem = this.GetSystem<InventorySystem>();
+		raidInventorySystem = this.GetSystem<InventorySystem>();
 		inputSys = this.GetSystem<InputSys>();
-		if (inventorySystem == null)
+		if (raidInventorySystem == null)
 		{
-			Debug.LogError("InventorySystem is Null");
+			Debug.LogError("RaidInventorySystem is Null");
 		}
 		base.OnAwake();
 	}
 
-	//物体显示时执行
+	//物体显示时执�?
 	public override void OnShow()
 	{
 		base.OnShow();
@@ -57,7 +57,7 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 		RefreshAll();
 	}
 
-	//物体隐藏时执行
+	//物体隐藏时执�?
 	public override void OnHide()
 	{
 		UnregisterInventoryEvents();
@@ -160,14 +160,14 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 
 	private void RefreshPlayer()
 	{
-		if (inventorySystem == null || dataCompt?.PlayerInventoryPlayerInventoryView == null) return;
+		if (raidInventorySystem == null || dataCompt?.PlayerInventoryPlayerInventoryView == null) return;
 		dataCompt.PlayerInventoryPlayerInventoryView.RenderAll();
 
 	}
 
 	private void RefreshInteract()
 	{
-		if (inventorySystem == null) return;
+		if (raidInventorySystem == null) return;
 		if (dataCompt?.SceneInventorySceneContainerView == null) return;
 		if (!dataCompt.SceneInventorySceneContainerView.IsVisible) return;
 		dataCompt.SceneInventorySceneContainerView.RenderAll();
@@ -183,20 +183,20 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 
 	private bool HandleTryTake(string id, int partIndex, Vector2Int pos)
 	{
-		// 已经有拖拽物，避免重复拿取
+		// 已经有拖拽物，避免重复拿�?
 		if (draggingItem != null) return false;
-		var grid = inventorySystem.GetGrid(id, partIndex);
+		var grid = raidInventorySystem.GetGrid(id, partIndex);
 		if (grid == null) return false;
 
 		var itemAt = grid.GetItemAt(pos);
 		if (itemAt == null) return false;
 
-		// 记录原始位置，便于放置失败回滚
+		// 记录原始位置，便于放置失败回�?
 		draggingOriginPlacement = grid.GetPlacement(itemAt);
 		draggingOriginId = id;
 		draggingOriginPartIndex = partIndex;
 
-		if (inventorySystem.TryTakeItemAt(id, pos, out var item, notify: false, partIndex: partIndex))
+		if (raidInventorySystem.TryTakeItemAt(id, pos, out var item, notify: false, partIndex: partIndex))
 		{
 			draggingItem = item;
 			//Debug.Log($"draggingItem {draggingItem.Definition.Id}");
@@ -221,12 +221,12 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 			return true;
 		}
 
-		// 负数但非最小值：表示有网格命中但位置非法，回滚
+		// 负数但非最小值：表示有网格命中但位置非法，回�?
 		if (pos.x < 0 || pos.y < 0)
 		{
 			if (draggingOriginPlacement != null)
 			{
-				inventorySystem.TryPlaceItem(
+				raidInventorySystem.TryPlaceItem(
 					draggingOriginId,
 					draggingItem,
 					draggingOriginPlacement.Pos,
@@ -241,7 +241,7 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 		var placed = false;
 		if (pos.x >= 0 && pos.y >= 0)
 		{
-			placed = inventorySystem.TryPlaceItem(id, draggingItem, pos, rotated, partIndex);
+			placed = raidInventorySystem.TryPlaceItem(id, draggingItem, pos, rotated, partIndex);
 		}
 
 		if (placed)
@@ -252,10 +252,10 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 			return true;
 		}
 
-		// 放置失败时回滚到原位置
+		// 放置失败时回滚到原位�?
 		if (draggingOriginPlacement != null)
 		{
-			inventorySystem.TryPlaceItem(
+			raidInventorySystem.TryPlaceItem(
 				draggingOriginId,
 				draggingItem,
 				draggingOriginPlacement.Pos,
@@ -274,9 +274,9 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 	private bool HandleTryEquipTake(EquipmentSlotType slot)
 	{
 		if (draggingItem != null) return false;
-		if (inventorySystem == null) return false;
+		if (raidInventorySystem == null) return false;
 
-		if (inventorySystem.TryUnequipItem(slot, out var item))
+		if (raidInventorySystem.TryUnequipItem(slot, out var item))
 		{
 			if (TryAutoPlaceToPlayerContainers(item))
 			{
@@ -296,12 +296,12 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 	private bool HandleTryEquipPlace(EquipmentSlotType slot)
 	{
 		if (draggingItem == null) return false;
-		if (inventorySystem == null) return false;
+		if (raidInventorySystem == null) return false;
 
-		var equipment = inventorySystem.GetPlayerEquipment();
+		var equipment = raidInventorySystem.GetPlayerEquipment();
 		if (equipment != null && equipment.GetItem(slot) != null) return false;
 
-		var placed = inventorySystem.TryEquipItem(slot, draggingItem, out _);
+		var placed = raidInventorySystem.TryEquipItem(slot, draggingItem, out _);
 		if (placed)
 		{
 			draggingItem = null;
@@ -312,7 +312,7 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 
 		if (draggingOriginEquipSlot.HasValue)
 		{
-			inventorySystem.TryEquipItem(draggingOriginEquipSlot.Value, draggingItem, out _);
+			raidInventorySystem.TryEquipItem(draggingOriginEquipSlot.Value, draggingItem, out _);
 			draggingOriginEquipSlot = null;
 			draggingItem = null;
 		}
@@ -322,9 +322,9 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 
 	private bool HandleTryEquipSwap(EquipmentSlotType fromSlot, EquipmentSlotType toSlot)
 	{
-		if (inventorySystem == null) return false;
+		if (raidInventorySystem == null) return false;
 		var fromItem = draggingItem;
-		var swapped = inventorySystem.TrySwapEquip(fromSlot, toSlot, fromItem);
+		var swapped = raidInventorySystem.TrySwapEquip(fromSlot, toSlot, fromItem);
 		if (swapped)
 		{
 			draggingItem = null;
@@ -340,13 +340,13 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 		if (model == null) return false;
 
 		var chestId = model.GetPlayerContainerId(InventoryContainerType.ChestRig);
-		if (!string.IsNullOrEmpty(chestId) && inventorySystem.TryAutoPlace(chestId, item)) return true;
+		if (!string.IsNullOrEmpty(chestId) && raidInventorySystem.TryAutoPlace(chestId, item)) return true;
 
 		var backpackId = model.GetPlayerContainerId(InventoryContainerType.Backpack);
-		if (!string.IsNullOrEmpty(backpackId) && inventorySystem.TryAutoPlace(backpackId, item)) return true;
+		if (!string.IsNullOrEmpty(backpackId) && raidInventorySystem.TryAutoPlace(backpackId, item)) return true;
 
 		var pocketId = model.GetPlayerContainerId(InventoryContainerType.Pocket);
-		if (!string.IsNullOrEmpty(pocketId) && inventorySystem.TryAutoPlace(pocketId, item)) return true;
+		if (!string.IsNullOrEmpty(pocketId) && raidInventorySystem.TryAutoPlace(pocketId, item)) return true;
 
 		return false;
 	}
@@ -354,9 +354,9 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 	private ItemInstance HandleEquipBeginDrag(EquipmentSlotType slot)
 	{
 		if (draggingItem != null) return null;
-		if (inventorySystem == null) return null;
+		if (raidInventorySystem == null) return null;
 
-		if (inventorySystem.TryUnequipItem(slot, out var item))
+		if (raidInventorySystem.TryUnequipItem(slot, out var item))
 		{
 			draggingItem = item;
 			draggingOriginEquipSlot = slot;
@@ -368,14 +368,14 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 
 	private bool HandleEquipReturn(EquipmentSlotType slot, ItemInstance item)
 	{
-		if (inventorySystem == null || item == null)
+		if (raidInventorySystem == null || item == null)
 		{
 			draggingItem = null;
 			draggingOriginEquipSlot = null;
 			return false;
 		}
 
-		var placed = inventorySystem.TryEquipItem(slot, item, out _);
+		var placed = raidInventorySystem.TryEquipItem(slot, item, out _);
 		draggingItem = null;
 		draggingOriginEquipSlot = null;
 		return placed;
@@ -392,15 +392,15 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 
 	public void DropItem(ItemInstance item)
 	{
-		if (inventorySystem == null || item == null) return;
-		inventorySystem.DropItem(item);
+		if (raidInventorySystem == null || item == null) return;
+		raidInventorySystem.DropItem(item);
 	}
 
 	public bool TryPlaceEquipItemToContainer(ItemInstance item, string containerId, int partIndex, Vector2Int pos, bool rotated)
 	{
-		if (inventorySystem == null || item == null) return false;
+		if (raidInventorySystem == null || item == null) return false;
 		if (string.IsNullOrEmpty(containerId)) return false;
-		var placed = inventorySystem.TryPlaceItem(containerId, item, pos, rotated, partIndex);
+		var placed = raidInventorySystem.TryPlaceItem(containerId, item, pos, rotated, partIndex);
 		if (placed)
 		{
 			draggingItem = null;
@@ -456,3 +456,4 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent
 	#endregion
 
 }
+

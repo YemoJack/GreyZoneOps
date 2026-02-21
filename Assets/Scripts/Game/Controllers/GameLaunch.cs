@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -16,14 +16,15 @@ public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
 
     [Header("Launch")]
     public EPlayMode LaunchMode;
-    public string StartSceneName = "StartScene";
-    public string GameSceneName = "GameScene";
+    public const string StartSceneName = "StartScene";
+    public const string GameSceneName = "GameScene";
 
     private IGameLoop updateScheduler;
     private bool bootStarted;
     private bool bootCompleted;
     private bool extractionEventsRegistered;
     private bool isLoadingGameScene;
+    private bool hasTriedAutoLoadSave;
     private LoadingWindow loadingWindow;
     private GameFlowSystem gameFlowSystem;
 
@@ -104,6 +105,7 @@ public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
             extractionEventsRegistered = true;
         }
 
+        TryAutoLoadSaveData();
         bootCompleted = true;
         EnterSceneFlow(SceneManager.GetActiveScene()).Forget();
     }
@@ -125,7 +127,10 @@ public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
             return;
         }
 
+        this.GetSystem<InventorySystem>()?.PrepareRaidRuntimeInventoryFromCurrentLoadout();
+
         gameFlowSystem?.EnterLoadingToGame();
+        this.GetSystem<InventorySystem>()?.SaveGameData();
         isLoadingGameScene = true;
         UIModule.Instance.DestroyAllWindow();
         loadingWindow = UIModule.Instance.PopUpWindow<LoadingWindow>();
@@ -228,7 +233,7 @@ public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
     }
 
 
-    #region  测试部分
+    #region  ���Բ���
 
     private string containerId = "1003";
 
@@ -278,8 +283,8 @@ public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
 
     private void TrySpawnTestItemAtIndex(int index)
     {
-        var inventorySystem = this.GetSystem<InventorySystem>();
-        if (inventorySystem == null)
+        var raidInventorySystem = this.GetSystem<InventorySystem>();
+        if (raidInventorySystem == null)
         {
             return;
         }
@@ -294,7 +299,7 @@ public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
         }
 
         var itemInstance = new ItemInstance(entries[index]);
-        bool isok = inventorySystem.TryAutoPlace(containerId, itemInstance);
+        bool isok = raidInventorySystem.TryAutoPlace(containerId, itemInstance);
         Debug.Log($"TryAutoPlace {isok}");
     }
 
@@ -339,21 +344,21 @@ public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
 
     private void TestSaveLoad()
     {
-        var inventorySystem = this.GetSystem<InventorySystem>();
-        if (inventorySystem == null)
+        var raidInventorySystem = this.GetSystem<InventorySystem>();
+        if (raidInventorySystem == null)
         {
             return;
         }
 
         if (Input.GetKeyDown(KeyCode.F5))
         {
-            bool ok = inventorySystem.SaveGameData();
+            bool ok = raidInventorySystem.SaveGameData();
             Debug.Log($"SaveGameData => {ok}");
         }
 
         if (Input.GetKeyDown(KeyCode.F9))
         {
-            bool ok = inventorySystem.LoadGameData();
+            bool ok = raidInventorySystem.LoadGameData();
             Debug.Log($"LoadGameData => {ok}");
         }
     }
@@ -408,6 +413,53 @@ public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
     private void OnExtractionSucceeded(EventExtractionSucceeded e)
     {
         Debug.Log($"[ExtractionTest] Succeeded => id={e.ExtractionId}");
+        TrySaveGameData("extraction_succeeded");
+    }
+
+    private void OnApplicationPause(bool pauseStatus)
+    {
+        if (pauseStatus)
+        {
+            TrySaveGameData("application_pause");
+        }
+    }
+
+    private void OnApplicationQuit()
+    {
+        TrySaveGameData("application_quit");
+    }
+
+    private void TryAutoLoadSaveData()
+    {
+        if (hasTriedAutoLoadSave)
+        {
+            return;
+        }
+
+        hasTriedAutoLoadSave = true;
+        var raidInventorySystem = this.GetSystem<InventorySystem>();
+        if (raidInventorySystem == null)
+        {
+            Debug.LogWarning("GameLaunch: auto load skipped, raidInventorySystem is null.");
+            return;
+        }
+
+        bool loaded = raidInventorySystem.LoadGameData();
+        Debug.Log($"GameLaunch: auto load save => {loaded}");
+    }
+
+    private bool TrySaveGameData(string reason)
+    {
+        var raidInventorySystem = this.GetSystem<InventorySystem>();
+        if (raidInventorySystem == null)
+        {
+            Debug.LogWarning($"GameLaunch: auto save skipped, raidInventorySystem is null. reason={reason}");
+            return false;
+        }
+
+        bool ok = raidInventorySystem.SaveGameData();
+        Debug.Log($"GameLaunch: auto save => {ok}, reason={reason}");
+        return ok;
     }
 
     private void DumpExtractionPoints()
@@ -532,5 +584,3 @@ public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
         return GameArchitecture.Interface;
     }
 }
-
-

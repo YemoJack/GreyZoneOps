@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -12,26 +12,12 @@ public struct InventoryChangedEvent
 }
 
 
-public class InventorySystem : AbstractSystem, ICanSendCommand
+public partial class InventorySystem : AbstractSystem, ICanSendCommand
 {
     private const int MaxContainerNestDepth = 2;
-    private const int SaveDataVersion = 1;
-    public const string DefaultGameSaveKey = "game_save_data";
-    private static readonly EquipmentSlotType[] EquipLoadOrder =
-    {
-        EquipmentSlotType.ChestRig,
-        EquipmentSlotType.Backpack,
-        EquipmentSlotType.Helmet,
-        EquipmentSlotType.Armor,
-        EquipmentSlotType.Weapon1,
-        EquipmentSlotType.Weapon2,
-        EquipmentSlotType.Weapon3,
-        EquipmentSlotType.Weapon4
-    };
 
     private InventoryContainerModel _model;
-    private readonly Dictionary<int, ItemCatalogEntry> itemDefinitionLookup = new Dictionary<int, ItemCatalogEntry>();
-    private readonly List<ItemCatalogEntry> discoveredItemDefinitions = new List<ItemCatalogEntry>();
+    private int _raidEntryValue;
 
     private void NotifyChanged()
     {
@@ -56,10 +42,100 @@ public class InventorySystem : AbstractSystem, ICanSendCommand
     public EquipmentContainer GetPlayerEquipment()
         => _model.GetPlayerEquipment();
 
+    public void ResetRaidRuntimeInventory()
+    {
+        _raidItemsCommitted = false;
+        _raidEntryValue = 0;
+
+        if (_model == null)
+        {
+            _model = this.GetModel<InventoryContainerModel>();
+        }
+
+        if (_model == null)
+        {
+            return;
+        }
+
+        _model.PlayerEquipment = new EquipmentContainer();
+
+        if (_model.Containers == null)
+        {
+            _model.Containers = new Dictionary<string, InventoryContainer>();
+        }
+        else
+        {
+            _model.Containers.Clear();
+        }
+
+        foreach (var container in _model.PlayerEquipment.Containers.Values)
+        {
+            RegisterContainerRecursive(container);
+        }
+
+        NotifyChanged();
+    }
+
+    public void PrepareRaidRuntimeInventoryFromCurrentLoadout()
+    {
+        _raidItemsCommitted = false;
+
+        if (_model == null)
+        {
+            _model = this.GetModel<InventoryContainerModel>();
+        }
+
+        if (_model == null)
+        {
+            return;
+        }
+
+        if (_model.PlayerEquipment == null)
+        {
+            _model.PlayerEquipment = new EquipmentContainer();
+        }
+
+        if (_model.Containers == null)
+        {
+            _model.Containers = new Dictionary<string, InventoryContainer>();
+        }
+        else
+        {
+            _model.Containers.Clear();
+        }
+
+        foreach (var container in _model.PlayerEquipment.Containers.Values)
+        {
+            RegisterContainerRecursive(container);
+        }
+
+        _raidEntryValue = CalculateEquipmentTotalValue(_model.PlayerEquipment, includeStash: false);
+        NotifyChanged();
+    }
+
     public int GetCurrentRaidIncome()
     {
+        return GetCurrentRaidNetIncome();
+    }
+
+    public int GetCurrentRaidNetIncome()
+    {
+        return GetCurrentRaidCarriedValue() - Mathf.Max(0, _raidEntryValue);
+    }
+
+    public int GetCurrentRaidEntryValue()
+    {
+        return Mathf.Max(0, _raidEntryValue);
+    }
+
+    public int GetCurrentRaidCarriedValue()
+    {
+        return CalculateEquipmentTotalValue(_model?.PlayerEquipment, includeStash: false);
+    }
+
+    public int CalculateEquipmentTotalValue(EquipmentContainer equipment, bool includeStash)
+    {
         int totalValue = 0;
-        var equipment = _model?.PlayerEquipment;
         if (equipment == null)
         {
             return 0;
@@ -75,61 +151,35 @@ public class InventorySystem : AbstractSystem, ICanSendCommand
 
         foreach (var container in equipment.Containers.Values)
         {
+            if (!includeStash && container != null && container.Type == InventoryContainerType.Stash)
+            {
+                continue;
+            }
+
             AccumulateContainerValue(container, countedItemIds, visitedContainerIds, ref totalValue);
         }
 
         return Mathf.Max(0, totalValue);
     }
 
-    public bool SaveGameData(string key = DefaultGameSaveKey, string filePath = null)
+    public int CalculateItemsTotalValue(IEnumerable<ItemInstance> items)
     {
-        var saveLoader = this.GetUtility<ISaveLoader>();
-        if (saveLoader == null)
+        int totalValue = 0;
+        if (items == null)
         {
-            Debug.LogError("InventorySystem.SaveGameData: ISaveLoader is null.");
-            return false;
+            return 0;
         }
 
-        var data = new GameSaveData
-        {
-            Version = SaveDataVersion,
-            SavedAtUtcTicks = DateTime.UtcNow.Ticks,
-            PlayerInventory = BuildPlayerInventorySaveData()
-        };
+        var countedItemIds = new HashSet<string>();
+        var visitedContainerIds = new HashSet<string>();
 
-        saveLoader.Save(key, data, filePath);
-        return true;
+        foreach (var item in items)
+        {
+            AccumulateItemValue(item, countedItemIds, visitedContainerIds, ref totalValue);
+        }
+
+        return Mathf.Max(0, totalValue);
     }
-
-    public bool LoadGameData(string key = DefaultGameSaveKey, string filePath = null)
-    {
-        var saveLoader = this.GetUtility<ISaveLoader>();
-        if (saveLoader == null)
-        {
-            Debug.LogError("InventorySystem.LoadGameData: ISaveLoader is null.");
-            return false;
-        }
-
-        if (!saveLoader.TryLoad(key, out GameSaveData data, filePath) || data == null)
-        {
-            return false;
-        }
-
-        if (data.PlayerInventory == null)
-        {
-            Debug.LogWarning("InventorySystem.LoadGameData: PlayerInventory is null in save data.");
-            return false;
-        }
-
-        var loaded = ApplyPlayerInventorySaveData(data.PlayerInventory);
-        if (loaded)
-        {
-            NotifyChanged();
-        }
-
-        return loaded;
-    }
-
     private IEnumerable<InventoryGrid> GetCandidateGrids(string id, int partIndex)
     {
         var container = GetContainer(id);
@@ -155,7 +205,7 @@ public class InventorySystem : AbstractSystem, ICanSendCommand
         int partIndex = -1)
     {
         if (!CanPlaceInContainer(id, item)) return false;
-        // 这里可以加战斗中限制、容器规则等
+        // 杩欓噷鍙互鍔犳垬鏂椾腑闄愬埗銆佸鍣ㄨ鍒欑瓑
         foreach (var grid in GetCandidateGrids(id, partIndex))
         {
             var placed = grid.PlaceOrStack(item, pos, rotated);
@@ -267,8 +317,7 @@ public class InventorySystem : AbstractSystem, ICanSendCommand
         var container = GetContainer(id);
         if (container == null) return false;
 
-        // 若未指定分格，则根据 item 所在分格移动
-        if (partIndex < 0)
+        // 鑻ユ湭鎸囧畾鍒嗘牸锛屽垯鏍规嵁 item 鎵€鍦ㄥ垎鏍肩Щ锟?        if (partIndex < 0)
         {
             for (int i = 0; i < container.PartGrids.Count; i++)
             {
@@ -297,8 +346,7 @@ public class InventorySystem : AbstractSystem, ICanSendCommand
         if (!CanPlaceInContainer(id, item)) return false;
         var grids = GetCandidateGrids(id, partIndex);
 
-        // 优先向现有堆叠补充
-        if (TryStackExisting(grids, item))
+        // 浼樺厛鍚戠幇鏈夊爢鍙犺ˉ锟?        if (TryStackExisting(grids, item))
         {
             if (item.Count <= 0)
             {
@@ -380,735 +428,6 @@ public class InventorySystem : AbstractSystem, ICanSendCommand
         }
 
         item = null;
-        return false;
-    }
-
-    private PlayerInventorySaveData BuildPlayerInventorySaveData()
-    {
-        var saveData = new PlayerInventorySaveData();
-        var equipment = _model?.PlayerEquipment;
-        if (equipment == null)
-        {
-            return saveData;
-        }
-
-        var visitedItemIds = new HashSet<string>();
-        var visitedContainerIds = new HashSet<string>();
-
-        foreach (var slotEntry in equipment.Slots)
-        {
-            var item = slotEntry.Value;
-            if (item == null || item.Definition == null)
-            {
-                continue;
-            }
-
-            var itemData = CaptureItemData(item, visitedItemIds, visitedContainerIds);
-            if (itemData == null)
-            {
-                continue;
-            }
-
-            saveData.EquippedItems.Add(new EquippedItemSaveData
-            {
-                Slot = slotEntry.Key,
-                Item = itemData
-            });
-        }
-
-        var pocket = equipment.GetContainer(InventoryContainerType.Pocket);
-        if (pocket != null)
-        {
-            saveData.PocketContainer = CaptureContainerData(pocket, visitedItemIds, visitedContainerIds);
-        }
-
-        return saveData;
-    }
-
-    private ItemSaveData CaptureItemData(
-        ItemInstance item,
-        HashSet<string> visitedItemIds,
-        HashSet<string> visitedContainerIds)
-    {
-        if (item?.Definition == null || string.IsNullOrEmpty(item.InstanceId))
-        {
-            return null;
-        }
-
-        if (!visitedItemIds.Add(item.InstanceId))
-        {
-            return null;
-        }
-
-        var data = new ItemSaveData
-        {
-            DefinitionId = item.Definition.Id,
-            DefinitionName = item.Definition.Name,
-            DefinitionResName = item.Definition.ResName,
-            Count = Mathf.Max(1, item.Count),
-            Rotated = item.Rotated
-        };
-
-        if (item.AttachedContainer != null)
-        {
-            data.AttachedContainer = CaptureContainerData(item.AttachedContainer, visitedItemIds, visitedContainerIds);
-        }
-
-        return data;
-    }
-
-    private InventoryContainerSaveData CaptureContainerData(
-        InventoryContainer container,
-        HashSet<string> visitedItemIds,
-        HashSet<string> visitedContainerIds)
-    {
-        if (container == null || string.IsNullOrEmpty(container.InstanceId))
-        {
-            return null;
-        }
-
-        if (!visitedContainerIds.Add(container.InstanceId))
-        {
-            return null;
-        }
-
-        var data = new InventoryContainerSaveData
-        {
-            ContainerType = container.Type,
-            ContainerName = container.ContainerName
-        };
-
-        foreach (var grid in container.PartGrids)
-        {
-            if (grid == null)
-            {
-                continue;
-            }
-
-            data.GridSizes.Add(new Vector2Int(grid.Width, grid.Height));
-        }
-
-        for (int partIndex = 0; partIndex < container.PartGrids.Count; partIndex++)
-        {
-            var grid = container.PartGrids[partIndex];
-            if (grid == null)
-            {
-                continue;
-            }
-
-            foreach (var placement in grid.GetAllPlacements())
-            {
-                if (placement?.Item == null)
-                {
-                    continue;
-                }
-
-                var itemData = CaptureItemData(placement.Item, visitedItemIds, visitedContainerIds);
-                if (itemData == null)
-                {
-                    continue;
-                }
-
-                data.Placements.Add(new ItemPlacementSaveData
-                {
-                    PartIndex = partIndex,
-                    Pos = placement.Pos,
-                    Rotated = placement.Rotated,
-                    Item = itemData
-                });
-            }
-        }
-
-        return data;
-    }
-
-    private bool ApplyPlayerInventorySaveData(PlayerInventorySaveData saveData)
-    {
-        if (saveData == null)
-        {
-            return false;
-        }
-
-        bool hasAnySavedItem = SaveDataContainsAnyItem(saveData);
-        if (hasAnySavedItem && !TryBuildItemDefinitionLookup())
-        {
-            Debug.LogWarning("InventorySystem: item definition lookup is empty. Cannot load inventory. " +
-                             "Please assign SOGameConfig.ItemCatalog.");
-            return false;
-        }
-
-        var equipment = _model?.PlayerEquipment;
-        if (equipment == null)
-        {
-            _model.PlayerEquipment = new EquipmentContainer();
-            equipment = _model.PlayerEquipment;
-        }
-
-        ResetPlayerInventoryForLoad(equipment);
-
-        var slotDataMap = new Dictionary<EquipmentSlotType, ItemSaveData>();
-        if (saveData.EquippedItems != null)
-        {
-            foreach (var entry in saveData.EquippedItems)
-            {
-                if (entry != null && entry.Item != null)
-                {
-                    slotDataMap[entry.Slot] = entry.Item;
-                }
-            }
-        }
-
-        foreach (var slot in EquipLoadOrder)
-        {
-            if (!slotDataMap.TryGetValue(slot, out var itemData) || itemData == null)
-            {
-                continue;
-            }
-
-            var item = RestoreItemData(itemData, 0);
-            if (item == null)
-            {
-                continue;
-            }
-
-            if (!equipment.TryEquip(slot, item, out _))
-            {
-                Debug.LogWarning($"InventorySystem: failed to equip loaded item into slot {slot}.");
-            }
-        }
-
-        var pocket = equipment.GetContainer(InventoryContainerType.Pocket);
-        if (pocket == null)
-        {
-            pocket = CreateContainerFromSave(saveData.PocketContainer, InventoryContainerType.Pocket);
-            pocket.ContainerName = string.IsNullOrEmpty(pocket.ContainerName) ? "PlayerPocket" : pocket.ContainerName;
-            equipment.TryAddContainer(pocket);
-        }
-
-        if (saveData.PocketContainer != null)
-        {
-            RestoreContainerData(pocket, saveData.PocketContainer, 0);
-        }
-        else
-        {
-            ClearContainerContents(pocket);
-        }
-
-        RegisterContainerRecursive(pocket);
-
-        return true;
-    }
-
-    private bool SaveDataContainsAnyItem(PlayerInventorySaveData saveData)
-    {
-        if (saveData == null)
-        {
-            return false;
-        }
-
-        if (saveData.EquippedItems != null)
-        {
-            foreach (var entry in saveData.EquippedItems)
-            {
-                if (entry?.Item != null)
-                {
-                    return true;
-                }
-            }
-        }
-
-        return ContainerDataContainsAnyItem(saveData.PocketContainer);
-    }
-
-    private bool ContainerDataContainsAnyItem(InventoryContainerSaveData containerData)
-    {
-        if (containerData?.Placements == null)
-        {
-            return false;
-        }
-
-        foreach (var placement in containerData.Placements)
-        {
-            if (placement?.Item == null)
-            {
-                continue;
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    private void ResetPlayerInventoryForLoad(EquipmentContainer equipment)
-    {
-        var preservedSceneContainers = SnapshotNonPlayerContainers(equipment);
-
-        foreach (EquipmentSlotType slot in Enum.GetValues(typeof(EquipmentSlotType)))
-        {
-            equipment.TryUnequip(slot, out _);
-        }
-
-        foreach (var container in equipment.Containers.Values)
-        {
-            ClearContainerContents(container);
-        }
-
-        if (_model.Containers == null)
-        {
-            _model.Containers = new Dictionary<string, InventoryContainer>();
-        }
-        else
-        {
-            _model.Containers.Clear();
-        }
-
-        foreach (var kv in preservedSceneContainers)
-        {
-            if (!string.IsNullOrEmpty(kv.Key) && kv.Value != null)
-            {
-                _model.Containers[kv.Key] = kv.Value;
-            }
-        }
-
-        foreach (var container in equipment.Containers.Values)
-        {
-            RegisterContainerRecursive(container);
-        }
-    }
-
-    private Dictionary<string, InventoryContainer> SnapshotNonPlayerContainers(EquipmentContainer equipment)
-    {
-        var preserved = new Dictionary<string, InventoryContainer>();
-        if (_model?.Containers == null || equipment == null)
-        {
-            return preserved;
-        }
-
-        var playerContainerIds = new HashSet<string>();
-        CollectPlayerContainerIds(equipment, playerContainerIds);
-
-        foreach (var kv in _model.Containers)
-        {
-            if (string.IsNullOrEmpty(kv.Key) || kv.Value == null)
-            {
-                continue;
-            }
-
-            if (playerContainerIds.Contains(kv.Key))
-            {
-                continue;
-            }
-
-            preserved[kv.Key] = kv.Value;
-        }
-
-        return preserved;
-    }
-
-    private void CollectPlayerContainerIds(EquipmentContainer equipment, HashSet<string> ids)
-    {
-        if (equipment == null || ids == null)
-        {
-            return;
-        }
-
-        var visited = new HashSet<string>();
-
-        foreach (var container in equipment.Containers.Values)
-        {
-            CollectContainerIdsRecursive(container, ids, visited);
-        }
-
-        foreach (var item in equipment.Slots.Values)
-        {
-            if (item?.AttachedContainer != null)
-            {
-                CollectContainerIdsRecursive(item.AttachedContainer, ids, visited);
-            }
-        }
-    }
-
-    private void CollectContainerIdsRecursive(
-        InventoryContainer container,
-        HashSet<string> ids,
-        HashSet<string> visited)
-    {
-        if (container == null || string.IsNullOrEmpty(container.InstanceId))
-        {
-            return;
-        }
-
-        if (!visited.Add(container.InstanceId))
-        {
-            return;
-        }
-
-        ids.Add(container.InstanceId);
-
-        foreach (var grid in container.PartGrids)
-        {
-            if (grid == null)
-            {
-                continue;
-            }
-
-            foreach (var placement in grid.GetAllPlacements())
-            {
-                var attached = placement?.Item?.AttachedContainer;
-                if (attached != null)
-                {
-                    CollectContainerIdsRecursive(attached, ids, visited);
-                }
-            }
-        }
-    }
-
-    private void ClearContainerContents(InventoryContainer container)
-    {
-        if (container == null)
-        {
-            return;
-        }
-
-        foreach (var grid in container.PartGrids)
-        {
-            if (grid == null)
-            {
-                continue;
-            }
-
-            var placements = new List<ItemPlacement>(grid.GetAllPlacements());
-            foreach (var placement in placements)
-            {
-                if (placement?.Item != null)
-                {
-                    grid.Remove(placement.Item);
-                }
-            }
-        }
-    }
-
-    private ItemInstance RestoreItemData(ItemSaveData itemData, int depth)
-    {
-        if (itemData == null)
-        {
-            return null;
-        }
-
-        if (depth > MaxContainerNestDepth + 2)
-        {
-            Debug.LogWarning("InventorySystem: container depth exceeded while loading.");
-            return null;
-        }
-
-        if (!TryResolveDefinition(itemData, out var definition) || definition == null)
-        {
-            Debug.LogWarning($"InventorySystem: missing item definition id={itemData.DefinitionId}, name={itemData.DefinitionName}.");
-            return null;
-        }
-
-        var item = new ItemInstance(definition, Mathf.Max(1, itemData.Count))
-        {
-            Rotated = itemData.Rotated
-        };
-
-        if (itemData.AttachedContainer != null)
-        {
-            var container = CreateContainerFromSave(itemData.AttachedContainer, itemData.AttachedContainer.ContainerType);
-            item.AttachedContainer = container;
-            RegisterContainerRecursive(container);
-            RestoreContainerData(container, itemData.AttachedContainer, depth + 1);
-        }
-
-        return item;
-    }
-
-    private InventoryContainer CreateContainerFromSave(InventoryContainerSaveData data, InventoryContainerType fallbackType)
-    {
-        var type = data != null ? data.ContainerType : fallbackType;
-        var container = new InventoryContainer(type);
-
-        if (data != null)
-        {
-            container.ContainerName = data.ContainerName;
-            ApplyContainerGridLayout(container, data);
-        }
-
-        return container;
-    }
-
-    private void RestoreContainerData(InventoryContainer container, InventoryContainerSaveData data, int depth)
-    {
-        if (container == null || data == null)
-        {
-            return;
-        }
-
-        ApplyContainerGridLayout(container, data);
-
-        if (data.Placements == null)
-        {
-            return;
-        }
-
-        foreach (var placementData in data.Placements)
-        {
-            if (placementData == null || placementData.Item == null)
-            {
-                continue;
-            }
-
-            var grid = container.GetGrid(placementData.PartIndex);
-            if (grid == null)
-            {
-                continue;
-            }
-
-            var item = RestoreItemData(placementData.Item, depth + 1);
-            if (item == null)
-            {
-                continue;
-            }
-
-            if (!grid.Place(item, placementData.Pos, placementData.Rotated))
-            {
-                Debug.LogWarning($"InventorySystem: failed to place item {item.Definition?.Name} into container {container.ContainerName}.");
-                continue;
-            }
-
-            if (item.AttachedContainer != null)
-            {
-                item.AttachedContainer.ParentContainerId = container.InstanceId;
-            }
-        }
-
-        RegisterContainerRecursive(container);
-    }
-
-    private void ApplyContainerGridLayout(InventoryContainer container, InventoryContainerSaveData data)
-    {
-        if (container == null || data == null)
-        {
-            return;
-        }
-
-        var sizes = data.GridSizes != null && data.GridSizes.Count > 0
-            ? data.GridSizes
-            : null;
-
-        container.PartGrids.Clear();
-        if (sizes == null)
-        {
-            return;
-        }
-
-        for (int i = 0; i < sizes.Count; i++)
-        {
-            var size = sizes[i];
-            container.AddGrid(new Vector2Int(Mathf.Max(1, size.x), Mathf.Max(1, size.y)));
-        }
-    }
-
-    private void RegisterContainerRecursive(InventoryContainer container)
-    {
-        if (container == null)
-        {
-            return;
-        }
-
-        if (_model.Containers == null)
-        {
-            _model.Containers = new Dictionary<string, InventoryContainer>();
-        }
-
-        _model.Containers[container.InstanceId] = container;
-
-        foreach (var grid in container.PartGrids)
-        {
-            if (grid == null)
-            {
-                continue;
-            }
-
-            foreach (var placement in grid.GetAllPlacements())
-            {
-                var attached = placement?.Item?.AttachedContainer;
-                if (attached != null)
-                {
-                    RegisterContainerRecursive(attached);
-                }
-            }
-        }
-    }
-
-    private bool TryBuildItemDefinitionLookup()
-    {
-        itemDefinitionLookup.Clear();
-        discoveredItemDefinitions.Clear();
-
-        var config = GameSettingManager.Instance?.Config;
-        if (config != null && config.ItemCatalog != null)
-        {
-            RegisterDefinitionsFromCatalog(config.ItemCatalog);
-        }
-
-        RegisterDefinitionsFromCurrentInventory();
-
-        return discoveredItemDefinitions.Count > 0;
-    }
-
-    private void RegisterDefinitionsFromCatalog(SOItemCatalog catalog)
-    {
-        if (catalog == null)
-        {
-            return;
-        }
-
-        var entries = catalog.GetEntries();
-        if (entries == null)
-        {
-            return;
-        }
-
-        for (int i = 0; i < entries.Count; i++)
-        {
-            var entry = entries[i];
-            if (entry == null)
-            {
-                continue;
-            }
-
-            RegisterDefinitionToLookup(entry);
-        }
-    }
-
-    private void RegisterDefinitionToLookup(ItemCatalogEntry definition)
-    {
-        if (definition == null)
-        {
-            return;
-        }
-
-        if (!discoveredItemDefinitions.Contains(definition))
-        {
-            discoveredItemDefinitions.Add(definition);
-        }
-
-        if (definition.Id <= 0)
-        {
-            return;
-        }
-
-        if (!itemDefinitionLookup.ContainsKey(definition.Id))
-        {
-            itemDefinitionLookup[definition.Id] = definition;
-        }
-        else if (itemDefinitionLookup[definition.Id] != definition)
-        {
-            Debug.LogWarning($"InventorySystem: duplicate item definition id={definition.Id}, name={definition.Name}");
-        }
-    }
-
-    private void RegisterDefinitionsFromCurrentInventory()
-    {
-        var equipment = _model?.PlayerEquipment;
-        if (equipment == null)
-        {
-            return;
-        }
-
-        var visitedItems = new HashSet<string>();
-        foreach (var slotItem in equipment.Slots.Values)
-        {
-            RegisterDefinitionFromItemRecursive(slotItem, visitedItems);
-        }
-
-        foreach (var container in equipment.Containers.Values)
-        {
-            RegisterDefinitionsFromContainerRecursive(container, visitedItems);
-        }
-    }
-
-    private void RegisterDefinitionsFromContainerRecursive(InventoryContainer container, HashSet<string> visitedItems)
-    {
-        if (container == null)
-        {
-            return;
-        }
-
-        foreach (var grid in container.PartGrids)
-        {
-            if (grid == null)
-            {
-                continue;
-            }
-
-            foreach (var placement in grid.GetAllPlacements())
-            {
-                RegisterDefinitionFromItemRecursive(placement?.Item, visitedItems);
-            }
-        }
-    }
-
-    private void RegisterDefinitionFromItemRecursive(ItemInstance item, HashSet<string> visitedItems)
-    {
-        if (item == null || string.IsNullOrEmpty(item.InstanceId))
-        {
-            return;
-        }
-
-        if (!visitedItems.Add(item.InstanceId))
-        {
-            return;
-        }
-
-        RegisterDefinitionToLookup(item.Definition);
-
-        if (item.AttachedContainer != null)
-        {
-            RegisterDefinitionsFromContainerRecursive(item.AttachedContainer, visitedItems);
-        }
-    }
-
-    private bool TryResolveDefinition(ItemSaveData itemData, out ItemCatalogEntry definition)
-    {
-        definition = null;
-        if (itemData == null)
-        {
-            return false;
-        }
-
-        if (itemData.DefinitionId > 0 &&
-            itemDefinitionLookup.TryGetValue(itemData.DefinitionId, out definition) &&
-            definition != null)
-        {
-            return true;
-        }
-
-        for (int i = 0; i < discoveredItemDefinitions.Count; i++)
-        {
-            var candidate = discoveredItemDefinitions[i];
-            if (candidate == null)
-            {
-                continue;
-            }
-
-            if (!string.IsNullOrEmpty(itemData.DefinitionName) &&
-                string.Equals(candidate.Name, itemData.DefinitionName, StringComparison.OrdinalIgnoreCase))
-            {
-                definition = candidate;
-                return true;
-            }
-
-            if (!string.IsNullOrEmpty(itemData.DefinitionResName) &&
-                string.Equals(candidate.ResName, itemData.DefinitionResName, StringComparison.OrdinalIgnoreCase))
-            {
-                definition = candidate;
-                return true;
-            }
-        }
-
         return false;
     }
 
@@ -1278,4 +597,13 @@ public class InventorySystem : AbstractSystem, ICanSendCommand
             }
         }
     }
+
 }
+
+
+
+
+
+
+
+

@@ -7,10 +7,7 @@ public class GameArchitecture : Architecture<GameArchitecture>
         // 注册 Utilities
         RegisterUtility<IResLoader>(new ResLoaderYoo());
         RegisterUtility<ISaveLoader>(new SaveLoaderEasy());
-
-
     }
-
 
     public void Registor()
     {
@@ -22,8 +19,10 @@ public class GameArchitecture : Architecture<GameArchitecture>
         // 注册 Models
         RegisterModel(new WeaponInventoryModel());
         RegisterModel(new InventoryContainerModel());
+        RegisterModel(new PersistentInventoryModel());
         RegisterModel(new MapModel());
         RegisterModel(new GameFlowModel());
+        RegisterModel(new PlayerProgressModel());
 
         // 注册 Systems
         RegisterSystem(new GameFlowSystem());
@@ -33,6 +32,7 @@ public class GameArchitecture : Architecture<GameArchitecture>
         RegisterSystem(new WeaponSystem());
         RegisterSystem(new BulletManager());
         RegisterSystem(new InventorySystem());
+        RegisterSystem(new PlayerProgressSystem());
         RegisterSystem(new InteractionSystem());
         RegisterSystem(new MapSystem());
     }

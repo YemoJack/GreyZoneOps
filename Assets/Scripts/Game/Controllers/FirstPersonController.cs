@@ -210,9 +210,11 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
 
         _moveSpeed = MoveSpeed;
         _sprintSpeed = SprintSpeed;
-        // 鼠标锁定
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        if (ShouldLockCursorOnInit())
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
 
         runtimeInitialized = true;
     }
@@ -225,6 +227,17 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         }
 
         return playerRoot == transform || playerRoot == transform.root;
+    }
+
+    private bool ShouldLockCursorOnInit()
+    {
+        var flowSystem = this.GetSystem<GameFlowSystem>();
+        if (flowSystem == null)
+        {
+            return true;
+        }
+
+        return flowSystem.CurrentState == GameFlowState.InRaid;
     }
 
     // -------------------------

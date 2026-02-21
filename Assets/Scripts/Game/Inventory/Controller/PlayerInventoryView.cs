@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using QFramework;
 using Unity.VisualScripting;
@@ -141,7 +141,7 @@ public class PlayerInventoryView : MonoBehaviour, IController
 
 
 
-    /// <summary>刷新容器内所有分格。</summary>
+    /// <summary>Render all player containers and equipment.</summary>
     public void RenderAll()
     {
 
@@ -234,82 +234,21 @@ public class PlayerInventoryView : MonoBehaviour, IController
             return;
         }
 
-        int totalValue = 0;
-        var equipment = model?.PlayerEquipment;
-        if (equipment != null)
+        var inventorySystem = this.GetSystem<InventorySystem>();
+        var flowSystem = this.GetSystem<GameFlowSystem>();
+        var state = flowSystem != null ? flowSystem.CurrentState : GameFlowState.None;
+
+        if (state == GameFlowState.InRaid || state == GameFlowState.RaidEnded)
         {
-            var countedItemIds = new HashSet<string>();
-            var visitedContainerIds = new HashSet<string>();
-
-            foreach (var slotItem in equipment.Slots.Values)
-            {
-                CollectItemValue(slotItem, countedItemIds, visitedContainerIds, ref totalValue);
-            }
-
-            foreach (var container in equipment.Containers.Values)
-            {
-                CollectContainerValue(container, countedItemIds, visitedContainerIds, ref totalValue);
-            }
-        }
-
-        backpackTotalValueText.text = $"Total Value: {totalValue}";
-    }
-
-    private void CollectItemValue(
-        ItemInstance item,
-        HashSet<string> countedItemIds,
-        HashSet<string> visitedContainerIds,
-        ref int totalValue)
-    {
-        if (item?.Definition == null || string.IsNullOrEmpty(item.InstanceId))
-        {
+            int carryOutValue = inventorySystem != null ? inventorySystem.GetCurrentRaidCarriedValue() : 0;
+            int carryInValue = inventorySystem != null ? inventorySystem.GetCurrentRaidEntryValue() : 0;
+            int netIncome = carryOutValue - carryInValue;
+            backpackTotalValueText.text = $"\u51c0\u6536\u76ca: {netIncome}";
             return;
         }
 
-        if (!countedItemIds.Add(item.InstanceId))
-        {
-            return;
-        }
-
-        int unitValue = Mathf.Max(0, item.Definition.Value);
-        int itemCount = Mathf.Max(0, item.Count);
-        totalValue += unitValue * itemCount;
-
-        if (item.AttachedContainer != null)
-        {
-            CollectContainerValue(item.AttachedContainer, countedItemIds, visitedContainerIds, ref totalValue);
-        }
-    }
-
-    private void CollectContainerValue(
-        InventoryContainer container,
-        HashSet<string> countedItemIds,
-        HashSet<string> visitedContainerIds,
-        ref int totalValue)
-    {
-        if (container == null || string.IsNullOrEmpty(container.InstanceId))
-        {
-            return;
-        }
-
-        if (!visitedContainerIds.Add(container.InstanceId))
-        {
-            return;
-        }
-
-        foreach (var grid in container.PartGrids)
-        {
-            if (grid == null)
-            {
-                continue;
-            }
-
-            foreach (var placement in grid.GetAllPlacements())
-            {
-                var item = placement?.Item;
-                CollectItemValue(item, countedItemIds, visitedContainerIds, ref totalValue);
-            }
-        }
+        int loadoutValue = inventorySystem != null ? inventorySystem.GetCurrentRaidCarriedValue() : 0;
+        backpackTotalValueText.text = $"\u88c5\u5907\u603b\u4ef7\u503c: {loadoutValue}";
     }
 
 

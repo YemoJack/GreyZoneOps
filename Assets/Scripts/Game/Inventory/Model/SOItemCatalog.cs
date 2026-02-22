@@ -32,7 +32,6 @@ public class ItemCatalogEntry
     public Vector2Int Size = Vector2Int.one;
     public Sprite Icon;
     public int MaxStack = 1;
-    public bool CanRotate;
     public ItemCategory Category;
     public ItemQuality Quality = ItemQuality.White;
     [Min(0)]
@@ -53,6 +52,8 @@ public class ItemCatalogEntry
 
     public bool IsWeapon =>
         Category == ItemCategory.Weapon || WeaponConfig != null || WeaponPrefab != null;
+
+    public bool IsRotatable => Size.x != Size.y;
 
     public bool IsContainer =>
         ContainerConfigId > 0 ||

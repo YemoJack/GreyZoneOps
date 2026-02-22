@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -336,6 +336,55 @@ public partial class InventorySystem : AbstractSystem, ICanSendCommand
         var moved = grid.Move(item, pos, rotated);
         if (moved) NotifyChanged();
         return moved;
+    }
+
+    public bool TryRotateItemInPlace(ItemInstance item)
+    {
+        if (item == null || item.Definition == null || !item.Definition.IsRotatable)
+        {
+            return false;
+        }
+
+        if (_model == null || _model.Containers == null)
+        {
+            return false;
+        }
+
+        foreach (var pair in _model.Containers)
+        {
+            var container = pair.Value;
+            if (container == null || container.PartGrids == null)
+            {
+                continue;
+            }
+
+            for (int i = 0; i < container.PartGrids.Count; i++)
+            {
+                var grid = container.PartGrids[i];
+                if (grid == null)
+                {
+                    continue;
+                }
+
+                var placement = grid.GetPlacement(item);
+                if (placement == null)
+                {
+                    continue;
+                }
+
+                var targetRotated = !placement.Rotated;
+                var moved = grid.Move(item, placement.Pos, targetRotated);
+                if (moved)
+                {
+                    NotifyChanged();
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
+        return false;
     }
 
     public bool TryAutoPlace(

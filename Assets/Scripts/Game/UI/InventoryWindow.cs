@@ -61,6 +61,7 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent, IEquipmen
 	public override void OnHide()
 	{
 		UnregisterInventoryEvents();
+		UIModule.Instance.HideWindow<SelectItemWindow>();
 		if (inputSys != null)
 		{
 			inputSys.SetInputEnabled(true);
@@ -73,6 +74,7 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent, IEquipmen
 	public override void OnDestroy()
 	{
 		UnregisterInventoryEvents();
+		UIModule.Instance.HideWindow<SelectItemWindow>();
 		if (inputSys != null)
 		{
 			inputSys.SetInputEnabled(true);

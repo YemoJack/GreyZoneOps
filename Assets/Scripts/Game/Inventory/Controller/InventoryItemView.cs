@@ -4,12 +4,18 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler
 {
+    private static string selectedItemInstanceId;
+    private static SelectItemWindow activeSelectWindow;
+    private static readonly Dictionary<string, RectTransform> itemRectLookup = new Dictionary<string, RectTransform>();
+
     public Image bgIcon;
     public Image icon;
     public Text countText;
     private CanvasGroup canvasGroup;
+    private float iconBaseZ;
+    private bool iconBaseRotationCaptured;
 
     private RectTransform rect;
     private RectTransform gridRect;
@@ -39,6 +45,7 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
     {
         rect = transform as RectTransform;
         canvasGroup = GetComponent<CanvasGroup>();
+        CacheIconBaseRotation();
         ApplyGameConfig();
     }
 
@@ -74,9 +81,16 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         currentItem = p.Item;
         countText.text = p.Item.Count > 1 ? p.Item.Count.ToString() : "";
         rect.anchoredPosition = CellToLocal(p.Pos);
-        SetSize(p.Size, rotated);
+        // Use definition size + rotated state to avoid applying rotation twice.
+        SetSize(p.Item.Definition.Size, rotated);
 
         icon.sprite = p.Item.Definition.Icon;
+        if (layout != null)
+        {
+            SetIconSizeToUnrotatedSize(p.Item.Definition.Size, layout.cellSize, layout.spacing);
+        }
+        ApplyIconRotation(rotated);
+        RegisterItemRect();
         ApplyQualityColor(p.Item);
     }
 
@@ -97,6 +111,8 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         if (icon != null) icon.enabled = true;
 
         icon.sprite = item.Definition.Icon;
+        SetIconSizeToUnrotatedSize(item.Definition.Size, cellSize, spacing);
+        ApplyIconRotation(item.Rotated);
         ApplyQualityColor(item);
     }
 
@@ -137,8 +153,85 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         this.onDrop = onDrop;
     }
 
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (eventData == null || eventData.button != PointerEventData.InputButton.Left)
+        {
+            return;
+        }
+
+        if (dragging || eventData.dragging)
+        {
+            return;
+        }
+
+        if (placement == null || currentItem == null || currentItem.Definition == null)
+        {
+            return;
+        }
+
+        var clickedInstanceId = currentItem.InstanceId;
+        var clickedSameItem = !string.IsNullOrEmpty(clickedInstanceId) &&
+                              clickedInstanceId == selectedItemInstanceId &&
+                              activeSelectWindow != null &&
+                              activeSelectWindow.Visible;
+
+        if (clickedSameItem)
+        {
+            CloseSelectionWindow();
+            return;
+        }
+
+        var window = UIModule.Instance.PopUpWindow<SelectItemWindow>();
+        if (window == null)
+        {
+            return;
+        }
+
+        activeSelectWindow = window;
+        selectedItemInstanceId = clickedInstanceId;
+        window.ShowForItem(currentItem, rect);
+    }
+
+    public static void NotifySelectionWindowHidden(SelectItemWindow window)
+    {
+        if (window == null)
+        {
+            return;
+        }
+
+        if (activeSelectWindow == window)
+        {
+            activeSelectWindow = null;
+            selectedItemInstanceId = null;
+        }
+    }
+
+    public static bool TryGetItemRect(string itemInstanceId, out RectTransform itemRect)
+    {
+        itemRect = null;
+        if (string.IsNullOrEmpty(itemInstanceId))
+        {
+            return false;
+        }
+
+        if (!itemRectLookup.TryGetValue(itemInstanceId, out var rect) || rect == null)
+        {
+            itemRectLookup.Remove(itemInstanceId);
+            return false;
+        }
+
+        itemRect = rect;
+        return true;
+    }
+
     public void OnBeginDrag(PointerEventData e)
     {
+        if (IsCurrentItemSelected())
+        {
+            CloseSelectionWindow();
+        }
+
         if (onBegin != null && !onBegin.Invoke())
             return;
 
@@ -153,7 +246,7 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
             ? rootCanvas.worldCamera
             : null;
 
-        // 把拖拽物提升到最顶层，避免被其他容器遮挡
+        // 鎶婃嫋鎷界墿鎻愬崌鍒版渶椤跺眰锛岄伩鍏嶈鍏朵粬瀹瑰櫒閬尅
         if (rootCanvas != null)
         {
             rect.SetParent(rootCanvas.transform, worldPositionStays: true);
@@ -168,7 +261,7 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         }
         Debug.Log($"Item OnBeginDrag id: {placement.Item.Definition.Id} Name: {placement.Item.Definition.Name} startPos{placement.Pos}\n InstanceId {placement.Item.InstanceId}  ");
 
-        // 初始时就让物品中心对齐指针
+        // 鍒濆鏃跺氨璁╃墿鍝佷腑蹇冨榻愭寚閽?
         pointerOffset = CalculatePointerOffset(e);
         UpdatePositionToPointer(e);
     }
@@ -211,7 +304,7 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         var isOutside = targetGrid == null;
         if (isOutside)
         {
-            // 特殊标记：完全拖出任何网格，交由上层判定为丢弃
+            // 鐗规畩鏍囪锛氬畬鍏ㄦ嫋鍑轰换浣曠綉鏍硷紝浜ょ敱涓婂眰鍒ゅ畾涓轰涪寮?
             gridPos = IsInsideAllowedArea(e.position, e.pressEventCamera)
                 ? new Vector2Int(-1, -1)
                 : new Vector2Int(int.MinValue, int.MinValue);
@@ -225,14 +318,14 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         }
         else if (onDrop != null)
         {
-            // targetGrid 为空视为丢弃，传递 (-1,-1) 让上层决定如何处理
+            // targetGrid 涓虹┖瑙嗕负涓㈠純锛屼紶閫?(-1,-1) 璁╀笂灞傚喅瀹氬浣曞鐞?
             placed = onDrop.Invoke(gridPos, rotated);
         }
 
         Debug.Log($"Item OnEndDrag  id: {placement.Item.Definition.Id} Name: {placement.Item.Definition.Name} endPos {gridPos} placed:{placed} target:{target?.name}\n InstanceId {placement.Item.InstanceId} ");
 
 
-        // 恢复父节点，具体位置会在后续刷新时由绑定更新
+        // 鎭㈠鐖惰妭鐐癸紝鍏蜂綋浣嶇疆浼氬湪鍚庣画鍒锋柊鏃剁敱缁戝畾鏇存柊
         RestoreParent();
     }
 
@@ -284,13 +377,13 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         }
     }
 
-    /// <summary>计算当前鼠标位置与物品中心的偏移，保证拖拽时中心对齐。</summary>
+    /// <summary>璁＄畻褰撳墠榧犳爣浣嶇疆涓庣墿鍝佷腑蹇冪殑鍋忕Щ锛屼繚璇佹嫋鎷芥椂涓績瀵归綈銆?/summary>
     private Vector2 CalculatePointerOffset(PointerEventData e)
     {
-        // 直接用尺寸与 pivot 计算中心相对左上角的偏移
+        // 鐩存帴鐢ㄥ昂瀵镐笌 pivot 璁＄畻涓績鐩稿宸︿笂瑙掔殑鍋忕Щ
         var size = rect.rect.size;
         var pivot = rect.pivot;
-        // 当 pivot 为(0.5,0.5)时偏移为0，否则根据 pivot 计算中心偏移
+        // 褰?pivot 涓?0.5,0.5)鏃跺亸绉讳负0锛屽惁鍒欐牴鎹?pivot 璁＄畻涓績鍋忕Щ
         return new Vector2(
             -size.x * (0.5f - pivot.x),
             -size.y * (0.5f - pivot.y));
@@ -315,11 +408,11 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         var padding = layout.padding;
         var parentRect = gridRect != null ? gridRect : rect.parent as RectTransform;
 
-        // 顶部左侧为(0,0)，计算物品占用区域的中心位置
+        // 椤堕儴宸︿晶涓?0,0)锛岃绠楃墿鍝佸崰鐢ㄥ尯鍩熺殑涓績浣嶇疆
         float width = cell.x * cellSpan.x + spacing.x * Mathf.Max(0, cellSpan.x - 1);
         float height = cell.y * cellSpan.y + spacing.y * Mathf.Max(0, cellSpan.y - 1);
 
-        // 考虑父节点 pivot/anchor，原点在父节点 pivot 处
+        // 鑰冭檻鐖惰妭鐐?pivot/anchor锛屽師鐐瑰湪鐖惰妭鐐?pivot 澶?
         float originX = 0f;
         float originY = 0f;
         if (parentRect != null)
@@ -340,7 +433,7 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
 
     private Vector2Int ScreenToCell(Vector2 screenPos, Camera cam, out InventoryGridView targetGrid)
     {
-        // 优先命中指针下的网格；未命中则视为拖出网格（丢弃）
+        // 浼樺厛鍛戒腑鎸囬拡涓嬬殑缃戞牸锛涙湭鍛戒腑鍒欒涓烘嫋鍑虹綉鏍硷紙涓㈠純锛?
         currentTargetGrid = FindGridViewUnderPointer(screenPos, cam);
         targetGrid = currentTargetGrid;
         if (targetGrid == null || targetGrid.layout == null || targetGrid.cellRoot == null)
@@ -358,11 +451,11 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         var size = targetRect.rect.size;
         var pivot = targetRect.pivot;
 
-        // 将以 pivot 为原点的坐标，转换为以左上角为原点的坐标系
+        // 灏嗕互 pivot 涓哄師鐐圭殑鍧愭爣锛岃浆鎹负浠ュ乏涓婅涓哄師鐐圭殑鍧愭爣绯?
         float originX = localPoint.x + size.x * pivot.x;
         float originY = -localPoint.y + size.y * (1f - pivot.y);
 
-        // 指针在物品中心，将中心换算成左上角起点
+        // 鎸囬拡鍦ㄧ墿鍝佷腑蹇冿紝灏嗕腑蹇冩崲绠楁垚宸︿笂瑙掕捣鐐?
         float width = cell.x * cellSpan.x + spacing.x * Mathf.Max(0, cellSpan.x - 1);
         float height = cell.y * cellSpan.y + spacing.y * Mathf.Max(0, cellSpan.y - 1);
 
@@ -372,11 +465,11 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         float stepX = cell.x + spacing.x;
         float stepY = cell.y + spacing.y;
 
-        // 将指针位置映射到距离左上角最近的格子（四舍五入而非向下取整）
+        // 灏嗘寚閽堜綅缃槧灏勫埌璺濈宸︿笂瑙掓渶杩戠殑鏍煎瓙锛堝洓鑸嶄簲鍏ヨ€岄潪鍚戜笅鍙栨暣锛?
         int x = Mathf.RoundToInt(localX / stepX);
         int y = Mathf.RoundToInt(localY / stepY);
 
-        // 确保剩余空间足够放下该物品
+        // 纭繚鍓╀綑绌洪棿瓒冲鏀句笅璇ョ墿鍝?
         if (x < 0 || y < 0 || x > targetGrid.GridWidth - cellSpan.x || y > targetGrid.GridHeight - cellSpan.y)
             return new Vector2Int(-1, -1);
 
@@ -439,5 +532,89 @@ public class InventoryItemView : MonoBehaviour, IBeginDragHandler, IDragHandler,
         }
 
         return false;
+    }
+
+    private void OnDestroy()
+    {
+        UnregisterItemRect();
+    }
+
+    private bool IsCurrentItemSelected()
+    {
+        return currentItem != null &&
+               !string.IsNullOrEmpty(currentItem.InstanceId) &&
+               currentItem.InstanceId == selectedItemInstanceId;
+    }
+
+    private static void CloseSelectionWindow()
+    {
+        var window = activeSelectWindow;
+        activeSelectWindow = null;
+        selectedItemInstanceId = null;
+        window?.HideWindow();
+    }
+
+    private void CacheIconBaseRotation()
+    {
+        if (icon == null)
+        {
+            return;
+        }
+
+        iconBaseZ = icon.rectTransform.localEulerAngles.z;
+        iconBaseRotationCaptured = true;
+    }
+
+    private void ApplyIconRotation(bool isRotated)
+    {
+        if (icon == null)
+        {
+            return;
+        }
+
+        if (!iconBaseRotationCaptured)
+        {
+            CacheIconBaseRotation();
+        }
+
+        var targetZ = iconBaseZ + (isRotated ? -90f : 0f);
+        icon.rectTransform.localRotation = Quaternion.Euler(0f, 0f, targetZ);
+    }
+
+    private void SetIconSizeToUnrotatedSize(Vector2Int itemSize, Vector2 cellSize, Vector2 spacing)
+    {
+        if (icon == null)
+        {
+            return;
+        }
+
+        var w = Mathf.Max(1, itemSize.x);
+        var h = Mathf.Max(1, itemSize.y);
+        var width = cellSize.x * w + spacing.x * Mathf.Max(0, w - 1);
+        var height = cellSize.y * h + spacing.y * Mathf.Max(0, h - 1);
+        icon.rectTransform.sizeDelta = new Vector2(width, height);
+    }
+
+    private void RegisterItemRect()
+    {
+        if (rect == null || currentItem == null || string.IsNullOrEmpty(currentItem.InstanceId))
+        {
+            return;
+        }
+
+        itemRectLookup[currentItem.InstanceId] = rect;
+    }
+
+    private void UnregisterItemRect()
+    {
+        if (currentItem == null || string.IsNullOrEmpty(currentItem.InstanceId))
+        {
+            return;
+        }
+
+        if (itemRectLookup.TryGetValue(currentItem.InstanceId, out var mappedRect) && mappedRect == rect)
+        {
+            itemRectLookup.Remove(currentItem.InstanceId);
+        }
     }
 }

@@ -49,6 +49,7 @@ public sealed class InventoryGrid
 
     public bool CanPlace(ItemInstance item, Vector2Int pos, bool rotated)
     {
+        rotated = NormalizeRotated(item, rotated);
         var size = GetSize(item, rotated);
         if (!InBounds(pos, size)) return false;
 
@@ -62,7 +63,8 @@ public sealed class InventoryGrid
 
     public bool Place(ItemInstance item, Vector2Int pos, bool rotated)
     {
-        // 若该实例已存在于网格中，先清理旧位置
+        rotated = NormalizeRotated(item, rotated);
+
         Remove(item);
 
         if (!CanPlace(item, pos, rotated)) return false;
@@ -97,7 +99,6 @@ public sealed class InventoryGrid
 
     public bool PlaceOrStack(ItemInstance item, Vector2Int pos, bool rotated)
     {
-        // 优先尝试叠加，如果叠加完全成功则不需要占用新格子
         if (TryStackAt(pos, item, out var moved))
         {
             item.Count -= moved;
@@ -107,7 +108,6 @@ public sealed class InventoryGrid
                 return true;
             }
 
-            // 当前位置被原堆叠占用，无法再放置剩余部分
             return false;
         }
 
@@ -137,7 +137,6 @@ public sealed class InventoryGrid
         if (Place(item, newPos, rotated))
             return true;
 
-        // 回滚
         Place(item, old.Pos, old.Rotated);
         return false;
     }
@@ -155,6 +154,7 @@ public sealed class InventoryGrid
 
     public bool TryFindSpace(ItemInstance item, bool rotated, out Vector2Int pos)
     {
+        rotated = NormalizeRotated(item, rotated);
         var size = GetSize(item, rotated);
 
         for (int y = 0; y <= Height - size.y; y++)
@@ -177,21 +177,21 @@ public sealed class InventoryGrid
         out Vector2Int pos,
         out bool rotated)
     {
-        if (TryFindSpace(item, item.Rotated, out pos))
+        var currentRotated = NormalizeRotated(item, item != null && item.Rotated);
+        if (TryFindSpace(item, currentRotated, out pos))
         {
-            rotated = item.Rotated;
+            rotated = currentRotated;
             return true;
         }
 
-        if (item.Definition.CanRotate &&
-            TryFindSpace(item, !item.Rotated, out pos))
+        if (CanRotate(item) && TryFindSpace(item, !currentRotated, out pos))
         {
-            rotated = !item.Rotated;
+            rotated = !currentRotated;
             return true;
         }
 
         pos = default;
-        rotated = item.Rotated;
+        rotated = currentRotated;
         return false;
     }
 
@@ -203,6 +203,16 @@ public sealed class InventoryGrid
     {
         var s = item.Definition.Size;
         return rotated ? new Vector2Int(s.y, s.x) : s;
+    }
+
+    private static bool CanRotate(ItemInstance item)
+    {
+        return item != null && item.Definition != null && item.Definition.IsRotatable;
+    }
+
+    private static bool NormalizeRotated(ItemInstance item, bool rotated)
+    {
+        return rotated && CanRotate(item);
     }
 
     private bool InBounds(Vector2Int pos, Vector2Int size)

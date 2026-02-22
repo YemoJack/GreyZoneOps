@@ -43,12 +43,14 @@ public class WarehouseWindow : WindowBase, IController, ICanSendEvent, IEquipmen
         UnregisterInventoryEvents();
         raidInventorySystem?.SaveGameData();
         ClearDraggingItem();
+        UIModule.Instance.HideWindow<SelectItemWindow>();
         base.OnHide();
     }
 
     public override void OnDestroy()
     {
         UnregisterInventoryEvents();
+        UIModule.Instance.HideWindow<SelectItemWindow>();
         base.OnDestroy();
     }
 

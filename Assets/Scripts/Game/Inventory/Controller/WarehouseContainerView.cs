@@ -155,6 +155,47 @@ public class WarehouseContainerView : MonoBehaviour, IController
         return true;
     }
 
+    public bool TryRotateItemInPlace(ItemInstance item)
+    {
+        if (item?.Definition == null || !item.Definition.IsRotatable || runtimeContainer == null)
+        {
+            return false;
+        }
+
+        if (persistentModel == null)
+        {
+            persistentModel = this.GetModel<PersistentInventoryModel>();
+        }
+
+        for (int partIndex = 0; partIndex < runtimeContainer.PartGrids.Count; partIndex++)
+        {
+            var grid = runtimeContainer.PartGrids[partIndex];
+            if (grid == null)
+            {
+                continue;
+            }
+
+            var placement = grid.GetPlacement(item);
+            if (placement == null)
+            {
+                continue;
+            }
+
+            var rotated = !placement.Rotated;
+            if (!grid.Move(item, placement.Pos, rotated))
+            {
+                return false;
+            }
+
+            item.Rotated = rotated;
+            persistentModel?.SetWarehouseItemPosition(item, partIndex, placement.Pos);
+            RenderAll();
+            return true;
+        }
+
+        return false;
+    }
+
     public void AddToPersistentItems(ItemInstance item)
     {
         if (item?.Definition == null)

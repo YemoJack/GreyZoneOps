@@ -17,6 +17,11 @@
 # Asset meta data should only be ignored when the corresponding asset is also ignored
 !/[Aa]ssets/**/*.meta
 
+# Local throwaway art folder (do not version)
+/[Aa]ssets/OtherUselessArt/
+/[Aa]ssets/OtherUselessArt.meta
+/[Aa]ssets/OtherUselessArt/**/*.meta
+
 # Uncomment this line if you wish to ignore the asset store tools plugin
 # /[Aa]ssets/AssetStoreTools*
 

@@ -146,7 +146,11 @@ public class WindowBase : WindowBehaviour, IController
                 mAllButtonList.Add(btn);
             }
             btn.onClick.RemoveAllListeners();
-            btn.onClick.AddListener(action);
+            btn.onClick.AddListener(() =>
+            {
+                PlayUiClickSound();
+                action?.Invoke();
+            });
 
         }
     }
@@ -210,5 +214,16 @@ public class WindowBase : WindowBehaviour, IController
     public IArchitecture GetArchitecture()
     {
         return GameArchitecture.Interface;
+    }
+
+    protected virtual void PlayUiClickSound()
+    {
+        var audioSystem = this.GetSystem<AudioSystem>();
+        if (audioSystem == null)
+        {
+            return;
+        }
+
+        audioSystem.PlaySfx(AudioSfxId.UiClick);
     }
 }

@@ -59,6 +59,7 @@ public class FirearmWeapon : WeaponBase
     private bool isEquipped;
     private bool lastAimHold;
     private bool lastFireHold;
+    private bool dryFireTriggeredThisPress;
     private EPlayerMoveState currentMoveState = EPlayerMoveState.Idle;
     private IUnRegister moveStateUnregister;
     private float firingSpread;
@@ -104,6 +105,8 @@ public class FirearmWeapon : WeaponBase
 
         isEquipped = true;
         lastAimHold = false;
+        lastFireHold = false;
+        dryFireTriggeredThisPress = false;
         RegisterMoveStateListener();
     }
 
@@ -167,6 +170,7 @@ public class FirearmWeapon : WeaponBase
             lastFireHold = fireHold;
             if (!fireHold && !isBurstFiring)
             {
+                dryFireTriggeredThisPress = false;
                 RecoverRecoil();
                 this.SendEvent<EventFireRecoilRecover>();
             }
@@ -415,11 +419,24 @@ public class FirearmWeapon : WeaponBase
     {
         isReloading = true;
         Debug.Log("Reloading... (placeholder animation/sound)");
+        this.SendEvent(new EventWeaponReloadStarted
+        {
+            WeaponId = Config?.WeaponID ?? 0,
+            WeaponName = Config?.WeaponName,
+            Duration = firearmConfig != null ? firearmConfig.reloadTime : 0f,
+            Position = transform.position
+        });
         await UniTask.Delay(TimeSpan.FromSeconds(firearmConfig.reloadTime));
         currentAmmo = firearmConfig.magSize;
         isReloading = false;
         Debug.Log("Reload complete.");
         NotifyAmmoChanged();
+        this.SendEvent(new EventWeaponReloadFinished
+        {
+            WeaponId = Config?.WeaponID ?? 0,
+            WeaponName = Config?.WeaponName,
+            Position = transform.position
+        });
 
     }
 
@@ -500,6 +517,16 @@ public class FirearmWeapon : WeaponBase
         if (currentAmmo <= 0)
         {
             Debug.Log("Out of ammo, reload needed.");
+            if (!dryFireTriggeredThisPress)
+            {
+                dryFireTriggeredThisPress = true;
+                this.SendEvent(new EventWeaponDryFire
+                {
+                    WeaponId = Config?.WeaponID ?? 0,
+                    WeaponName = Config?.WeaponName,
+                    Position = transform.position
+                });
+            }
             return false;
         }
 
@@ -525,6 +552,13 @@ public class FirearmWeapon : WeaponBase
         cmdFireamFire.Init(fireRay.origin, dir);
         this.SendCommand(cmdFireamFire);
         nextFireTime = firearmConfig.fireRate > 0 ? Time.time + 1f / firearmConfig.fireRate : Time.time;
+        this.SendEvent(new EventWeaponFired
+        {
+            WeaponId = Config?.WeaponID ?? 0,
+            WeaponName = Config?.WeaponName,
+            Position = FirePos != null ? FirePos.position : transform.position,
+            GunshotRange = firearmConfig != null ? Mathf.Max(0f, firearmConfig.GunshotRange) : 0f
+        });
 
         if (recoilOffset != Vector2.zero)
         {

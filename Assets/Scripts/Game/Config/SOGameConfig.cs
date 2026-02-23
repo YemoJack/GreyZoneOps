@@ -93,6 +93,16 @@ public class SOGameConfig : ScriptableObject
     [Header("Map 地图")]
     public int DefaultMapId = 0;
 
+    [Header("Audio 音频")]
+    public SOAudioCatalog AudioCatalog;
+    [Range(0f, 1f)]
+    public float DefaultMasterVolume = 1f;
+    [Range(0f, 1f)]
+    public float DefaultBgmVolume = 1f;
+    [Range(0f, 1f)]
+    public float DefaultSfxVolume = 1f;
+    public bool DefaultMuted = false;
+
     [Header("Save 存档")]
     public string SaveFileName = "game_save.es3";
     public bool SaveUseEncryption = false;

@@ -74,7 +74,7 @@ public class SOFirearmConfig : SOWeaponConfigBase
     /// </summary>
     public float armorDamage;
 
-    
+
     /// <summary>
     /// 优势射程
     /// </summary>
@@ -129,7 +129,7 @@ public class SOFirearmConfig : SOWeaponConfigBase
 
 
     [Header("操作速度")]
-    
+
     /// <summary>
     /// 换弹时间
     /// </summary>
@@ -140,7 +140,7 @@ public class SOFirearmConfig : SOWeaponConfigBase
     /// </summary>
     public float aimTime = 0.5f;
 
-    
+
     /// <summary>
     /// 装备时瞄准移动速度倍率
     /// </summary>

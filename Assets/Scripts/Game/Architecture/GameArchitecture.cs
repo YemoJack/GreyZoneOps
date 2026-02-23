@@ -7,6 +7,7 @@ public class GameArchitecture : Architecture<GameArchitecture>
         // 注册 Utilities
         RegisterUtility<IResLoader>(new ResLoaderYoo());
         RegisterUtility<ISaveLoader>(new SaveLoaderEasy());
+        RegisterUtility<IAudioPlayer>(new UnityAudioPlayerUtility());
     }
 
     public void Registor()
@@ -23,6 +24,7 @@ public class GameArchitecture : Architecture<GameArchitecture>
         RegisterModel(new MapModel());
         RegisterModel(new GameFlowModel());
         RegisterModel(new PlayerProgressModel());
+        RegisterModel(new AudioModel());
 
         // 注册 Systems
         RegisterSystem(new GameFlowSystem());
@@ -35,5 +37,6 @@ public class GameArchitecture : Architecture<GameArchitecture>
         RegisterSystem(new PlayerProgressSystem());
         RegisterSystem(new InteractionSystem());
         RegisterSystem(new MapSystem());
+        RegisterSystem(new AudioSystem());
     }
 }

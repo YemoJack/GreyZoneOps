@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e5635affc3a87a408920e816b6a1ca6, type: 3}
+  m_Name: SOAudioCatalog
+  m_EditorClassIdentifier: 
+  Bgms: []
+  CommonSfxs:
+  - Id: 1
+    Clip: {fileID: 8300000, guid: c50dcf401ede9422da7805612256b5ac, type: 3}
+    Volume: 1
+    PlayAs3D: 0
+    SpatialBlend: 1
+    PitchRange: {x: 1, y: 1}
+  FirearmAudioProfiles:
+  - WeaponId: 1000
+    GunshotPropagationRange: 0
+    Fire:
+      Clip: {fileID: 8300000, guid: 2203773368e4340d98c114f55c2dd7fd, type: 3}
+      Volume: 1
+      PlayAs3D: 1
+      SpatialBlend: 1
+      PitchRange: {x: 1, y: 1}
+    DryFire:
+      Clip: {fileID: 8300000, guid: 9158afb6966d445db9caf1dccf7acbcc, type: 3}
+      Volume: 1
+      PlayAs3D: 1
+      SpatialBlend: 1
+      PitchRange: {x: 1, y: 1}
+    ReloadStart:
+      Clip: {fileID: 8300000, guid: e5198250a6a57408bb36e14bc4a322c4, type: 3}
+      Volume: 1
+      PlayAs3D: 1
+      SpatialBlend: 1
+      PitchRange: {x: 1, y: 1}
+    ReloadFinish:
+      Clip: {fileID: 0}
+      Volume: 1
+      PlayAs3D: 1
+      SpatialBlend: 1
+      PitchRange: {x: 1, y: 1}
+  - WeaponId: 1001
+    GunshotPropagationRange: 0
+    Fire:
+      Clip: {fileID: 8300000, guid: 4d6281aa604094f04839cffa502096c0, type: 3}
+      Volume: 1
+      PlayAs3D: 1
+      SpatialBlend: 1
+      PitchRange: {x: 1, y: 1}
+    DryFire:
+      Clip: {fileID: 8300000, guid: 9158afb6966d445db9caf1dccf7acbcc, type: 3}
+      Volume: 1
+      PlayAs3D: 1
+      SpatialBlend: 1
+      PitchRange: {x: 1, y: 1}
+    ReloadStart:
+      Clip: {fileID: 8300000, guid: e5198250a6a57408bb36e14bc4a322c4, type: 3}
+      Volume: 1
+      PlayAs3D: 1
+      SpatialBlend: 1
+      PitchRange: {x: 1, y: 1}
+    ReloadFinish:
+      Clip: {fileID: 0}
+      Volume: 1
+      PlayAs3D: 1
+      SpatialBlend: 1
+      PitchRange: {x: 1, y: 1}

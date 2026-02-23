@@ -66,6 +66,11 @@ MonoBehaviour:
   ItemCatalog: {fileID: 11400000, guid: d4c3499b750464b4d88657cb3e39b32f, type: 2}
   ContainerCatalog: {fileID: 11400000, guid: 4e324b66921bf594a948b01904077455, type: 2}
   DefaultMapId: 0
+  AudioCatalog: {fileID: 11400000, guid: c32d081980045eb4f8924ca8e6f0cbfa, type: 2}
+  DefaultMasterVolume: 1
+  DefaultBgmVolume: 1
+  DefaultSfxVolume: 1
+  DefaultMuted: 0
   SaveFileName: game_save.es3
   SaveUseEncryption: 0
   SaveEncryptionPassword: 

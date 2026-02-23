@@ -9,14 +9,22 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/2/22 13:22:34",
+    "PackageNote": "2026/2/23 12:39:02",
     "AssetList": [
+        {
+            "Address": "SOAudioCatalog",
+            "AssetPath": "Assets/Art/Data/AudioConfig/SOAudioCatalog.asset",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 0,
+            "DependBundleIDs": []
+        },
         {
             "Address": "SOContainerCatalog",
             "AssetPath": "Assets/Art/Data/InventoryConfig/SOContainerCatalog.asset",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 0,
+            "BundleID": 1,
             "DependBundleIDs": []
         },
         {
@@ -24,7 +32,7 @@
             "AssetPath": "Assets/Art/Data/InventoryConfig/SOItemCatalog.asset",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 0,
+            "BundleID": 1,
             "DependBundleIDs": []
         },
         {
@@ -32,7 +40,7 @@
             "AssetPath": "Assets/Art/Data/MapConfig/Cfg_MapDefinition_0.asset",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 1,
+            "BundleID": 2,
             "DependBundleIDs": []
         },
         {
@@ -40,7 +48,7 @@
             "AssetPath": "Assets/Art/Data/WeaponConfig/Test_Gun_1.asset",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 2,
+            "BundleID": 3,
             "DependBundleIDs": []
         },
         {
@@ -48,7 +56,7 @@
             "AssetPath": "Assets/Art/Data/WeaponConfig/Test_Gun_2.asset",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 2,
+            "BundleID": 3,
             "DependBundleIDs": []
         },
         {
@@ -56,7 +64,7 @@
             "AssetPath": "Assets/Art/Prefabs/Effect/ImpactEff/P_IMP_Concrete.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 3,
+            "BundleID": 4,
             "DependBundleIDs": []
         },
         {
@@ -64,7 +72,7 @@
             "AssetPath": "Assets/Art/Prefabs/Effect/Smoke/Smoke_01.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 4,
+            "BundleID": 5,
             "DependBundleIDs": []
         },
         {
@@ -72,7 +80,7 @@
             "AssetPath": "Assets/Art/Prefabs/Effect/Smoke/vfx_Smoke_01.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 5,
+            "BundleID": 6,
             "DependBundleIDs": []
         },
         {
@@ -80,7 +88,7 @@
             "AssetPath": "Assets/Art/Prefabs/Inventory/Container/Cntr_Box1.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 6,
+            "BundleID": 7,
             "DependBundleIDs": []
         },
         {
@@ -88,7 +96,7 @@
             "AssetPath": "Assets/Art/Prefabs/Inventory/Container/Cntr_BriefcaseBomb_01.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 6,
+            "BundleID": 7,
             "DependBundleIDs": []
         },
         {
@@ -96,7 +104,7 @@
             "AssetPath": "Assets/Art/Prefabs/Inventory/Container/Cntr_CardboardBox_01.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 6,
+            "BundleID": 7,
             "DependBundleIDs": []
         },
         {
@@ -104,7 +112,7 @@
             "AssetPath": "Assets/Art/Prefabs/Inventory/Item/Ammo/Item_Ammo_1.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 7,
+            "BundleID": 8,
             "DependBundleIDs": []
         },
         {
@@ -112,7 +120,7 @@
             "AssetPath": "Assets/Art/Prefabs/Inventory/Item/Armor/Item_Armor_1.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 8,
+            "BundleID": 9,
             "DependBundleIDs": []
         },
         {
@@ -120,7 +128,7 @@
             "AssetPath": "Assets/Art/Prefabs/Inventory/Item/Backpack/Item_Backpack_1.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 9,
+            "BundleID": 10,
             "DependBundleIDs": []
         },
         {
@@ -128,7 +136,7 @@
             "AssetPath": "Assets/Art/Prefabs/Inventory/Item/ChestRig/Item_ChestRig_1.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 10,
+            "BundleID": 11,
             "DependBundleIDs": []
         },
         {
@@ -136,7 +144,7 @@
             "AssetPath": "Assets/Art/Prefabs/Inventory/Item/Collection/Item_Beer.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 11,
+            "BundleID": 12,
             "DependBundleIDs": []
         },
         {
@@ -144,7 +152,7 @@
             "AssetPath": "Assets/Art/Prefabs/Inventory/Item/Collection/Item_Boxcutter.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 11,
+            "BundleID": 12,
             "DependBundleIDs": []
         },
         {
@@ -152,7 +160,7 @@
             "AssetPath": "Assets/Art/Prefabs/Inventory/Item/Helmet/Item_Helmet_1.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 12,
+            "BundleID": 13,
             "DependBundleIDs": []
         },
         {
@@ -160,7 +168,7 @@
             "AssetPath": "Assets/Art/Prefabs/Inventory/Item/Helmet/Item_Helmet_2.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 12,
+            "BundleID": 13,
             "DependBundleIDs": []
         },
         {
@@ -168,7 +176,7 @@
             "AssetPath": "Assets/Art/Prefabs/Inventory/Item/Helmet/Item_Helmet_3.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 12,
+            "BundleID": 13,
             "DependBundleIDs": []
         },
         {
@@ -176,7 +184,7 @@
             "AssetPath": "Assets/Art/Prefabs/Inventory/Item/Medical/Item_Medical_1.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 13,
+            "BundleID": 14,
             "DependBundleIDs": []
         },
         {
@@ -184,7 +192,7 @@
             "AssetPath": "Assets/Art/Prefabs/Inventory/Item/Medical/Item_Medical_2.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 13,
+            "BundleID": 14,
             "DependBundleIDs": []
         },
         {
@@ -192,7 +200,7 @@
             "AssetPath": "Assets/Art/Prefabs/Inventory/Item/Medical/Item_Medical_3.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 13,
+            "BundleID": 14,
             "DependBundleIDs": []
         },
         {
@@ -200,7 +208,7 @@
             "AssetPath": "Assets/Art/Prefabs/Inventory/Item/Medical/Item_Medical_4.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 13,
+            "BundleID": 14,
             "DependBundleIDs": []
         },
         {
@@ -208,7 +216,7 @@
             "AssetPath": "Assets/Art/Prefabs/Inventory/Item/Weapon/Item_Weapon_1.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 14,
+            "BundleID": 15,
             "DependBundleIDs": []
         },
         {
@@ -216,7 +224,7 @@
             "AssetPath": "Assets/Art/Prefabs/Inventory/Item/Weapon/Item_Weapon_2.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 14,
+            "BundleID": 15,
             "DependBundleIDs": []
         },
         {
@@ -224,7 +232,7 @@
             "AssetPath": "Assets/Art/Prefabs/Inventory/Item/Weapon/Item_Weapon_3.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 14,
+            "BundleID": 15,
             "DependBundleIDs": []
         },
         {
@@ -232,7 +240,7 @@
             "AssetPath": "Assets/Art/Prefabs/Map/Map_0.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 15,
+            "BundleID": 16,
             "DependBundleIDs": []
         },
         {
@@ -240,7 +248,7 @@
             "AssetPath": "Assets/Art/Prefabs/Player/Player.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 16,
+            "BundleID": 17,
             "DependBundleIDs": []
         },
         {
@@ -248,7 +256,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/GameOverWindow.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 17,
+            "BundleID": 18,
             "DependBundleIDs": []
         },
         {
@@ -256,7 +264,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/GameWindow.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 17,
+            "BundleID": 18,
             "DependBundleIDs": []
         },
         {
@@ -264,7 +272,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/HomeWindow.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 17,
+            "BundleID": 18,
             "DependBundleIDs": []
         },
         {
@@ -272,7 +280,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/Inventory/CellView.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 18,
+            "BundleID": 19,
             "DependBundleIDs": []
         },
         {
@@ -280,7 +288,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/Inventory/ContainerView.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 18,
+            "BundleID": 19,
             "DependBundleIDs": []
         },
         {
@@ -288,7 +296,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/Inventory/ContainerViews/UI_Backpack1.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 19,
+            "BundleID": 20,
             "DependBundleIDs": []
         },
         {
@@ -296,7 +304,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/Inventory/ContainerViews/UI_Box1.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 19,
+            "BundleID": 20,
             "DependBundleIDs": []
         },
         {
@@ -304,7 +312,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/Inventory/ContainerViews/UI_Chest1.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 19,
+            "BundleID": 20,
             "DependBundleIDs": []
         },
         {
@@ -312,7 +320,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/Inventory/ContainerViews/UI_PlayerBag1.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 19,
+            "BundleID": 20,
             "DependBundleIDs": []
         },
         {
@@ -320,7 +328,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/Inventory/ContainerViews/UI_Warehouse.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 19,
+            "BundleID": 20,
             "DependBundleIDs": []
         },
         {
@@ -328,7 +336,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/Inventory/EquipSlotView.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 18,
+            "BundleID": 19,
             "DependBundleIDs": []
         },
         {
@@ -336,7 +344,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/Inventory/GridView.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 18,
+            "BundleID": 19,
             "DependBundleIDs": []
         },
         {
@@ -344,7 +352,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/Inventory/ItemView.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 18,
+            "BundleID": 19,
             "DependBundleIDs": []
         },
         {
@@ -352,7 +360,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/InventoryWindow.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 17,
+            "BundleID": 18,
             "DependBundleIDs": []
         },
         {
@@ -360,7 +368,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/LoadingWindow.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 17,
+            "BundleID": 18,
             "DependBundleIDs": []
         },
         {
@@ -368,7 +376,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/SelectItemWindow.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 17,
+            "BundleID": 18,
             "DependBundleIDs": []
         },
         {
@@ -376,7 +384,7 @@
             "AssetPath": "Assets/Art/Prefabs/UI/WarehouseWindow.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 17,
+            "BundleID": 18,
             "DependBundleIDs": []
         },
         {
@@ -384,7 +392,7 @@
             "AssetPath": "Assets/Art/Prefabs/Weapons/Gun/Wep_Pistol_Gold.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 20,
+            "BundleID": 21,
             "DependBundleIDs": []
         },
         {
@@ -392,7 +400,7 @@
             "AssetPath": "Assets/Art/Prefabs/Weapons/Gun/Wep_Rifle_Gold.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 20,
+            "BundleID": 21,
             "DependBundleIDs": []
         },
         {
@@ -400,11 +408,21 @@
             "AssetPath": "Assets/Art/Prefabs/Weapons/Melee/Wep_Knife_01.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 21,
+            "BundleID": 22,
             "DependBundleIDs": []
         }
     ],
     "BundleList": [
+        {
+            "BundleName": "assets_art_data_audioconfig.bundle",
+            "UnityCRC": 0,
+            "FileHash": "c5b67eda3b7b32ca27d98e2d72ec3795",
+            "FileCRC": 0,
+            "FileSize": 2052,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        },
         {
             "BundleName": "assets_art_data_inventoryconfig.bundle",
             "UnityCRC": 0,

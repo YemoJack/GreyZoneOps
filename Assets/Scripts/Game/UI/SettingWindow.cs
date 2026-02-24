@@ -5,6 +5,8 @@ using ZMUIFrameWork;
 
 public class SettingWindow : WindowBase
 {
+    public static bool IsWindowVisible { get; private set; }
+
     public SettingWindowDataComponent dataCompt;
 
     private AudioSystem audioSystem;
@@ -26,17 +28,20 @@ public class SettingWindow : WindowBase
     public override void OnShow()
     {
         base.OnShow();
+        IsWindowVisible = true;
         ShowAudioTab();
         RefreshAudioSliders();
     }
 
     public override void OnHide()
     {
+        IsWindowVisible = false;
         base.OnHide();
     }
 
     public override void OnDestroy()
     {
+        IsWindowVisible = false;
         UnbindSliderCallbacks();
         base.OnDestroy();
     }

@@ -37,6 +37,10 @@ public class HomeWindow : WindowBase
     #endregion
 
     #region UI Events
+    public void OnPlayerInfoButtonClick()
+    {
+        UIModule.Instance.PopUpWindow<PlayerInfoWindow>();
+    }
 
 
     public void OnSettingButtonClick()

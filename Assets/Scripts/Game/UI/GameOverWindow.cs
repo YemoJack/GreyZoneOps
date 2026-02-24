@@ -85,6 +85,7 @@ public class GameOverWindow : WindowBase
             Debug.Log($"GameOverWindow: save before return home => {saveOk}");
         }
 
+        this.GetSystem<MapSystem>()?.EndRaid();
         this.GetSystem<GameFlowSystem>()?.EnterLoadingToMenu();
 
         UIModule.Instance.DestroyAllWindow();

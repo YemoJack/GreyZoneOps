@@ -224,6 +224,8 @@ public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
         if (updateScheduler != null)
             updateScheduler.Tick(Time.deltaTime);
 
+        HandlePauseWindowHotkey();
+
 
 
         TestInventoryWindow();
@@ -234,6 +236,39 @@ public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
 
 
     #region  ���Բ���
+
+    private void HandlePauseWindowHotkey()
+    {
+        if (!Input.GetKeyDown(KeyCode.Escape))
+        {
+            return;
+        }
+
+        if (SceneManager.GetActiveScene().name != GameSceneName)
+        {
+            return;
+        }
+
+        if (PauseWindow.IsWindowVisible)
+        {
+            if (SettingWindow.IsWindowVisible)
+            {
+                UIModule.Instance.HideWindow<SettingWindow>();
+                return;
+            }
+
+            UIModule.Instance.HideWindow<PauseWindow>();
+            return;
+        }
+
+        var inputSys = this.GetSystem<InputSys>();
+        if (inputSys != null && !inputSys.InputEnabled)
+        {
+            return;
+        }
+
+        UIModule.Instance.PopUpWindow<PauseWindow>();
+    }
 
     private string containerId = "1003";
 

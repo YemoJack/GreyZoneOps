@@ -9,7 +9,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/2/24 13:45:26",
+    "PackageNote": "2026/2/24 15:41:59",
     "AssetList": [
         {
             "Address": "Horror1",
@@ -428,6 +428,22 @@
             "DependBundleIDs": []
         },
         {
+            "Address": "PauseWindow",
+            "AssetPath": "Assets/Art/Prefabs/UI/PauseWindow.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 20,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "PlayerInfoWindow",
+            "AssetPath": "Assets/Art/Prefabs/UI/PlayerInfoWindow.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 20,
+            "DependBundleIDs": []
+        },
+        {
             "Address": "SelectItemWindow",
             "AssetPath": "Assets/Art/Prefabs/UI/SelectItemWindow.prefab",
             "AssetGUID": "",
@@ -682,7 +698,7 @@
             "UnityCRC": 0,
             "FileHash": "530a24183c422b16027444c7d49d3a49",
             "FileCRC": 0,
-            "FileSize": 489863,
+            "FileSize": 535085,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

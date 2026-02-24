@@ -1,7 +1,8 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using ZMUIFrameWork;
 using QFramework;
+using System;
 
 public class HomeWindow : WindowBase
 {
@@ -36,6 +37,13 @@ public class HomeWindow : WindowBase
     #endregion
 
     #region UI Events
+
+
+    public void OnSettingButtonClick()
+    {
+        UIModule.Instance.PopUpWindow<SettingWindow>();
+    }
+
     public void OnStartGameButtonClick()
     {
         GameLaunch.RequestStartGame();
@@ -52,4 +60,6 @@ public class HomeWindow : WindowBase
         Cursor.lockState = visible ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = visible;
     }
+
+
 }

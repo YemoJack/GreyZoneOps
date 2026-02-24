@@ -247,6 +247,13 @@ public class GeneratorBindComponentTool : Editor
         {
             Debug.LogWarning("Selected object is not a prefab instance.");
         }
-        
+
     }
+}
+public class EditorObjectData
+{
+    public int insID;
+    public string fieldName;
+    public string fieldType;
+
 }

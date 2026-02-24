@@ -65,21 +65,21 @@ public class WindowBase : WindowBehaviour, IController
     public void ShowAnimation()
     {
         //基础弹窗不需要动画
-        if (Canvas.sortingOrder > 90 && mDisableAnim == false)
+        if (Canvas.sortingOrder > 100 && mDisableAnim == false)
         {
             //Mask动画
             mUIMaskCanvasGroup.alpha = 0;
             mUIMaskCanvasGroup.DOFade(1, 0.2f);
             //缩放动画
             mUIContent.localScale = Vector3.one * 0.8f;
-            mUIContent.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBack);
+            mUIContent.DOScale(Vector3.one, 0.2f).SetEase(Ease.OutBack);
         }
     }
     public void HideAnimation()
     {
-        if (Canvas.sortingOrder > 90 && mDisableAnim == false)
+        if (Canvas.sortingOrder > 100 && mDisableAnim == false)
         {
-            mUIContent.DOScale(Vector3.one * 1.1f, 0.2f).SetEase(Ease.OutBack).OnComplete(() =>
+            mUIContent.DOScale(Vector3.one * 0.8f, 0.2f).SetEase(Ease.OutBack).OnComplete(() =>
             {
                 UIModule.Instance.HideWindow(Name);
             });
@@ -92,8 +92,8 @@ public class WindowBase : WindowBehaviour, IController
     #endregion
     public void HideWindow()
     {
-        HideAnimation();
-        //UIModule.Instance.HideWindow(Name);
+        //HideAnimation();
+        UIModule.Instance.HideWindow(Name);
     }
     public override void SetVisible(bool isVisble)
     {

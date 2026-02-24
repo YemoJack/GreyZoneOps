@@ -200,12 +200,13 @@ public class SelectItemWindow : WindowBase
 			return;
 		}
 
-		var itemScreenPoint = GetItemRightCenterScreenPoint(itemRect);
 		var windowCamera = GetWindowCamera();
-		if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(parentRect, itemScreenPoint, windowCamera, out var localPoint))
+		if (!TryGetItemBoundsInParent(itemRect, parentRect, windowCamera, out var itemMin, out var itemMax))
 		{
 			return;
 		}
+
+		var itemCenterY = (itemMin.y + itemMax.y) * 0.5f;
 
 		var boxSize = selectBoxRect.rect.size;
 		var boxPivot = selectBoxRect.pivot;
@@ -222,34 +223,97 @@ public class SelectItemWindow : WindowBase
 		var minY = bottom + boxSize.y * boxPivot.y + SelectBoxPadding;
 		var maxY = top - boxSize.y * (1f - boxPivot.y) - SelectBoxPadding;
 
-		var placeRightX = localPoint.x + SelectBoxOffsetX + boxSize.x * boxPivot.x;
-		var placeLeftX = localPoint.x - SelectBoxOffsetX - boxSize.x * (1f - boxPivot.x);
-		var targetX = placeRightX;
+		// Place by item bounds so the panel edge stays outside the item edge.
+		var targetRightX = itemMax.x + SelectBoxOffsetX + boxSize.x * boxPivot.x;
+		var targetLeftX = itemMin.x - SelectBoxOffsetX - boxSize.x * (1f - boxPivot.x);
 
-		if (targetX > maxX && placeLeftX >= minX)
+		var rightFits = targetRightX >= minX && targetRightX <= maxX;
+		var leftFits = targetLeftX >= minX && targetLeftX <= maxX;
+
+		float targetX;
+		if (rightFits)
 		{
-			targetX = placeLeftX;
+			targetX = targetRightX;
+		}
+		else if (leftFits)
+		{
+			targetX = targetLeftX;
+		}
+		else
+		{
+			// If neither side fully fits, keep the panel on the side with more free space,
+			// and clamp within parent while still preferring no overlap.
+			var freeRight = right - itemMax.x;
+			var freeLeft = itemMin.x - left;
+			targetX = freeRight >= freeLeft ? targetRightX : targetLeftX;
+			targetX = Mathf.Clamp(targetX, minX, maxX);
+
+			// Enforce non-overlap when possible after clamping.
+			if (targetX - boxSize.x * boxPivot.x < itemMax.x + SelectBoxPadding)
+			{
+				var minNoOverlapRight = itemMax.x + SelectBoxPadding + boxSize.x * boxPivot.x;
+				if (minNoOverlapRight <= maxX)
+				{
+					targetX = Mathf.Max(targetX, minNoOverlapRight);
+				}
+			}
+			if (targetX + boxSize.x * (1f - boxPivot.x) > itemMin.x - SelectBoxPadding)
+			{
+				var maxNoOverlapLeft = itemMin.x - SelectBoxPadding - boxSize.x * (1f - boxPivot.x);
+				if (maxNoOverlapLeft >= minX)
+				{
+					targetX = Mathf.Min(targetX, maxNoOverlapLeft);
+				}
+			}
 		}
 
-		targetX = Mathf.Clamp(targetX, minX, maxX);
-		var targetY = Mathf.Clamp(localPoint.y, minY, maxY);
+		var targetY = Mathf.Clamp(itemCenterY, minY, maxY);
 
 		selectBoxRect.anchoredPosition = new Vector2(targetX, targetY);
-		Debug.Log($"UpdateSelectBoxPosition  {selectBoxRect.anchoredPosition}");
 	}
 
-	private Vector2 GetItemRightCenterScreenPoint(RectTransform itemRect)
+	private bool TryGetItemBoundsInParent(
+		RectTransform itemRect,
+		RectTransform parentRect,
+		Camera windowCamera,
+		out Vector2 min,
+		out Vector2 max)
 	{
+		min = Vector2.zero;
+		max = Vector2.zero;
+		if (itemRect == null || parentRect == null)
+		{
+			return false;
+		}
+
 		var corners = new Vector3[4];
 		itemRect.GetWorldCorners(corners);
-		var rightCenterWorld = (corners[2] + corners[3]) * 0.5f;
-
 		var itemCanvas = itemRect.GetComponentInParent<Canvas>();
 		var itemCamera = itemCanvas != null && itemCanvas.renderMode != RenderMode.ScreenSpaceOverlay
 			? itemCanvas.worldCamera
 			: null;
+		var initialized = false;
+		for (int i = 0; i < corners.Length; i++)
+		{
+			var screenPoint = RectTransformUtility.WorldToScreenPoint(itemCamera, corners[i]);
+			if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(parentRect, screenPoint, windowCamera, out var localPoint))
+			{
+				return false;
+			}
 
-		return RectTransformUtility.WorldToScreenPoint(itemCamera, rightCenterWorld);
+			if (!initialized)
+			{
+				min = max = localPoint;
+				initialized = true;
+			}
+			else
+			{
+				min = Vector2.Min(min, localPoint);
+				max = Vector2.Max(max, localPoint);
+			}
+		}
+
+		return initialized;
 	}
 
 	private Camera GetWindowCamera()

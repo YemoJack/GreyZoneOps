@@ -34,7 +34,7 @@ public enum FirearmAudioCueType
 public class AudioBgmEntry
 {
     public AudioBgmId Id = AudioBgmId.None;
-    public AudioClip Clip;
+    public string ResName;
     [Range(0f, 1f)]
     public float Volume = 1f;
     public bool Loop = true;
@@ -44,7 +44,7 @@ public class AudioBgmEntry
 public class AudioSfxEntry
 {
     public AudioSfxId Id = AudioSfxId.None;
-    public AudioClip Clip;
+    public string ResName;
     [Range(0f, 1f)]
     public float Volume = 1f;
     public bool PlayAs3D = false;
@@ -56,7 +56,7 @@ public class AudioSfxEntry
 [Serializable]
 public class FirearmAudioCueEntry
 {
-    public AudioClip Clip;
+    public string ResName;
 }
 
 [Serializable]

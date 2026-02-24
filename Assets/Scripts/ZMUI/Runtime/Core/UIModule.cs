@@ -38,10 +38,6 @@ public class UIModule : IController
     /// </summary>
     private Transform mUIRoot;
     /// <summary>
-    /// 窗口配置表
-    /// </summary>
-    private WindowConfig mWindowConfig;
-    /// <summary>
     /// 所有已克隆的窗口的字典 (包含显示及隐藏的窗口,不含已销毁的窗口)
     /// </summary>
     private Dictionary<string, WindowBase> mAllWindowDic = new Dictionary<string, WindowBase>();//所有窗口的Dic
@@ -125,13 +121,6 @@ public class UIModule : IController
         }
 
         EnsureUICameraStackBinding();
-
-
-        mWindowConfig = Resources.Load<WindowConfig>("WindowConfig");
-        //在手机上不会触发调用
-#if UNITY_EDITOR
-        //mWindowConfig.GeneratorWindowConfig();
-#endif
     }
 
     private void EnsureUICameraStackBinding()

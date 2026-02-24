@@ -14,9 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SINGMASK_SYSTEM: 1
   ParseType: 0
-  GeneratorType: 1
+  GeneratorType: 0
   BindComponentGeneratorPath: Assets/Scripts/Game/UI
-  FindComponentGeneratorPath: Assets/ThirdParty/ZMUIFrameWork/Scripts/FindCompoent
   WindowGeneratorPath: Assets/Scripts/Game/UI
   WindowPrefabFolderPathArr:
   - Assets/Art/Prefabs/UI

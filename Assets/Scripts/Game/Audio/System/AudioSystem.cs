@@ -1,16 +1,27 @@
+using System.Collections.Generic;
 using QFramework;
 using UnityEngine;
 
 public class AudioSystem : AbstractSystem
 {
+    private const string SaveKeyAudioMasterVolume = "audio.master_volume";
+    private const string SaveKeyAudioBgmVolume = "audio.bgm_volume";
+    private const string SaveKeyAudioSfxVolume = "audio.sfx_volume";
+    private const string SaveKeyAudioMuted = "audio.muted";
+
     private AudioModel model;
     private IAudioPlayer player;
+    private IResLoader resLoader;
+    private ISaveLoader saveLoader;
+    private readonly Dictionary<string, AudioClip> clipCache = new Dictionary<string, AudioClip>();
 
     protected override void OnInit()
     {
         model = this.GetModel<AudioModel>();
         player = this.GetUtility<IAudioPlayer>();
+        saveLoader = this.GetUtility<ISaveLoader>();
 
+        LoadPersistedAudioSettings();
         ApplyOutputSettings();
 
         this.RegisterEvent<EventGameFlowStateChanged>(OnGameFlowStateChanged);
@@ -31,6 +42,7 @@ public class AudioSystem : AbstractSystem
         EnsureDependencies();
         model.SetMasterVolume(volume);
         ApplyOutputSettings();
+        SavePersistedAudioSettings();
         NotifySettingsChanged();
     }
 
@@ -39,6 +51,7 @@ public class AudioSystem : AbstractSystem
         EnsureDependencies();
         model.SetBgmVolume(volume);
         ApplyOutputSettings();
+        SavePersistedAudioSettings();
         NotifySettingsChanged();
     }
 
@@ -47,6 +60,7 @@ public class AudioSystem : AbstractSystem
         EnsureDependencies();
         model.SetSfxVolume(volume);
         ApplyOutputSettings();
+        SavePersistedAudioSettings();
         NotifySettingsChanged();
     }
 
@@ -55,6 +69,7 @@ public class AudioSystem : AbstractSystem
         EnsureDependencies();
         model.SetMuted(muted);
         ApplyOutputSettings();
+        SavePersistedAudioSettings();
         NotifySettingsChanged();
     }
 
@@ -73,12 +88,20 @@ public class AudioSystem : AbstractSystem
         }
 
         var catalog = ResolveCatalog();
-        if (catalog == null || !catalog.TryGetBgm(id, out var entry) || entry == null || entry.Clip == null)
+        if (catalog == null || !catalog.TryGetBgm(id, out var entry) || entry == null)
         {
+            StopBgm();
             return;
         }
 
-        player.PlayMusic(entry.Clip, entry.Loop, entry.Volume);
+        var clip = LoadAudioClip(entry.ResName);
+        if (clip == null)
+        {
+            StopBgm();
+            return;
+        }
+
+        player.PlayMusic(clip, entry.Loop, entry.Volume);
         model.SetCurrentBgm(id);
     }
 
@@ -92,26 +115,38 @@ public class AudioSystem : AbstractSystem
     public void PlaySfx(AudioSfxId id)
     {
         EnsureDependencies();
-        if (!TryResolveSfx(id, out var entry) || entry.Clip == null)
+        if (!TryResolveSfx(id, out var entry))
+        {
+            return;
+        }
+
+        var clip = LoadAudioClip(entry.ResName);
+        if (clip == null)
         {
             return;
         }
 
         var pitch = ResolvePitch(entry);
-        player.PlaySfx2D(entry.Clip, entry.Volume, pitch);
+        player.PlaySfx2D(clip, entry.Volume, pitch);
     }
 
     public void PlaySfxAt(AudioSfxId id, Vector3 position)
     {
         EnsureDependencies();
-        if (!TryResolveSfx(id, out var entry) || entry.Clip == null)
+        if (!TryResolveSfx(id, out var entry))
+        {
+            return;
+        }
+
+        var clip = LoadAudioClip(entry.ResName);
+        if (clip == null)
         {
             return;
         }
 
         var pitch = ResolvePitch(entry);
         var spatialBlend = entry.PlayAs3D ? entry.SpatialBlend : 1f;
-        player.PlaySfx3D(entry.Clip, position, entry.Volume, pitch, spatialBlend);
+        player.PlaySfx3D(clip, position, entry.Volume, pitch, spatialBlend);
     }
 
     private void OnGameFlowStateChanged(EventGameFlowStateChanged evt)
@@ -199,6 +234,16 @@ public class AudioSystem : AbstractSystem
         {
             player = this.GetUtility<IAudioPlayer>();
         }
+
+        if (resLoader == null)
+        {
+            resLoader = this.GetUtility<IResLoader>();
+        }
+
+        if (saveLoader == null)
+        {
+            saveLoader = this.GetUtility<ISaveLoader>();
+        }
     }
 
     private SOAudioCatalog ResolveCatalog()
@@ -220,7 +265,13 @@ public class AudioSystem : AbstractSystem
             return false;
         }
 
-        if (!profile.TryGetCue(cueType, out var cue) || cue == null || cue.Clip == null)
+        if (!profile.TryGetCue(cueType, out var cue) || cue == null)
+        {
+            return false;
+        }
+
+        var clip = LoadAudioClip(cue.ResName);
+        if (clip == null)
         {
             return false;
         }
@@ -228,7 +279,7 @@ public class AudioSystem : AbstractSystem
         const float clipVolume = 1f;
         const float pitch = 1f;
         const float spatialBlend = 1f;
-        player.PlaySfx3D(cue.Clip, position, clipVolume, pitch, spatialBlend, rolloffMode, maxDistance);
+        player.PlaySfx3D(clip, position, clipVolume, pitch, spatialBlend, rolloffMode, maxDistance);
 
         return true;
     }
@@ -243,6 +294,56 @@ public class AudioSystem : AbstractSystem
 
         entry = null;
         return false;
+    }
+
+    private AudioClip LoadAudioClip(string resName)
+    {
+        EnsureDependencies();
+        if (string.IsNullOrWhiteSpace(resName) || resLoader == null)
+        {
+            return null;
+        }
+
+        if (clipCache.TryGetValue(resName, out var cached) && cached != null)
+        {
+            return cached;
+        }
+
+        var clip = resLoader.LoadSync<AudioClip>(resName);
+        if (clip != null)
+        {
+            clipCache[resName] = clip;
+        }
+
+        return clip;
+    }
+
+    private void LoadPersistedAudioSettings()
+    {
+        EnsureDependencies();
+        if (model == null || saveLoader == null)
+        {
+            return;
+        }
+
+        model.SetMasterVolume(saveLoader.Load(SaveKeyAudioMasterVolume, model.MasterVolume));
+        model.SetBgmVolume(saveLoader.Load(SaveKeyAudioBgmVolume, model.BgmVolume));
+        model.SetSfxVolume(saveLoader.Load(SaveKeyAudioSfxVolume, model.SfxVolume));
+        model.SetMuted(saveLoader.Load(SaveKeyAudioMuted, model.Muted));
+    }
+
+    private void SavePersistedAudioSettings()
+    {
+        EnsureDependencies();
+        if (model == null || saveLoader == null)
+        {
+            return;
+        }
+
+        saveLoader.Save(SaveKeyAudioMasterVolume, model.MasterVolume);
+        saveLoader.Save(SaveKeyAudioBgmVolume, model.BgmVolume);
+        saveLoader.Save(SaveKeyAudioSfxVolume, model.SfxVolume);
+        saveLoader.Save(SaveKeyAudioMuted, model.Muted);
     }
 
     private float ResolveGunshotPropagationRange(float eventRange)

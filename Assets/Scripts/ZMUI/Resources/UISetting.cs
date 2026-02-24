@@ -8,10 +8,6 @@ using UnityEditor;
 using UnityEngine;
 public enum GeneratorType
 {
-# if ODIN_INSPECTOR
-    [LabelText("组件自动查找", SdfIconType.Fingerprint)]
-#endif
-    Find,//组件查找
 #if ODIN_INSPECTOR
     [LabelText("组件自动绑定")]
 #endif
@@ -43,37 +39,21 @@ public class UISetting : ScriptableObject
 
 #if ODIN_INSPECTOR
 
-    [EnumToggleButtons, HideLabel, BoxGroup("代码自动化生成设置  建议使用名称解析+组件绑定方式 (兼容性好，性能好)"), Title("组件解析方式"),OnValueChanged("OnParseTypeEnumChang")] 
+    [EnumToggleButtons, HideLabel, BoxGroup("代码自动化生成设置  建议使用名称解析+组件绑定方式 (兼容性好，性能好)"), Title("组件解析方式"), OnValueChanged("OnParseTypeEnumChang")]
 #endif
     public ParseType ParseType = ParseType.Name;
-#if ODIN_INSPECTOR
-    [EnumToggleButtons, HideLabel, BoxGroup("代码自动化生成设置  建议使用名称解析+组件绑定方式 (兼容性好，性能好)"), Title("代码生成方式"),OnValueChanged("OnBindEnumChang")]//LabelText("组件解析方式")
-#endif
+
     public GeneratorType GeneratorType = GeneratorType.Bind;
 
-#if ODIN_INSPECTOR
     [TitleGroup("脚本自动化生成路径配置", "自定义生成路径"), LabelText("组件绑定脚本生成路径"), FolderPath]
-#endif
-    public string BindComponentGeneratorPath =  "Assets/ThirdParty/ZMUIFrameWork/Scripts/BindCompoent";
-#if ODIN_INSPECTOR
-    [TitleGroup("脚本自动化生成路径配置", "自定义生成路径"), LabelText("组件查找脚本生成路径"), FolderPath,ShowIf("mShowFindComponentGeneratorPath")]
-#endif
-    public string FindComponentGeneratorPath = "Assets/ThirdParty/ZMUIFrameWork/Scripts/FindCompoent";
-#if ODIN_INSPECTOR
+    public string BindComponentGeneratorPath = "Assets/ThirdParty/ZMUIFrameWork/Scripts/BindCompoent";
     [TitleGroup("脚本自动化生成路径配置", "自定义生成路径"), LabelText("窗口交互脚本生成路径"), FolderPath]
-#endif
-    public string WindowGeneratorPath ="Assets/ThirdParty/ZMUIFrameWork/Scripts/Window";
+    public string WindowGeneratorPath = "Assets/ThirdParty/ZMUIFrameWork/Scripts/Window";
 #if ODIN_INSPECTOR
-    [TitleGroup("窗口预制体加载路径配置","框架根据以下路径自动计算加载路径，新增窗口无需手动配置"), LabelText("窗口预制体存放路径"), FolderPath]
+    [TitleGroup("窗口预制体加载路径配置", "框架根据以下路径自动计算加载路径，新增窗口无需手动配置"), LabelText("窗口预制体存放路径"), FolderPath]
 #endif
     public string[] WindowPrefabFolderPathArr;
 #if ODIN_INSPECTOR
-    private bool mShowFindComponentGeneratorPath;
-    public void OnBindEnumChang(GeneratorType type)
-    {
-        mShowFindComponentGeneratorPath = type == GeneratorType.Find;
-        Save();
-    }
     public void OnParseTypeEnumChang(ParseType type)
     {
         Save();

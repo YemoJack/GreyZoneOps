@@ -232,6 +232,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5746797201856839725}
   - component: {fileID: 6107994663407814724}
+  - component: {fileID: 5458418607745915097}
   m_Layer: 0
   m_Name: Wep_Pistol_Gold
   m_TagString: Untagged
@@ -254,6 +255,8 @@ Transform:
   m_Children:
   - {fileID: 8686819006573355850}
   - {fileID: 2584528825041529944}
+  - {fileID: 7188456784454563034}
+  - {fileID: 235113095067706087}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6107994663407814724
@@ -270,6 +273,32 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Config: {fileID: 11400000, guid: 328c73dcc3e9f4f438df8cab648ab1b0, type: 2}
   FirePos: {fileID: 2584528825041529944}
+  verticalRecoilMul: 1
+  horizontalRecoilMul: 1
+--- !u!114 &5458418607745915097
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2780876524888379992}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3d0bf76ab6f4ce4383c0476fe7fc2d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  EnableHandIK: 1
+  EnableLeftHandIK: 1
+  EnableRightHandIK: 1
+  LeftHandIKTarget: {fileID: 235113095067706087}
+  RightHandIKTarget: {fileID: 7188456784454563034}
+  EnableElbowIK: 1
+  EnableLeftElbowIK: 1
+  EnableRightElbowIK: 1
+  LeftElbowHintLocalPosition: {x: -0.059, y: -0.344, z: 0.258}
+  LeftElbowHintLocalEulerAngles: {x: 0, y: 0, z: 0}
+  RightElbowHintLocalPosition: {x: 0.372, y: -0.478, z: 0.195}
+  RightElbowHintLocalEulerAngles: {x: 0, y: 0, z: 0}
 --- !u!1 &4745784673454533385
 GameObject:
   m_ObjectHideFlags: 0
@@ -353,6 +382,37 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &5432286751788903718
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 235113095067706087}
+  m_Layer: 0
+  m_Name: LeftHandGrip
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &235113095067706087
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5432286751788903718}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.08681913, y: 0.2631382, z: 0.6611473, w: 0.69721234}
+  m_LocalPosition: {x: -0.057, y: -0.116, z: -0.076}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5746797201856839725}
+  m_LocalEulerAnglesHint: {x: -27.97, y: 16.587, z: 82.8}
 --- !u!1 &6428240570584423938
 GameObject:
   m_ObjectHideFlags: 0
@@ -436,3 +496,34 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &8922905240434519447
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7188456784454563034}
+  m_Layer: 0
+  m_Name: RightHandGrip
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7188456784454563034
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8922905240434519447}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: -0.70413864, w: 0.7100625}
+  m_LocalPosition: {x: 0.033, y: -0.0386, z: -0.108}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5746797201856839725}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -89.52}

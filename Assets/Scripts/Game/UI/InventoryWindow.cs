@@ -45,6 +45,7 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent, IEquipmen
 	public override void OnShow()
 	{
 		base.OnShow();
+		ClearDraggingItem();
 		SetCursorVisible(true);
 		if (inputSys != null)
 		{
@@ -61,6 +62,7 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent, IEquipmen
 	public override void OnHide()
 	{
 		UnregisterInventoryEvents();
+		ClearDraggingItem();
 		UIModule.Instance.HideWindow<SelectItemWindow>();
 		if (inputSys != null)
 		{
@@ -74,6 +76,7 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent, IEquipmen
 	public override void OnDestroy()
 	{
 		UnregisterInventoryEvents();
+		ClearDraggingItem();
 		UIModule.Instance.HideWindow<SelectItemWindow>();
 		if (inputSys != null)
 		{
@@ -197,6 +200,7 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent, IEquipmen
 		draggingOriginPlacement = grid.GetPlacement(itemAt);
 		draggingOriginId = id;
 		draggingOriginPartIndex = partIndex;
+		draggingOriginEquipSlot = null;
 
 		if (raidInventorySystem.TryTakeItemAt(id, pos, out var item, notify: false, partIndex: partIndex))
 		{
@@ -206,6 +210,7 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent, IEquipmen
 		}
 
 		draggingOriginPlacement = null;
+		draggingOriginId = null;
 		return false;
 	}
 
@@ -217,26 +222,15 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent, IEquipmen
 		if (pos.x == int.MinValue || pos.y == int.MinValue)
 		{
 			DropItem(draggingItem);
-			draggingItem = null;
-			draggingOriginPlacement = null;
-			this.SendEvent(new InventoryChangedEvent());
+			ClearDraggingItem();
+			RefreshAll();
 			return true;
 		}
 
 		// 负数但非最小值：表示有网格命中但位置非法，回�?
 		if (pos.x < 0 || pos.y < 0)
 		{
-			if (draggingOriginPlacement != null)
-			{
-				raidInventorySystem.TryPlaceItem(
-					draggingOriginId,
-					draggingItem,
-					draggingOriginPlacement.Pos,
-					draggingOriginPlacement.Rotated,
-					partIndex: draggingOriginPartIndex);
-				draggingOriginPlacement = null;
-			}
-			draggingItem = null;
+			ReturnDraggingItemToOrigin();
 			return false;
 		}
 
@@ -263,10 +257,9 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent, IEquipmen
 				draggingOriginPlacement.Pos,
 				draggingOriginPlacement.Rotated,
 				partIndex: draggingOriginPartIndex);
-			draggingOriginPlacement = null;
 		}
 
-		draggingItem = null;
+		ClearDraggingItem();
 		if (placed)
 			return true;
 
@@ -390,6 +383,34 @@ public class InventoryWindow : WindowBase, IController, ICanSendEvent, IEquipmen
 		draggingOriginPlacement = null;
 		draggingOriginId = null;
 		draggingOriginPartIndex = 0;
+	}
+
+	private void ReturnDraggingItemToOrigin()
+	{
+		if (draggingItem == null)
+		{
+			ClearDraggingItem();
+			return;
+		}
+
+		if (draggingOriginPlacement != null && !string.IsNullOrEmpty(draggingOriginId))
+		{
+			raidInventorySystem?.TryPlaceItem(
+				draggingOriginId,
+				draggingItem,
+				draggingOriginPlacement.Pos,
+				draggingOriginPlacement.Rotated,
+				partIndex: draggingOriginPartIndex);
+		}
+		else if (draggingOriginEquipSlot.HasValue)
+		{
+			if (raidInventorySystem != null)
+			{
+				raidInventorySystem.TryEquipItem(draggingOriginEquipSlot.Value, draggingItem, out _);
+			}
+		}
+
+		ClearDraggingItem();
 	}
 
 	public void DropItem(ItemInstance item)

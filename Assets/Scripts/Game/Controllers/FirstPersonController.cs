@@ -30,7 +30,10 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
     private float _globalRecoilReturnSpeed;
 
     public Transform CameraRoot;
+    public Transform CameraYawPivot;
+    public Transform CameraPitchPivot;
     public Camera PlayerCamera;
+    public Camera ViewModelCamera;
 
     [Header("Ground")]
     public bool Grounded = true;
@@ -68,10 +71,7 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
 
     private void Awake()
     {
-        if (PlayerCamera == null && CameraRoot != null)
-        {
-            PlayerCamera = CameraRoot.GetComponentInChildren<Camera>();
-        }
+        ResolveViewHierarchyReferences();
     }
 
     private void Start()
@@ -172,6 +172,8 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
             return;
         }
 
+        ResolveViewHierarchyReferences();
+
         _inputSys = this.GetSystem<InputSys>();
         if (_inputSys == null)
         {
@@ -189,6 +191,10 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
             _viewTransform = PlayerCamera.transform;
             _weaponSystem?.BindAimProvider(new CameraAimProvider(PlayerCamera));
             _defaultFov = PlayerCamera.fieldOfView;
+        }
+        else if (CameraPitchPivot != null)
+        {
+            _viewTransform = CameraPitchPivot;
         }
         else if (CameraRoot != null)
         {
@@ -330,10 +336,139 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         transform.rotation = Quaternion.Euler(0f, finalYaw, 0f);
 
         // 摄像机：受到 pitch + yaw 影响
-        if (CameraRoot != null)
+        var pitchPivot = CameraPitchPivot != null ? CameraPitchPivot : CameraRoot;
+        if (pitchPivot != null)
         {
-            CameraRoot.transform.localRotation = Quaternion.Euler(finalPitch, 0f, 0f);
+            pitchPivot.localRotation = Quaternion.Euler(finalPitch, 0f, 0f);
         }
+    }
+
+    private void ResolveViewHierarchyReferences()
+    {
+        if (CameraRoot == null)
+        {
+            var foundCameraRoot = transform.Find("CameraRoot");
+            if (foundCameraRoot != null)
+            {
+                CameraRoot = foundCameraRoot;
+            }
+        }
+
+        if (CameraYawPivot == null && CameraRoot != null)
+        {
+            var yawPivot = CameraRoot.Find("CameraYawPivot");
+            if (yawPivot != null)
+            {
+                CameraYawPivot = yawPivot;
+            }
+        }
+
+        if (CameraPitchPivot == null)
+        {
+            if (CameraYawPivot != null)
+            {
+                var pitchPivot = CameraYawPivot.Find("CameraPitchPivot");
+                if (pitchPivot != null)
+                {
+                    CameraPitchPivot = pitchPivot;
+                }
+            }
+
+            if (CameraPitchPivot == null && CameraRoot != null)
+            {
+                var pitchPivot = CameraRoot.GetChild("CameraPitchPivot");
+                if (pitchPivot != null)
+                {
+                    CameraPitchPivot = pitchPivot;
+                }
+            }
+        }
+
+        if (PlayerCamera == null)
+        {
+            PlayerCamera = FindCameraByName("MainCamera");
+            if (PlayerCamera == null)
+            {
+                PlayerCamera = FindBestPlayerCamera();
+            }
+        }
+
+        if (ViewModelCamera == null)
+        {
+            ViewModelCamera = FindCameraByName("ViewModelCamera");
+        }
+    }
+
+    private Camera FindCameraByName(string cameraName)
+    {
+        if (CameraRoot == null || string.IsNullOrEmpty(cameraName))
+        {
+            return null;
+        }
+
+        var cameras = CameraRoot.GetComponentsInChildren<Camera>(true);
+        foreach (var cam in cameras)
+        {
+            if (cam != null && cam.name == cameraName)
+            {
+                return cam;
+            }
+        }
+
+        return null;
+    }
+
+    private Camera FindBestPlayerCamera()
+    {
+        if (CameraRoot == null)
+        {
+            return null;
+        }
+
+        var cameras = CameraRoot.GetComponentsInChildren<Camera>(true);
+        if (cameras == null || cameras.Length == 0)
+        {
+            return null;
+        }
+
+        Camera firstCamera = null;
+        Camera taggedMainCamera = null;
+        Camera nonViewModelCamera = null;
+        var viewModelLayer = LayerMask.NameToLayer("ViewModel");
+
+        foreach (var cam in cameras)
+        {
+            if (cam == null)
+            {
+                continue;
+            }
+
+            if (firstCamera == null)
+            {
+                firstCamera = cam;
+            }
+
+            var isViewModel = viewModelLayer >= 0 && cam.gameObject.layer == viewModelLayer;
+            if (!isViewModel && nonViewModelCamera == null)
+            {
+                nonViewModelCamera = cam;
+            }
+
+            if (cam.CompareTag("MainCamera"))
+            {
+                if (!isViewModel)
+                {
+                    return cam;
+                }
+
+                if (taggedMainCamera == null)
+                {
+                    taggedMainCamera = cam;
+                }
+            }
+        }
+
+        return nonViewModelCamera ?? taggedMainCamera ?? firstCamera;
     }
 
     private void OnAimStateChanged(EventFirearmAimChanged evt)

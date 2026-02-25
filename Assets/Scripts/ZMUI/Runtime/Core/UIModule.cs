@@ -390,6 +390,22 @@ public class UIModule : IController
         return null;
     }
 
+    public bool TryGetWindow<T>(out T window) where T : WindowBase
+    {
+        System.Type type = typeof(T);
+        foreach (var item in mVisibleWindowList)
+        {
+            if (item != null && item.Name == type.Name)
+            {
+                window = (T)item;
+                return true;
+            }
+        }
+
+        window = null;
+        return false;
+    }
+
     public void HideWindow(string wndName)
     {
         WindowBase window = GetWindow(wndName);

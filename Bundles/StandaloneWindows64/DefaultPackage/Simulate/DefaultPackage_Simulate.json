@@ -9,7 +9,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/2/24 15:41:59",
+    "PackageNote": "2026/2/25 18:30:55",
     "AssetList": [
         {
             "Address": "Horror1",
@@ -668,7 +668,7 @@
             "UnityCRC": 0,
             "FileHash": "4365fb5a967ae8fd3e38ecd8084291c3",
             "FileCRC": 0,
-            "FileSize": 17639,
+            "FileSize": 17643,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -688,7 +688,7 @@
             "UnityCRC": 0,
             "FileHash": "3089bbe9444ba4cbc77f6c86cf364599",
             "FileCRC": 0,
-            "FileSize": 93716,
+            "FileSize": 88983,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -728,7 +728,7 @@
             "UnityCRC": 0,
             "FileHash": "bf6d2980ba828e54df65c3659a6b4aa2",
             "FileCRC": 0,
-            "FileSize": 25142,
+            "FileSize": 30735,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

@@ -20,14 +20,8 @@ public class PlayerRuntime : MonoBehaviour, IController
 
     public void AttachCamera(Camera camera)
     {
-        if (camera == null)
-        {
-            Debug.LogWarning("PlayerRuntime: Main Camera not found, skip attach.");
-            return;
-        }
-
-        Transform cameraRoot = null;
         var fpsController = GetComponent<FirstPersonController>();
+        Transform cameraRoot = null;
         if (fpsController != null)
         {
             cameraRoot = fpsController.CameraRoot;
@@ -48,31 +42,99 @@ public class PlayerRuntime : MonoBehaviour, IController
             return;
         }
 
-        if (camera.transform.parent != cameraRoot)
+        var cameraPitchPivot = fpsController != null ? fpsController.CameraPitchPivot : null;
+        if (cameraPitchPivot == null)
         {
-            camera.transform.SetParent(cameraRoot, false);
-            camera.transform.localPosition = Vector3.zero;
-            camera.transform.localRotation = Quaternion.identity;
+            var yawPivot = cameraRoot.Find("CameraYawPivot");
+            if (yawPivot != null)
+            {
+                cameraPitchPivot = yawPivot.Find("CameraPitchPivot");
+            }
+        }
+
+        var cameraMount = cameraPitchPivot != null ? cameraPitchPivot : cameraRoot;
+        var playerMainCamera = ResolvePlayerMainCamera(fpsController, cameraRoot);
+
+        if (playerMainCamera != null && camera != null && camera != playerMainCamera && !camera.transform.IsChildOf(transform))
+        {
+            // Player prefab now owns its main/viewmodel camera setup. Ignore the bootstrap camera to avoid breaking the rig.
+            camera.enabled = false;
+        }
+
+        var activeCamera = playerMainCamera != null ? playerMainCamera : camera;
+        if (activeCamera == null)
+        {
+            Debug.LogWarning("PlayerRuntime: Main Camera not found, skip attach.");
+            return;
+        }
+
+        if (activeCamera.transform.parent != cameraMount)
+        {
+            activeCamera.transform.SetParent(cameraMount, false);
+            activeCamera.transform.localPosition = Vector3.zero;
+            activeCamera.transform.localRotation = Quaternion.identity;
         }
 
         if (fpsController != null)
         {
             if (fpsController.PlayerCamera == null)
             {
-                fpsController.PlayerCamera = camera;
+                fpsController.PlayerCamera = activeCamera;
             }
 
             if (fpsController.CameraRoot == null)
             {
                 fpsController.CameraRoot = cameraRoot;
             }
+
+            if (fpsController.CameraPitchPivot == null)
+            {
+                fpsController.CameraPitchPivot = cameraPitchPivot;
+            }
         }
 
         var interactor = GetComponent<InteractorView>();
-        if (interactor != null && interactor.ViewCamera == null)
+        if (interactor != null && interactor.ViewCamera != activeCamera)
         {
-            interactor.ViewCamera = camera;
+            interactor.ViewCamera = activeCamera;
         }
+
+        if (interactor != null)
+        {
+            var shouldRebindRayOrigin = interactor.RayOrigin == null || interactor.RayOrigin == cameraRoot;
+            if (shouldRebindRayOrigin)
+            {
+                interactor.RayOrigin = cameraPitchPivot != null ? cameraPitchPivot : activeCamera.transform;
+            }
+        }
+
+        // UIModule only binds UICamera stack during initialization. Re-run after main camera switch
+        // so the UI overlay gets added to the player's MainCamera when the bootstrap camera is disabled.
+        UIModule.Instance.Initialize();
+    }
+
+    private static Camera ResolvePlayerMainCamera(FirstPersonController fpsController, Transform cameraRoot)
+    {
+        if (fpsController != null && fpsController.PlayerCamera != null)
+        {
+            return fpsController.PlayerCamera;
+        }
+
+        if (cameraRoot == null)
+        {
+            return null;
+        }
+
+        var cameras = cameraRoot.GetComponentsInChildren<Camera>(true);
+        foreach (var childCamera in cameras)
+        {
+            if (childCamera != null && childCamera.name == "MainCamera")
+            {
+                return childCamera;
+            }
+        }
+
+        return null;
     }
 
     public void Teleport(Vector3 position, float yaw, bool useYaw, bool alignToGround, LayerMask groundLayers, float groundRayHeight, float groundRayDistance)

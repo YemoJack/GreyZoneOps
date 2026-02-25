@@ -1,4 +1,18 @@
-﻿## 最近更新（物品选中操作窗 + 旋转交互）
+﻿## 最近更新（Player 结构重构 + VM 手部IK + 拖拽交互修复）
+
+- 重构 `Player` 层级为第一人称相机/视模型结构：`CameraRoot -> CameraYawPivot -> CameraPitchPivot -> MainCamera/ViewModelCamera/ViewModelRoot`。
+- `FirstPersonController` / `PlayerRuntime` 已适配新层级，显式绑定 `MainCamera` 与 `CameraPitchPivot`，避免双相机下取错相机。
+- `UIModule` 的 `UICamera` Stack 绑定链路已修复：运行时切换主相机后会重新绑定到新的 `MainCamera`。
+- `InteractorView` 已适配新层级：运行时同步 `ViewCamera`，并将 `RayOrigin` 从 `CameraRoot` 调整为 `CameraPitchPivot`。
+- 玩家武器改为 `VM-only` 模式：`WeaponRoot` 默认挂接 `VM_WeaponRoot`，当前阶段不再依赖 `WorldWeaponRoot`。
+- 新增 `VMHandsAnimatorDriver`：将移动/瞄准/开火/换弹事件驱动到 `VM_Hands.controller` 参数。
+- 新增 `VMHandsIKDriver`：基于 `Humanoid + OnAnimatorIK` 实现手部 IK 与肘部 Hint IK。
+- 新增枪械 IK 配置组件 `WeaponElbowIKConfig`：支持每把枪配置手部 IK 目标，以及肘部 Hint 的本地位置/旋转。
+- 修复 `InventoryWindow` 拖拽状态清理与回滚逻辑，解决丢弃后无法继续拖拽物品的问题。
+- 修复 `EquipmentSlotView` 在 ZMUI 窗口中查找 `IEquipmentDragHost` 失败的问题，并通过 `UIModule.TryGetWindow<T>` 避免误报错误日志。
+- 增强 `CmdDropItem`：优化掉落生成位置，并支持枪械物品优先使用 `WeaponPrefab` 在场景中生成掉落物。
+
+## 最近更新（物品选中操作窗 + 旋转交互）
 
 - 新增物品操作窗 `SelectItemWindow`：点击 `InventoryItemView` 可选中物品并在物品旁显示操作窗。
 - 支持再次点击同一物品关闭操作窗；点击空白区域也会关闭操作窗。

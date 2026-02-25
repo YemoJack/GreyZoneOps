@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2073437213748667116}
   - component: {fileID: 1610173898268026348}
   - component: {fileID: 1051127354565926462}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: SM_Wep_Pistol_Gold_Slide_01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -95,7 +95,7 @@ GameObject:
   - component: {fileID: 607880531038989034}
   - component: {fileID: 2326758894629900340}
   - component: {fileID: 6696642804378905290}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: Item_Weapon_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -202,7 +202,7 @@ GameObject:
   - component: {fileID: 3937381087747175224}
   - component: {fileID: 2708813021882431690}
   - component: {fileID: 8748536932777934043}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: SM_Wep_Pistol_Gold_Trigger_01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -285,7 +285,7 @@ GameObject:
   - component: {fileID: 8862532815130984760}
   - component: {fileID: 6839367900094569203}
   - component: {fileID: 6339142934227634927}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: SM_Wep_Pistol_Gold_Mag_01
   m_TagString: Untagged
   m_Icon: {fileID: 0}

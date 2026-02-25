@@ -17,6 +17,7 @@ public class WeaponSystem : AbstractSystem
     private WeaponInventoryModel weaponInventoryModel;
     private readonly Dictionary<int, WeaponBase> weaponInstances = new Dictionary<int, WeaponBase>();
     private readonly List<WeaponBase> instantiatedWeapons = new List<WeaponBase>();
+    private readonly Dictionary<int, GameObject> weaponViewModelInstances = new Dictionary<int, GameObject>();
     private IAimRayProvider aimRayProvider;
     private bool triedBindMainCamera;
 
@@ -49,7 +50,7 @@ public class WeaponSystem : AbstractSystem
        weaponInventoryModel = this.GetModel<WeaponInventoryModel>();
     }
 
-    public void InitializeLoadout(Transform weaponRoot, EquipmentContainer equipment)
+    public void InitializeLoadout(Transform weaponRoot, EquipmentContainer equipment, Transform viewModelWeaponRoot = null)
     {
         if (weaponRoot == null || equipment == null)
         {
@@ -99,6 +100,9 @@ public class WeaponSystem : AbstractSystem
                 }
 
                 RegisterWeaponInstance(weapon);
+                CreateOrReplaceViewModelReplica(entryWeaponId: weapon.Config != null ? weapon.Config.WeaponID : 0,
+                    sourcePrefab: weaponItem.WeaponPrefab,
+                    viewModelWeaponRoot: viewModelWeaponRoot);
                 instantiatedWeapons.Add(weapon);
                 weapon.gameObject.SetActive(false);
             }
@@ -112,7 +116,7 @@ public class WeaponSystem : AbstractSystem
         EquipInitialWeapon();
     }
 
-    public void InitializeLoadout(Transform weaponRoot, IEnumerable<GameObject> weaponPrefabs)
+    public void InitializeLoadout(Transform weaponRoot, IEnumerable<GameObject> weaponPrefabs, Transform viewModelWeaponRoot = null)
     {
         if (weaponRoot == null || weaponPrefabs == null)
         {
@@ -135,6 +139,9 @@ public class WeaponSystem : AbstractSystem
             if (weapon != null)
             {
                 RegisterWeaponInstance(weapon);
+                CreateOrReplaceViewModelReplica(entryWeaponId: weapon.Config != null ? weapon.Config.WeaponID : 0,
+                    sourcePrefab: weaponPrefab,
+                    viewModelWeaponRoot: viewModelWeaponRoot);
                 instantiatedWeapons.Add(weapon);
                 weapon.gameObject.SetActive(false);
             }
@@ -315,7 +322,7 @@ public class WeaponSystem : AbstractSystem
             previousWeapon.OnUnEquip();
         }
 
-        UpdateWeaponActiveState(weapon);
+        UpdateWeaponActiveState(weapon, entry.WeaponId);
         weapon.OnEquip();
         this.SendEvent(new EventPlayerChangeWeapon
         {
@@ -324,12 +331,22 @@ public class WeaponSystem : AbstractSystem
         });
     }
 
-    private void UpdateWeaponActiveState(WeaponBase activeWeapon)
+    private void UpdateWeaponActiveState(WeaponBase activeWeapon, int activeWeaponId)
     {
         foreach (var weapon in instantiatedWeapons)
         {
             if (weapon == null) continue;
             weapon.gameObject.SetActive(weapon == activeWeapon);
+        }
+
+        foreach (var pair in weaponViewModelInstances)
+        {
+            if (pair.Value == null)
+            {
+                continue;
+            }
+
+            pair.Value.SetActive(pair.Key == activeWeaponId);
         }
     }
 
@@ -343,6 +360,106 @@ public class WeaponSystem : AbstractSystem
 
         instantiatedWeapons.Clear();
         weaponInstances.Clear();
+
+        foreach (var vm in weaponViewModelInstances.Values)
+        {
+            if (vm == null) continue;
+            Object.Destroy(vm);
+        }
+
+        weaponViewModelInstances.Clear();
+    }
+
+    private void CreateOrReplaceViewModelReplica(int entryWeaponId, GameObject sourcePrefab, Transform viewModelWeaponRoot)
+    {
+        if (viewModelWeaponRoot == null || sourcePrefab == null || entryWeaponId == 0)
+        {
+            return;
+        }
+
+        if (weaponViewModelInstances.TryGetValue(entryWeaponId, out var existing) && existing != null)
+        {
+            Object.Destroy(existing);
+        }
+
+        var vmObj = Object.Instantiate(sourcePrefab, viewModelWeaponRoot);
+        vmObj.name = $"{sourcePrefab.name}_VM";
+        vmObj.transform.localPosition = Vector3.zero;
+        vmObj.transform.localRotation = Quaternion.identity;
+        vmObj.transform.localScale = Vector3.one;
+
+        PrepareViewModelReplica(vmObj);
+        vmObj.SetActive(false);
+        weaponViewModelInstances[entryWeaponId] = vmObj;
+    }
+
+    private static void PrepareViewModelReplica(GameObject vmObj)
+    {
+        if (vmObj == null)
+        {
+            return;
+        }
+
+        var viewModelLayer = LayerMask.NameToLayer("ViewModel");
+        if (viewModelLayer >= 0)
+        {
+            SetLayerRecursively(vmObj.transform, viewModelLayer);
+        }
+
+        foreach (var behaviour in vmObj.GetComponentsInChildren<MonoBehaviour>(true))
+        {
+            if (behaviour == null)
+            {
+                continue;
+            }
+
+            behaviour.enabled = false;
+        }
+
+        foreach (var collider in vmObj.GetComponentsInChildren<Collider>(true))
+        {
+            if (collider == null)
+            {
+                continue;
+            }
+
+            collider.enabled = false;
+        }
+
+        foreach (var rigidbody in vmObj.GetComponentsInChildren<Rigidbody>(true))
+        {
+            if (rigidbody == null)
+            {
+                continue;
+            }
+
+            rigidbody.isKinematic = true;
+            rigidbody.detectCollisions = false;
+        }
+
+        foreach (var audioSource in vmObj.GetComponentsInChildren<AudioSource>(true))
+        {
+            if (audioSource == null)
+            {
+                continue;
+            }
+
+            audioSource.enabled = false;
+        }
+    }
+
+    private static void SetLayerRecursively(Transform root, int layer)
+    {
+        if (root == null)
+        {
+            return;
+        }
+
+        root.gameObject.layer = layer;
+        foreach (Transform child in root)
+        {
+            SetLayerRecursively(child, layer);
+        }
     }
 
 }

@@ -388,6 +388,19 @@ public class EquipmentSlotView : MonoBehaviour, IController, IPointerClickHandle
             }
         }
 
+        // ZMUI windows are WindowBase objects (not MonoBehaviour), so parent traversal cannot find them.
+        if (UIModule.Instance.TryGetWindow<WarehouseWindow>(out var warehouseWindow) && warehouseWindow != null)
+        {
+            dragHost = warehouseWindow;
+            return dragHost;
+        }
+
+        if (UIModule.Instance.TryGetWindow<InventoryWindow>(out var inventoryWindow) && inventoryWindow != null)
+        {
+            dragHost = inventoryWindow;
+            return dragHost;
+        }
+
         return null;
     }
 

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using QFramework;
 
@@ -22,6 +21,7 @@ public class PlayerController : MonoBehaviour, IController
             return;
         }
 
+        ResolveWeaponRoot();
         weaponSystem = this.GetSystem<WeaponSystem>();
         inventoryModel = this.GetModel<InventoryContainerModel>();
         RefreshWeaponLoadout(force: true);
@@ -34,6 +34,7 @@ public class PlayerController : MonoBehaviour, IController
 
     private void RefreshWeaponLoadout(bool force)
     {
+        ResolveWeaponRoot();
         if (weaponSystem == null || inventoryModel == null || WeaponRoot == null)
         {
             return;
@@ -72,6 +73,16 @@ public class PlayerController : MonoBehaviour, IController
         }
 
         return playerRoot == transform || playerRoot == transform.root;
+    }
+
+    private void ResolveWeaponRoot()
+    {
+        if (WeaponRoot == null)
+        {
+            // Current player rig is VM-only. Keep one serialized slot and auto-bind it to VM_WeaponRoot.
+            WeaponRoot = transform.GetChild("VM_WeaponRoot")
+                ?? transform.GetChild("WeaponRoot");
+        }
     }
 
 

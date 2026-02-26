@@ -199,7 +199,8 @@ public class WarehouseWindow : WindowBase, IController, ICanSendEvent, IEquipmen
                 return true;
             }
 
-            raidInventorySystem.DropItem(item);
+            // WarehouseWindow is only used out of raid; do not allow discarding here.
+            raidInventorySystem.TryEquipItem(slot, item, out _);
             draggingItem = null;
             draggingOriginEquipSlot = null;
             return true;
@@ -221,12 +222,20 @@ public class WarehouseWindow : WindowBase, IController, ICanSendEvent, IEquipmen
             return false;
         }
 
+        bool originIsWarehouse = IsWarehouseContainer(draggingOriginId);
         bool placed = raidInventorySystem.TryEquipItem(slot, draggingItem, out _);
         if (placed)
         {
+            if (originIsWarehouse)
+            {
+                dataCompt?.WarehouseWarehouseContainerView?.RemoveFromPersistentItems(draggingItem);
+            }
+
             draggingItem = null;
             draggingOriginPlacement = null;
             draggingOriginEquipSlot = null;
+            draggingOriginId = null;
+            draggingOriginPartIndex = 0;
             return true;
         }
 
@@ -235,6 +244,8 @@ public class WarehouseWindow : WindowBase, IController, ICanSendEvent, IEquipmen
             raidInventorySystem.TryEquipItem(draggingOriginEquipSlot.Value, draggingItem, out _);
             draggingOriginEquipSlot = null;
             draggingItem = null;
+            draggingOriginId = null;
+            draggingOriginPartIndex = 0;
         }
 
         return false;
@@ -444,7 +455,9 @@ public class WarehouseWindow : WindowBase, IController, ICanSendEvent, IEquipmen
             return;
         }
 
-        raidInventorySystem.DropItem(item);
+        // WarehouseWindow is an out-of-raid UI. Dragging equipment to empty space should cancel the drag,
+        // not discard the item into the world.
+        ReturnDraggingItemToOrigin();
     }
 
     private void SetCursorVisible(bool visible)

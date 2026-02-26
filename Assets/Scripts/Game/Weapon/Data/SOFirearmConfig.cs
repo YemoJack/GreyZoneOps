@@ -147,11 +147,6 @@ public class SOFirearmConfig : SOWeaponConfigBase
     public float aimMoveSpeedMultiplier = 0.6f;
 
 
-
-    [Header("子弹预制体")]
-    public GameObject bulletPrefab;
-
-
     [Header("子弹散布")]
     [Tooltip("静止状态下的基础散布角度（度）")]
     public float idleSpread = 0.25f;
@@ -179,5 +174,16 @@ public class SOFirearmConfig : SOWeaponConfigBase
 
     [Tooltip("停止射击后散布恢复到基础值的速度（度/秒）")]
     public float spreadRecoveryRate = 4f;
+
+
+
+    [Header("枪械位置")]
+    public Vector3 gunEquiptPos;
+    public Vector3 gunEquiptRot;
+    public Vector3 gunAimPos;
+    public Vector3 gunAimRot;
+
+
+
 
 }

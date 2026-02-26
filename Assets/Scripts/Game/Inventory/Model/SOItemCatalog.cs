@@ -42,7 +42,8 @@ public class ItemCatalogEntry
 
     [Header("Weapon Extra")]
     public SOWeaponConfigBase WeaponConfig;
-    public GameObject WeaponPrefab;
+
+    public GameObject WeaponPrefab => WeaponConfig != null ? WeaponConfig.WeaponPrefab : null;
 
     public Sprite icon
     {
@@ -51,7 +52,7 @@ public class ItemCatalogEntry
     }
 
     public bool IsWeapon =>
-        Category == ItemCategory.Weapon || WeaponConfig != null || WeaponPrefab != null;
+        Category == ItemCategory.Weapon || WeaponConfig != null;
 
     public bool IsRotatable => Size.x != Size.y;
 
@@ -82,7 +83,6 @@ public class SOItemCatalog : ScriptableObject
 {
     [Tooltip("Primary item data source. Each entry is editable in Inspector.")]
     public List<ItemCatalogEntry> Entries = new List<ItemCatalogEntry>();
-    public SOContainerCatalog ContainerCatalog;
     private readonly Dictionary<int, ItemCatalogEntry> entryById = new Dictionary<int, ItemCatalogEntry>();
     private bool entryIndexBuilt;
 
@@ -166,10 +166,6 @@ public class SOItemCatalog : ScriptableObject
 
     private SOContainerCatalog GetContainerCatalog()
     {
-        if (ContainerCatalog != null)
-        {
-            return ContainerCatalog;
-        }
 
         if (Application.isPlaying)
         {

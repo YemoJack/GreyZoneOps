@@ -9,7 +9,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/2/25 18:30:55",
+    "PackageNote": "2026/2/26 18:02:36",
     "AssetList": [
         {
             "Address": "Horror1",
@@ -412,6 +412,14 @@
             "DependBundleIDs": []
         },
         {
+            "Address": "PlayerInventory",
+            "AssetPath": "Assets/Art/Prefabs/UI/Inventory/PlayerInventory.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 21,
+            "DependBundleIDs": []
+        },
+        {
             "Address": "InventoryWindow",
             "AssetPath": "Assets/Art/Prefabs/UI/InventoryWindow.prefab",
             "AssetGUID": "",
@@ -548,7 +556,7 @@
             "UnityCRC": 0,
             "FileHash": "b4c9295c468bf5e3ac4fc1f36149b17d",
             "FileCRC": 0,
-            "FileSize": 3095,
+            "FileSize": 3572,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -558,7 +566,7 @@
             "UnityCRC": 0,
             "FileHash": "4470422e48ed59d31e2f5407ba0e7ccc",
             "FileCRC": 0,
-            "FileSize": 359183,
+            "FileSize": 359132,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -688,7 +696,7 @@
             "UnityCRC": 0,
             "FileHash": "3089bbe9444ba4cbc77f6c86cf364599",
             "FileCRC": 0,
-            "FileSize": 88983,
+            "FileSize": 88789,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -698,7 +706,7 @@
             "UnityCRC": 0,
             "FileHash": "530a24183c422b16027444c7d49d3a49",
             "FileCRC": 0,
-            "FileSize": 535085,
+            "FileSize": 337148,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -708,7 +716,7 @@
             "UnityCRC": 0,
             "FileHash": "b71109352a8ec323d7a010cb1c1c8540",
             "FileCRC": 0,
-            "FileSize": 27827,
+            "FileSize": 151924,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -718,7 +726,7 @@
             "UnityCRC": 0,
             "FileHash": "aea9d9519ede63d3d512fb8df41c6e81",
             "FileCRC": 0,
-            "FileSize": 61131,
+            "FileSize": 62539,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

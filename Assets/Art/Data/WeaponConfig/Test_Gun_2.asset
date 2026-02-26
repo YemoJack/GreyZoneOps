@@ -16,6 +16,8 @@ MonoBehaviour:
   WeaponName: "\u6D4B\u8BD5\u67AA2"
   WeaponType: 0
   Discription: "\u6D4B\u8BD5\u67AA2"
+  WeaponPrefab: {fileID: 8151882401571984160, guid: a68e5c08ae387dc45a2451f6f69a5096,
+    type: 3}
   moveSpeedMultiplier: 0.9
   runSpeedMultiplier: 0.9
   impactEffect: {fileID: 1067471869909948, guid: 5e02303289b3c494e8e185be0fbbd405,
@@ -52,10 +54,11 @@ MonoBehaviour:
   - {x: 1, y: 1}
   recoilMulRange: {x: 0.4, y: 1.4}
   recoilDuration: 0.2
+  recoilRaiseSpeed: 0
+  recoilReturnSpeed: 0
   reloadTime: 1.5
   aimTime: 0.5
   aimMoveSpeedMultiplier: 0.6
-  bulletPrefab: {fileID: 0}
   idleSpread: 1.5
   walkSpread: 3
   runSpread: 5
@@ -65,3 +68,7 @@ MonoBehaviour:
   spreadIncreasePerShot: 0.05
   maxSpreadWhileFiring: 2
   spreadRecoveryRate: 4
+  gunEquiptPos: {x: 0, y: 0, z: 0}
+  gunEquiptRot: {x: 0, y: 0, z: 0}
+  gunAimPos: {x: 0, y: 0, z: 0}
+  gunAimRot: {x: 0, y: 0, z: 0}

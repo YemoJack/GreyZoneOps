@@ -108,6 +108,7 @@ public class FirearmWeapon : WeaponBase
         lastFireHold = false;
         dryFireTriggeredThisPress = false;
         RegisterMoveStateListener();
+        ApplyConfiguredWeaponPoseInstant(aiming: false);
     }
 
     public override void OnUnEquip()
@@ -117,6 +118,7 @@ public class FirearmWeapon : WeaponBase
         ClearImpactEffectPool();
         SetAimState(false);
         NotifyAimState(false, firearmConfig != null ? firearmConfig.aimTime : 0.001f);
+        ApplyConfiguredWeaponPoseInstant(aiming: false);
         moveStateUnregister?.UnRegister();
         moveStateUnregister = null;
     }
@@ -198,6 +200,7 @@ public class FirearmWeapon : WeaponBase
             SetAimState(false);
         }
 
+        AnimateConfiguredWeaponPose(aiming, duration, token).Forget();
         NotifyAimState(aiming, duration);
         CompleteAimAfterDelay(aiming, duration, token).Forget();
     }
@@ -237,6 +240,58 @@ public class FirearmWeapon : WeaponBase
             ZoomFactor = zoom,
             Duration = duration
         });
+    }
+
+    private void ApplyConfiguredWeaponPoseInstant(bool aiming)
+    {
+        if (firearmConfig == null)
+        {
+            return;
+        }
+
+        transform.localPosition = aiming ? firearmConfig.gunAimPos : firearmConfig.gunEquiptPos;
+        transform.localRotation = Quaternion.Euler(aiming ? firearmConfig.gunAimRot : firearmConfig.gunEquiptRot);
+    }
+
+    private async UniTaskVoid AnimateConfiguredWeaponPose(bool aiming, float duration, CancellationToken token)
+    {
+        if (firearmConfig == null)
+        {
+            return;
+        }
+
+        Vector3 startPos = transform.localPosition;
+        Quaternion startRot = transform.localRotation;
+        Vector3 targetPos = aiming ? firearmConfig.gunAimPos : firearmConfig.gunEquiptPos;
+        Quaternion targetRot = Quaternion.Euler(aiming ? firearmConfig.gunAimRot : firearmConfig.gunEquiptRot);
+
+        if (duration <= 0.0001f)
+        {
+            transform.localPosition = targetPos;
+            transform.localRotation = targetRot;
+            return;
+        }
+
+        float elapsed = 0f;
+
+        try
+        {
+            while (elapsed < duration)
+            {
+                float t = Mathf.Clamp01(elapsed / duration);
+                transform.localPosition = Vector3.Lerp(startPos, targetPos, t);
+                transform.localRotation = Quaternion.Slerp(startRot, targetRot, t);
+                await UniTask.Yield(cancellationToken: token);
+                elapsed += Time.deltaTime;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        transform.localPosition = targetPos;
+        transform.localRotation = targetRot;
     }
 
     public override void TryAttack()

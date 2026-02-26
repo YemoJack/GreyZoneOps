@@ -90,6 +90,7 @@ public class WeaponSystem : AbstractSystem
             var weaponObj = Object.Instantiate(weaponItem.WeaponPrefab, weaponRoot);
             weaponObj.transform.localPosition = Vector3.zero;
             weaponObj.transform.localRotation = Quaternion.identity;
+            weaponObj.transform.SetLayerRecursively(weaponRoot.gameObject.layer);
 
             var weapon = weaponObj.GetComponent<WeaponBase>();
             if (weapon != null)
@@ -134,6 +135,7 @@ public class WeaponSystem : AbstractSystem
             var weaponObj = Object.Instantiate(weaponPrefab, weaponRoot);
             weaponObj.transform.localPosition = Vector3.zero;
             weaponObj.transform.localRotation = Quaternion.identity;
+            weaponObj.transform.SetLayerRecursively(weaponRoot.gameObject.layer);
 
             var weapon = weaponObj.GetComponent<WeaponBase>();
             if (weapon != null)
@@ -403,7 +405,7 @@ public class WeaponSystem : AbstractSystem
         var viewModelLayer = LayerMask.NameToLayer("ViewModel");
         if (viewModelLayer >= 0)
         {
-            SetLayerRecursively(vmObj.transform, viewModelLayer);
+            vmObj.transform.SetLayerRecursively(viewModelLayer);
         }
 
         foreach (var behaviour in vmObj.GetComponentsInChildren<MonoBehaviour>(true))
@@ -445,20 +447,6 @@ public class WeaponSystem : AbstractSystem
             }
 
             audioSource.enabled = false;
-        }
-    }
-
-    private static void SetLayerRecursively(Transform root, int layer)
-    {
-        if (root == null)
-        {
-            return;
-        }
-
-        root.gameObject.layer = layer;
-        foreach (Transform child in root)
-        {
-            SetLayerRecursively(child, layer);
         }
     }
 

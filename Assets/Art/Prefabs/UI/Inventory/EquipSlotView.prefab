@@ -167,11 +167,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   slotType: 0
   bgIcon: {fileID: 8398243069807857859}
+  iconBG: {fileID: 0}
   icon: {fileID: 3455129012981398452}
   nameText: {fileID: 747380943451906423}
   dragItemPrefab: {fileID: 8250925508470544201, guid: 5c648c6d797345649b559d8a973b25f4,
     type: 3}
-  dragCellSize: {x: 100, y: 100}
+  dragCellSize: {x: 80, y: 80}
   dragSpacing: {x: 0, y: 0}
 --- !u!1 &5209782589930457950
 GameObject:

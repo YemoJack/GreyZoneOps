@@ -2429,18 +2429,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   HandsAnimator: {fileID: 7821869451972743564}
-  LeftHandGripName: LeftHandGrip
-  RightHandGripName: RightHandGrip
   LeftHandPositionWeight: 1
   LeftHandRotationWeight: 1
   RightHandPositionWeight: 1
   RightHandRotationWeight: 1
-  UseLeftHandIK: 1
-  UseRightHandIK: 1
   LeftElbowHint: {fileID: 4880906632607199147}
   RightElbowHint: {fileID: 6207356069625513554}
-  LeftElbowHintWeight: 0
-  RightElbowHintWeight: 0
 --- !u!1 &8038628912568606360
 GameObject:
   m_ObjectHideFlags: 0
@@ -2465,8 +2459,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8038628912568606360}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.000000029802319, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.216, y: -0.16600001, z: 0.443}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

@@ -139,9 +139,24 @@ public class WarehouseContainerView : MonoBehaviour, IController
             return false;
         }
 
+        InventoryContainer attachedContainer = item.AttachedContainer;
         item.Rotated = rotated;
-        item.AttachedContainer = null;
         persistentModel?.SetWarehouseItemPosition(item, partIndex, pos);
+
+        // Stash is persisted as a flat item list. If a container item (e.g. backpack/chest rig)
+        // enters the warehouse, spill all nested items into the warehouse first, then strip the container link.
+        if (attachedContainer != null)
+        {
+            if (!SpillContainerItemsIntoWarehouse(attachedContainer))
+            {
+                grid.Remove(item);
+                persistentModel?.RemoveWarehouseItemPosition(item);
+                item.AttachedContainer = attachedContainer;
+                return false;
+            }
+        }
+
+        item.AttachedContainer = null;
 
         if (syncPersistent)
         {
@@ -448,6 +463,161 @@ public class WarehouseContainerView : MonoBehaviour, IController
         }
 
         return false;
+    }
+
+    private struct SpilledItemRecord
+    {
+        public ItemInstance Item;
+        public InventoryGrid SourceGrid;
+        public Vector2Int SourcePos;
+        public bool SourceRotated;
+        public InventoryContainer OriginalAttachedContainer;
+        public int WarehousePartIndex;
+        public Vector2Int WarehousePos;
+        public bool WasPlacedInWarehouse;
+    }
+
+    private bool SpillContainerItemsIntoWarehouse(InventoryContainer sourceContainer)
+    {
+        if (sourceContainer == null || runtimeContainer == null)
+        {
+            return true;
+        }
+
+        List<SpilledItemRecord> extractedItems = new List<SpilledItemRecord>();
+        CollectContainerItemsRecursive(sourceContainer, extractedItems, new HashSet<string>(), new HashSet<string>());
+
+        for (int i = 0; i < extractedItems.Count; i++)
+        {
+            SpilledItemRecord record = extractedItems[i];
+            ItemInstance extracted = record.Item;
+            if (extracted?.Definition == null)
+            {
+                continue;
+            }
+
+            if (!TryPlaceToAnyGrid(extracted, out int extractedPartIndex, out Vector2Int extractedPos, out bool extractedRotated))
+            {
+                Debug.LogWarning($"WarehouseContainerView: no space to spill nested item {extracted.Definition.Name} into warehouse.");
+                RollbackSpilledItems(extractedItems);
+                return false;
+            }
+
+            extracted.Rotated = extractedRotated;
+            persistentModel?.SetWarehouseItemPosition(extracted, extractedPartIndex, extractedPos);
+            AddToPersistentItems(extracted);
+
+            record.WarehousePartIndex = extractedPartIndex;
+            record.WarehousePos = extractedPos;
+            record.WasPlacedInWarehouse = true;
+            extractedItems[i] = record;
+        }
+
+        return true;
+    }
+
+    private void CollectContainerItemsRecursive(
+        InventoryContainer container,
+        List<SpilledItemRecord> output,
+        HashSet<string> visitedContainerIds,
+        HashSet<string> visitedItemIds)
+    {
+        if (container == null || output == null || visitedContainerIds == null || visitedItemIds == null)
+        {
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(container.InstanceId) && !visitedContainerIds.Add(container.InstanceId))
+        {
+            return;
+        }
+
+        if (container.PartGrids == null)
+        {
+            return;
+        }
+
+        for (int gridIndex = 0; gridIndex < container.PartGrids.Count; gridIndex++)
+        {
+            InventoryGrid grid = container.PartGrids[gridIndex];
+            if (grid == null)
+            {
+                continue;
+            }
+
+            List<ItemPlacement> placements = new List<ItemPlacement>(grid.GetAllPlacements());
+            for (int placementIndex = 0; placementIndex < placements.Count; placementIndex++)
+            {
+                ItemPlacement placement = placements[placementIndex];
+                ItemInstance item = placement?.Item;
+                if (item?.Definition == null || placement == null)
+                {
+                    continue;
+                }
+
+                grid.Remove(item);
+
+                if (!string.IsNullOrEmpty(item.InstanceId) && !visitedItemIds.Add(item.InstanceId))
+                {
+                    continue;
+                }
+
+                // Recursively flatten nested container items before the warehouse strips container links.
+                if (item.AttachedContainer != null)
+                {
+                    CollectContainerItemsRecursive(item.AttachedContainer, output, visitedContainerIds, visitedItemIds);
+                }
+
+                output.Add(new SpilledItemRecord
+                {
+                    Item = item,
+                    SourceGrid = grid,
+                    SourcePos = placement.Pos,
+                    SourceRotated = placement.Rotated,
+                    OriginalAttachedContainer = item.AttachedContainer,
+                    WarehousePartIndex = -1,
+                    WarehousePos = new Vector2Int(-1, -1),
+                    WasPlacedInWarehouse = false
+                });
+            }
+        }
+    }
+
+    private void RollbackSpilledItems(List<SpilledItemRecord> records)
+    {
+        if (records == null)
+        {
+            return;
+        }
+
+        List<ItemInstance> persistentItems = persistentModel?.GetMutableItems();
+
+        for (int i = 0; i < records.Count; i++)
+        {
+            SpilledItemRecord record = records[i];
+            if (!record.WasPlacedInWarehouse)
+            {
+                continue;
+            }
+
+            InventoryGrid warehouseGrid = runtimeContainer?.GetGrid(record.WarehousePartIndex);
+            warehouseGrid?.Remove(record.Item);
+            persistentModel?.RemoveWarehouseItemPosition(record.Item);
+            persistentItems?.Remove(record.Item);
+            record.Item.AttachedContainer = record.OriginalAttachedContainer;
+        }
+
+        for (int i = 0; i < records.Count; i++)
+        {
+            SpilledItemRecord record = records[i];
+            if (record.Item?.Definition == null || record.SourceGrid == null)
+            {
+                continue;
+            }
+
+            record.Item.AttachedContainer = record.OriginalAttachedContainer;
+            record.SourceGrid.Place(record.Item, record.SourcePos, record.SourceRotated);
+        }
     }
 
     private void RemoveFromPersistentItemsInternal(ItemCatalogEntry definition, int count)

@@ -16,6 +16,7 @@ public class SOWeaponConfigBase : ScriptableObject
     public string WeaponName;
     public WeaponType WeaponType;
     public string Discription;
+    public GameObject WeaponPrefab;
 
 
 

@@ -93,4 +93,28 @@ public static class TransformExtension
 
         return null;
     }
+
+    public static void SetLayerRecursively(this GameObject root, int layer)
+    {
+        if (root == null)
+        {
+            return;
+        }
+
+        root.transform.SetLayerRecursively(layer);
+    }
+
+    public static void SetLayerRecursively(this Transform root, int layer)
+    {
+        if (root == null)
+        {
+            return;
+        }
+
+        root.gameObject.layer = layer;
+        foreach (Transform child in root)
+        {
+            child.SetLayerRecursively(layer);
+        }
+    }
 }

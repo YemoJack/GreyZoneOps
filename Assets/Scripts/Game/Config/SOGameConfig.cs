@@ -74,6 +74,8 @@ public class SOGameConfig : ScriptableObject
     [Header("Player Recoil 后坐力")]
     public float RecoilRaiseSpeed = 180f;
     public float RecoilReturnSpeed = 60f;
+    [Header("Player Combat 战斗")]
+    public LayerMask PlayerDamageHitLayers = ~0;
 
     [Header("Interaction 交互")]
     public float InteractRange = 2.5f;

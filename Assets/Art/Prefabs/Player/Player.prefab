@@ -905,10 +905,13 @@ MonoBehaviour:
   RecoilRaiseSpeed: 180
   RecoilReturnSpeed: 10
   CameraRoot: {fileID: 2311781386375033739}
-  CameraYawPivot: {fileID: 0}
-  CameraPitchPivot: {fileID: 0}
-  PlayerCamera: {fileID: 0}
-  ViewModelCamera: {fileID: 0}
+  CameraYawPivot: {fileID: 2588711925914404909}
+  CameraPitchPivot: {fileID: 6610575911235917277}
+  PlayerCamera: {fileID: 3265565377575798175}
+  ViewModelCamera: {fileID: 2866705466594772398}
+  GunViewModelCameraLocalEuler: {x: 0, y: 0, z: 0}
+  MeleeViewModelCameraLocalEuler: {x: 12, y: 15, z: 0}
+  ViewModelCameraRotationLerpSpeed: 12
   Grounded: 1
   GroundedOffset: -0.14
   GroundedRadius: 0.28

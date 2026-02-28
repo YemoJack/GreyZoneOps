@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -235,7 +235,7 @@ public class GameLaunch : MonoBehaviour, IController, ICanSendEvent
     }
 
 
-    #region  ���Բ���
+    #region 测试代码
 
     private void HandlePauseWindowHotkey()
     {

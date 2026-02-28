@@ -35,6 +35,14 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
     public Camera PlayerCamera;
     public Camera ViewModelCamera;
 
+    [Header("ViewModel Camera Rotation")]
+    [Tooltip("Gun/Firearm state camera local rotation.")]
+    public Vector3 GunViewModelCameraLocalEuler = Vector3.zero;
+    [Tooltip("Melee and unarmed state camera local rotation.")]
+    public Vector3 MeleeViewModelCameraLocalEuler = new Vector3(4f, 0f, 0f);
+    [Tooltip("<=0 means instant switch. >0 means smooth interpolation.")]
+    public float ViewModelCameraRotationLerpSpeed = 12f;
+
     [Header("Ground")]
     public bool Grounded = true;
     public float GroundedOffset = -0.14f;
@@ -68,6 +76,7 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
     private IUnRegister aimEventUnregister;
 
     private IUnRegister weaponChangedUnregister;
+    private bool useMeleeViewModelCameraRotation = true;
 
     private void Awake()
     {
@@ -216,6 +225,7 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
 
         _moveSpeed = MoveSpeed;
         _sprintSpeed = SprintSpeed;
+        SyncViewModelCameraRotationMode();
         if (ShouldLockCursorOnInit())
         {
             Cursor.lockState = CursorLockMode.Locked;
@@ -341,6 +351,33 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
         {
             pitchPivot.localRotation = Quaternion.Euler(finalPitch, 0f, 0f);
         }
+
+        ApplyViewModelCameraRotation();
+    }
+
+    private void ApplyViewModelCameraRotation()
+    {
+        if (ViewModelCamera == null)
+        {
+            return;
+        }
+
+        var targetLocalRotation = Quaternion.Euler(
+            useMeleeViewModelCameraRotation
+                ? MeleeViewModelCameraLocalEuler
+                : GunViewModelCameraLocalEuler);
+
+        if (ViewModelCameraRotationLerpSpeed <= 0f)
+        {
+            ViewModelCamera.transform.localRotation = targetLocalRotation;
+            return;
+        }
+
+        float lerpFactor = Mathf.Clamp01(Time.deltaTime * ViewModelCameraRotationLerpSpeed);
+        ViewModelCamera.transform.localRotation = Quaternion.Slerp(
+            ViewModelCamera.transform.localRotation,
+            targetLocalRotation,
+            lerpFactor);
     }
 
     private void ResolveViewHierarchyReferences()
@@ -665,11 +702,33 @@ public class FirstPersonController : MonoBehaviour, IController, ICanSendEvent
 
     private void OnWeaponChanged(EventPlayerChangeWeapon weapon)
     {
-        _moveSpeed = weapon.Slot != null ? weapon.WeaponInstance.Config.moveSpeedMultiplier * MoveSpeed : MoveSpeed;
-        _sprintSpeed = weapon.Slot != null ? weapon.WeaponInstance.Config.runSpeedMultiplier * SprintSpeed : SprintSpeed;
+        var currentWeapon = weapon.WeaponInstance;
+        var currentConfig = currentWeapon != null ? currentWeapon.Config : null;
 
-        var firearmConfig = weapon.Slot != null ? weapon.WeaponInstance.Config as SOFirearmConfig : null;
+        _moveSpeed = currentConfig != null ? currentConfig.moveSpeedMultiplier * MoveSpeed : MoveSpeed;
+        _sprintSpeed = currentConfig != null ? currentConfig.runSpeedMultiplier * SprintSpeed : SprintSpeed;
+
+        var firearmConfig = currentConfig as SOFirearmConfig;
         ApplyWeaponRecoilConfig(firearmConfig);
+        UpdateViewModelCameraRotationMode(currentWeapon);
+    }
+
+    private void SyncViewModelCameraRotationMode()
+    {
+        if (_weaponSystem == null)
+        {
+            _weaponSystem = this.GetSystem<WeaponSystem>();
+        }
+
+        UpdateViewModelCameraRotationMode(_weaponSystem != null ? _weaponSystem.GetCurrentWeapon() : null);
+    }
+
+    private void UpdateViewModelCameraRotationMode(WeaponBase currentWeapon)
+    {
+        bool isGun = currentWeapon != null
+            && currentWeapon.Config != null
+            && currentWeapon.Config.WeaponType == WeaponType.Firearm;
+        useMeleeViewModelCameraRotation = !isGun;
     }
 
 

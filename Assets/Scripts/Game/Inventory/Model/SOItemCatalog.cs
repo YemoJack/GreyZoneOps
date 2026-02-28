@@ -40,19 +40,28 @@ public class ItemCatalogEntry
     [Header("Container Extra")]
     public int ContainerConfigId = -1;
 
-    [Header("Weapon Extra")]
-    public SOWeaponConfigBase WeaponConfig;
+    public bool IsWeapon => Category == ItemCategory.Weapon;
 
-    public GameObject WeaponPrefab => WeaponConfig != null ? WeaponConfig.WeaponPrefab : null;
-
-    public Sprite icon
+    public SOWeaponConfigBase ResolveWeaponConfig()
     {
-        get => Icon;
-        set => Icon = value;
+        if (!IsWeapon || Id <= 0)
+        {
+            return null;
+        }
+
+        var itemCatalog = GameSettingManager.Instance?.Config?.ItemCatalog;
+        if (itemCatalog == null)
+        {
+            return null;
+        }
+
+        return itemCatalog.LoadWeaponConfigByItemId(Id);
     }
 
-    public bool IsWeapon =>
-        Category == ItemCategory.Weapon || WeaponConfig != null;
+    public GameObject ResolveWeaponPrefab()
+    {
+        return ResolveWeaponConfig()?.WeaponPrefab;
+    }
 
     public bool IsRotatable => Size.x != Size.y;
 
@@ -81,14 +90,19 @@ public class ItemCatalogEntry
 [CreateAssetMenu(fileName = "SOItemCatalog", menuName = "InventoryConfig/SOItemCatalog")]
 public class SOItemCatalog : ScriptableObject
 {
+    private const string WeaponConfigResPrefix = "Weapon_";
+
     [Tooltip("Primary item data source. Each entry is editable in Inspector.")]
     public List<ItemCatalogEntry> Entries = new List<ItemCatalogEntry>();
+
     private readonly Dictionary<int, ItemCatalogEntry> entryById = new Dictionary<int, ItemCatalogEntry>();
+    private readonly Dictionary<int, SOWeaponConfigBase> weaponConfigByItemId = new Dictionary<int, SOWeaponConfigBase>();
     private bool entryIndexBuilt;
 
     private void OnValidate()
     {
         entryIndexBuilt = false;
+        weaponConfigByItemId.Clear();
     }
 
     public IReadOnlyList<ItemCatalogEntry> GetEntries()
@@ -123,6 +137,42 @@ public class SOItemCatalog : ScriptableObject
         }
 
         return null;
+    }
+
+    public SOWeaponConfigBase LoadWeaponConfigByItemId(int itemId, bool forceReload = false)
+    {
+        if (itemId <= 0)
+        {
+            return null;
+        }
+
+        if (!forceReload && weaponConfigByItemId.TryGetValue(itemId, out var cached) && cached != null)
+        {
+            return cached;
+        }
+
+        var resLoader = GameArchitecture.Interface.GetUtility<IResLoader>();
+        if (resLoader == null)
+        {
+            Debug.LogWarning($"SOItemCatalog: IResLoader is null, cannot resolve weapon config for itemId={itemId}.");
+            return null;
+        }
+
+        string key = BuildWeaponConfigKey(itemId);
+        var config = resLoader.LoadSync<SOWeaponConfigBase>(key);
+        if (config == null)
+        {
+            Debug.LogWarning($"SOItemCatalog: Weapon config not found. key={key}, itemId={itemId}");
+            return null;
+        }
+
+        weaponConfigByItemId[itemId] = config;
+        return config;
+    }
+
+    public string BuildWeaponConfigKey(int itemId)
+    {
+        return $"{WeaponConfigResPrefix}{itemId}";
     }
 
     [ContextMenu("Rebuild Entry Index")]

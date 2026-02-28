@@ -8,6 +8,7 @@ public class GOBullet
 
     private float gravity;
     private FirearmWeapon weapon;
+    private int hitMask = Physics.DefaultRaycastLayers;
 
     private float lifeTime;
     private float maxLife;
@@ -15,11 +16,12 @@ public class GOBullet
     
     public bool active;
 
-    public void Init(Vector3 startPos, Vector3 dir, float gravity, FirearmWeapon weapon)
+    public void Init(Vector3 startPos, Vector3 dir, float gravity, FirearmWeapon weapon, int hitMask)
     {
         this.position = startPos;
         this.gravity = gravity;
         this.weapon = weapon;
+        this.hitMask = hitMask;
         SOFirearmConfig config = weapon.Config as SOFirearmConfig;
         this.velocity = dir * config.bulletSpeed;
         this.maxLife = (config.maxRange - config.range)/config.bulletSpeed ;
@@ -51,7 +53,7 @@ public class GOBullet
         distance += Vector3.Distance(oldPos, newPos);
 
         // ⚡ 分段检测（完美防穿墙）
-        if (Physics.Raycast(oldPos, velocity.normalized, out var hit, (newPos - oldPos).magnitude))
+        if (Physics.Raycast(oldPos, velocity.normalized, out var hit, (newPos - oldPos).magnitude, hitMask, QueryTriggerInteraction.Ignore))
         {
             position = hit.point;
             active = false;

@@ -13,6 +13,9 @@ public struct EventPlayerChangeWeapon
 
 public class WeaponSystem : AbstractSystem
 {
+    private const string UnarmedWeaponName = "Melee_Unarmed";
+    private const string UnarmedWeaponResKey = "Melee_Unarmed";
+    private const int PreferredUnarmedWeaponId = 0;
 
     private WeaponInventoryModel weaponInventoryModel;
     private readonly Dictionary<int, WeaponBase> weaponInstances = new Dictionary<int, WeaponBase>();
@@ -20,6 +23,10 @@ public class WeaponSystem : AbstractSystem
     private readonly Dictionary<int, GameObject> weaponViewModelInstances = new Dictionary<int, GameObject>();
     private IAimRayProvider aimRayProvider;
     private bool triedBindMainCamera;
+    private Transform runtimeWeaponRoot;
+    private WeaponBase unarmedWeaponInstance;
+    private SOMeleeConfig unarmedWeaponConfig;
+    private IResLoader resLoader;
 
     private IAimRayProvider FallbackAimProvider
     {
@@ -47,7 +54,8 @@ public class WeaponSystem : AbstractSystem
 
     protected override void OnInit()
     {
-       weaponInventoryModel = this.GetModel<WeaponInventoryModel>();
+        weaponInventoryModel = this.GetModel<WeaponInventoryModel>();
+        resLoader = this.GetUtility<IResLoader>();
     }
 
     public void InitializeLoadout(Transform weaponRoot, EquipmentContainer equipment, Transform viewModelWeaponRoot = null)
@@ -58,6 +66,7 @@ public class WeaponSystem : AbstractSystem
             return;
         }
 
+        runtimeWeaponRoot = weaponRoot;
         ClearInstantiatedWeapons();
         weaponInventoryModel.ClearSlots();
 
@@ -81,13 +90,21 @@ public class WeaponSystem : AbstractSystem
                 continue;
             }
 
-            if (weaponItem.WeaponPrefab == null)
+            var weaponConfig = weaponItem.ResolveWeaponConfig();
+            if (weaponConfig == null)
+            {
+                Debug.LogWarning($"WeaponSystem: Weapon config missing for item {weaponItem.Name} (itemId={weaponItem.Id}).");
+                continue;
+            }
+
+            var weaponPrefab = weaponConfig.WeaponPrefab;
+            if (weaponPrefab == null)
             {
                 Debug.LogWarning($"WeaponSystem: Weapon prefab missing for item {weaponItem.Name}.");
                 continue;
             }
 
-            var weaponObj = Object.Instantiate(weaponItem.WeaponPrefab, weaponRoot);
+            var weaponObj = Object.Instantiate(weaponPrefab, weaponRoot);
             weaponObj.transform.localPosition = Vector3.zero;
             weaponObj.transform.localRotation = Quaternion.identity;
             weaponObj.transform.SetLayerRecursively(weaponRoot.gameObject.layer);
@@ -95,25 +112,26 @@ public class WeaponSystem : AbstractSystem
             var weapon = weaponObj.GetComponent<WeaponBase>();
             if (weapon != null)
             {
-                if (weapon.Config == null && weaponItem.WeaponConfig != null)
+                if (weapon.Config == null)
                 {
-                    weapon.Config = weaponItem.WeaponConfig;
+                    weapon.Config = weaponConfig;
                 }
 
                 RegisterWeaponInstance(weapon);
                 CreateOrReplaceViewModelReplica(entryWeaponId: weapon.Config != null ? weapon.Config.WeaponID : 0,
-                    sourcePrefab: weaponItem.WeaponPrefab,
+                    sourcePrefab: weaponPrefab,
                     viewModelWeaponRoot: viewModelWeaponRoot);
                 instantiatedWeapons.Add(weapon);
                 weapon.gameObject.SetActive(false);
             }
             else
             {
-                Debug.LogWarning($"Prefab {weaponItem.WeaponPrefab.name} does not contain a WeaponBase component.");
+                Debug.LogWarning($"Prefab {weaponPrefab.name} does not contain a WeaponBase component.");
                 Object.Destroy(weaponObj);
             }
         }
 
+        EnsureUnarmedWeaponRegistered(weaponRoot);
         EquipInitialWeapon();
     }
 
@@ -125,6 +143,7 @@ public class WeaponSystem : AbstractSystem
             return;
         }
 
+        runtimeWeaponRoot = weaponRoot;
         ClearInstantiatedWeapons();
         weaponInventoryModel.ClearSlots();
 
@@ -154,6 +173,7 @@ public class WeaponSystem : AbstractSystem
             }
         }
 
+        EnsureUnarmedWeaponRegistered(weaponRoot);
         EquipInitialWeapon();
     }
 
@@ -208,7 +228,20 @@ public class WeaponSystem : AbstractSystem
         if (currentSlot != null && weaponInstances.TryGetValue(currentSlot.WeaponId, out var weapon))
         {
             weapon.TryAttack();
+            return;
         }
+
+        TryUnarmedAttack();
+    }
+
+    public void TryUnarmedAttack()
+    {
+        if (unarmedWeaponInstance == null)
+        {
+            EnsureUnarmedWeaponRegistered(runtimeWeaponRoot);
+        }
+
+        unarmedWeaponInstance?.TryAttack();
     }
 
     public void ReloadCurrentWeapon()
@@ -275,10 +308,30 @@ public class WeaponSystem : AbstractSystem
         return fireDir;
     }
 
+    public LayerMask GetPlayerDamageHitLayers()
+    {
+        var config = GameSettingManager.Instance?.Config;
+        return config != null ? config.PlayerDamageHitLayers : Physics.DefaultRaycastLayers;
+    }
+
+    public int GetPlayerDamageHitMaskValue()
+    {
+        return GetPlayerDamageHitLayers().value;
+    }
+
     public bool EquipInitialWeapon()
     {
         if (weaponInventoryModel.CurrentSlot == null)
         {
+            int unarmedWeaponId = unarmedWeaponInstance != null && unarmedWeaponInstance.Config != null
+                ? unarmedWeaponInstance.Config.WeaponID
+                : 0;
+            if (unarmedWeaponId != 0 && weaponInventoryModel.TryGetSlotById(unarmedWeaponId, out var unarmedSlot))
+            {
+                HandleSwitch(unarmedSlot, null);
+                return true;
+            }
+
             Debug.LogWarning("EquipInitialWeapon: 无可用武器");
             this.SendEvent(new EventPlayerChangeWeapon
             {
@@ -362,6 +415,7 @@ public class WeaponSystem : AbstractSystem
 
         instantiatedWeapons.Clear();
         weaponInstances.Clear();
+        unarmedWeaponInstance = null;
 
         foreach (var vm in weaponViewModelInstances.Values)
         {
@@ -370,6 +424,135 @@ public class WeaponSystem : AbstractSystem
         }
 
         weaponViewModelInstances.Clear();
+    }
+
+    private void EnsureUnarmedWeaponRegistered(Transform weaponRoot)
+    {
+        if (weaponRoot == null)
+        {
+            return;
+        }
+
+        if (unarmedWeaponInstance != null)
+        {
+            return;
+        }
+
+        if (unarmedWeaponConfig == null)
+        {
+            unarmedWeaponConfig = LoadOrCreateRuntimeUnarmedConfig();
+        }
+
+        if (unarmedWeaponConfig == null)
+        {
+            return;
+        }
+
+        var unarmedObj = new GameObject(UnarmedWeaponName);
+        unarmedObj.transform.SetParent(weaponRoot, false);
+        unarmedObj.transform.localPosition = Vector3.zero;
+        unarmedObj.transform.localRotation = Quaternion.identity;
+        unarmedObj.transform.localScale = Vector3.one;
+        unarmedObj.transform.SetLayerRecursively(weaponRoot.gameObject.layer);
+
+        var unarmedWeapon = unarmedObj.AddComponent<MeleeWeapon>();
+        unarmedWeapon.Config = unarmedWeaponConfig;
+
+        if (!RegisterWeaponInstance(unarmedWeapon))
+        {
+            Object.Destroy(unarmedObj);
+            return;
+        }
+
+        unarmedWeaponInstance = unarmedWeapon;
+        if (!instantiatedWeapons.Contains(unarmedWeapon))
+        {
+            instantiatedWeapons.Add(unarmedWeapon);
+        }
+
+        unarmedObj.SetActive(false);
+    }
+
+    private SOMeleeConfig LoadOrCreateRuntimeUnarmedConfig()
+    {
+        var loadedConfig = LoadUnarmedConfigByResLoader();
+        if (loadedConfig != null)
+        {
+            var runtimeConfig = Object.Instantiate(loadedConfig);
+            resLoader?.UnloadSync(loadedConfig);
+            runtimeConfig.name = $"{loadedConfig.name}_Runtime";
+            runtimeConfig.WeaponType = WeaponType.Melee;
+            runtimeConfig.WeaponName = string.IsNullOrWhiteSpace(runtimeConfig.WeaponName)
+                ? UnarmedWeaponName
+                : runtimeConfig.WeaponName;
+            runtimeConfig.isUnarmedWeapon = true;
+
+            int preferredId = runtimeConfig.WeaponID != 0 ? runtimeConfig.WeaponID : PreferredUnarmedWeaponId;
+            runtimeConfig.WeaponID = AllocateUniqueWeaponId(preferredId);
+            return runtimeConfig;
+        }
+
+        Debug.LogWarning($"WeaponSystem: Failed to load unarmed melee config by IResLoader (keys: '{UnarmedWeaponResKey}'), using runtime default.");
+        return CreateRuntimeUnarmedConfig();
+    }
+
+    private SOMeleeConfig LoadUnarmedConfigByResLoader()
+    {
+        if (resLoader == null)
+        {
+            resLoader = this.GetUtility<IResLoader>();
+        }
+
+        if (resLoader == null)
+        {
+            return null;
+        }
+
+        var byResKey = resLoader.LoadSync<SOMeleeConfig>(UnarmedWeaponResKey);
+        if (byResKey != null)
+        {
+            return byResKey;
+        }
+
+        Debug.LogError("LoadUnarmedConfigByResLoader is null");
+
+        return null;
+    }
+
+    private int AllocateUniqueWeaponId(int preferredId)
+    {
+        int candidate = preferredId;
+        if (candidate == 0)
+        {
+            candidate = PreferredUnarmedWeaponId;
+        }
+
+        while (candidate == 0 || weaponInstances.ContainsKey(candidate))
+        {
+            candidate--;
+        }
+
+        return candidate;
+    }
+
+    private SOMeleeConfig CreateRuntimeUnarmedConfig()
+    {
+        var config = ScriptableObject.CreateInstance<SOMeleeConfig>();
+        config.WeaponID = AllocateUniqueWeaponId(PreferredUnarmedWeaponId);
+        config.WeaponName = UnarmedWeaponName;
+        config.WeaponType = WeaponType.Melee;
+        config.Discription = "Default unarmed fist attack.";
+        config.WeaponPrefab = null;
+
+        config.moveSpeedMultiplier = 1f;
+        config.runSpeedMultiplier = 1f;
+        config.impactEffect = null;
+        config.damage = 12f;
+        config.range = 1.6f;
+        config.radius = 0.2f;
+        config.attackInterval = 0.5f;
+        config.isUnarmedWeapon = true;
+        return config;
     }
 
     private void CreateOrReplaceViewModelReplica(int entryWeaponId, GameObject sourcePrefab, Transform viewModelWeaponRoot)

@@ -21,11 +21,11 @@ public class BulletManager : AbstractSystem, IUpdateSystem
     }
 
     // 创建新子弹
-    public GOBullet Spawn(Vector3 pos, Vector3 dir,FirearmWeapon firearmWeapon)
+    public GOBullet Spawn(Vector3 pos, Vector3 dir, FirearmWeapon firearmWeapon, int hitMask)
     {
         var b = bulletPool.Get();
 
-        b.Init(pos, dir,9.8f, firearmWeapon);
+        b.Init(pos, dir, 9.8f, firearmWeapon, hitMask);
         bullets.Add(b);
         return b;
     }

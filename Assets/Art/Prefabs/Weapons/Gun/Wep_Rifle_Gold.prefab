@@ -176,7 +176,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5762172875730207252}
   m_Layer: 0
-  m_Name: LeftHandGrap
+  m_Name: LeftHandGrip
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -407,7 +407,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2653937462835706490}
   - component: {fileID: 5465327262811261368}
-  - component: {fileID: 2143826732451489074}
   m_Layer: 0
   m_Name: Wep_Rifle_Gold
   m_TagString: Untagged
@@ -450,30 +449,6 @@ MonoBehaviour:
   FirePos: {fileID: 4492671942004587215}
   verticalRecoilMul: 1
   horizontalRecoilMul: 1
---- !u!114 &2143826732451489074
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8151882401571984160}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e3d0bf76ab6f4ce4383c0476fe7fc2d6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  EnableHandIK: 1
-  EnableLeftHandIK: 1
-  EnableRightHandIK: 1
-  LeftHandIKTarget: {fileID: 5762172875730207252}
-  RightHandIKTarget: {fileID: 1006526053803618019}
-  EnableElbowIK: 1
-  EnableLeftElbowIK: 1
-  EnableRightElbowIK: 1
-  LeftElbowHintLocalPosition: {x: -0.059, y: -0.344, z: 0.258}
-  LeftElbowHintLocalEulerAngles: {x: 0, y: 0, z: 0}
-  RightElbowHintLocalPosition: {x: 0.372, y: -0.478, z: 0.195}
-  RightElbowHintLocalEulerAngles: {x: 0, y: 0, z: 0}
 --- !u!1 &8682240858827704170
 GameObject:
   m_ObjectHideFlags: 0
@@ -484,7 +459,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1006526053803618019}
   m_Layer: 0
-  m_Name: RightHandGrap
+  m_Name: RightHandGrip
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

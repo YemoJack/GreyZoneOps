@@ -74,12 +74,8 @@ public partial class PlayerSystem : AbstractSystem, IUpdateSystem, ICanSendComma
         }
 
         var currentWeapon = weaponSystem.GetCurrentWeapon();
-        if (currentWeapon == null || currentWeapon.Config == null)
-        {
-            return;
-        }
-
-        if (currentWeapon.Config.WeaponType == WeaponType.Firearm)
+        bool hasWeapon = currentWeapon != null && currentWeapon.Config != null;
+        if (hasWeapon && currentWeapon.Config.WeaponType == WeaponType.Firearm)
         {
             FirearmWeapon firearmWeapon = currentWeapon as FirearmWeapon;
             if (firearmWeapon != null && inputSys.FireModeSwitchPressed)
@@ -100,6 +96,11 @@ public partial class PlayerSystem : AbstractSystem, IUpdateSystem, ICanSendComma
             {
                 this.SendCommand<CmdReloadWeapon>();
             }
+        }
+        else if (inputSys.FirePressed)
+        {
+            // Melee weapon or unarmed state (no weapon) both use a unified attack command.
+            this.SendCommand<CmdStartAttack>();
         }
 
 

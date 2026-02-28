@@ -38,6 +38,14 @@ public struct EventWeaponReloadFinished
     public Vector3 Position;
 }
 
+public struct EventMeleeAttack
+{
+    public int WeaponId;
+    public string WeaponName;
+    public Vector3 Position;
+    public bool IsUnarmed;
+}
+
 public struct EventGunshotNoiseEmitted
 {
     public int WeaponId;

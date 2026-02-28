@@ -9,7 +9,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/2/26 18:02:36",
+    "PackageNote": "2026/2/28 9:40:41",
     "AssetList": [
         {
             "Address": "Horror1",
@@ -100,16 +100,24 @@
             "DependBundleIDs": []
         },
         {
-            "Address": "Test_Gun_1",
-            "AssetPath": "Assets/Art/Data/WeaponConfig/Test_Gun_1.asset",
+            "Address": "Melee_Unarmed",
+            "AssetPath": "Assets/Art/Data/WeaponConfig/Melee_Unarmed.asset",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 5,
             "DependBundleIDs": []
         },
         {
-            "Address": "Test_Gun_2",
-            "AssetPath": "Assets/Art/Data/WeaponConfig/Test_Gun_2.asset",
+            "Address": "Weapon_10",
+            "AssetPath": "Assets/Art/Data/WeaponConfig/Weapon_10.asset",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 5,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "Weapon_9",
+            "AssetPath": "Assets/Art/Data/WeaponConfig/Weapon_9.asset",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 5,
@@ -536,7 +544,7 @@
             "UnityCRC": 0,
             "FileHash": "3f6cf7c1dfd4f024dad533de8070359c",
             "FileCRC": 0,
-            "FileSize": 5751,
+            "FileSize": 4481,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -556,7 +564,7 @@
             "UnityCRC": 0,
             "FileHash": "b4c9295c468bf5e3ac4fc1f36149b17d",
             "FileCRC": 0,
-            "FileSize": 3572,
+            "FileSize": 5096,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -696,7 +704,7 @@
             "UnityCRC": 0,
             "FileHash": "3089bbe9444ba4cbc77f6c86cf364599",
             "FileCRC": 0,
-            "FileSize": 88789,
+            "FileSize": 89006,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -736,7 +744,7 @@
             "UnityCRC": 0,
             "FileHash": "bf6d2980ba828e54df65c3659a6b4aa2",
             "FileCRC": 0,
-            "FileSize": 30735,
+            "FileSize": 28970,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

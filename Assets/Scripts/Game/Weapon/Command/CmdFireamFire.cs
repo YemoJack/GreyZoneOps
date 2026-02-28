@@ -46,9 +46,13 @@ public class CmdFireamFire : AbstractCommand
     void FireByDistance()
     {
         Vector3 dir = forward.normalized;
+        var weaponSystem = this.GetSystem<WeaponSystem>();
+        int hitMask = weaponSystem != null
+            ? weaponSystem.GetPlayerDamageHitMaskValue()
+            : Physics.DefaultRaycastLayers;
 
         // 1. 优势射程内 → hitscan 优先
-        if (Physics.Raycast(startPos, dir, out var hit, firearmConfig.range))
+        if (Physics.Raycast(startPos, dir, out var hit, firearmConfig.range, hitMask, QueryTriggerInteraction.Ignore))
         {
             // 立即命中
             weapon.OnHitTarget(hit);
@@ -59,18 +63,18 @@ public class CmdFireamFire : AbstractCommand
         }
 
         // 2. 射线未命中 → 实体子弹从枪口飞出去
-        SpawnBullet(startPos, dir);
+        SpawnBullet(startPos, dir, hitMask);
     }
 
 
-    private void SpawnBullet(Vector3 start, Vector3 dir)
+    private void SpawnBullet(Vector3 start, Vector3 dir, int hitMask)
     {
         if(bulletManager == null)
         {
             bulletManager = this.GetSystem<BulletManager>();
         }
         // 实体子弹应当从真实枪口飞出去，不是从“range 后面”生成
-        bulletManager.Spawn(start, dir, weapon);
+        bulletManager.Spawn(start, dir, weapon, hitMask);
     }
 
 }

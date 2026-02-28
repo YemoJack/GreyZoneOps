@@ -55,9 +55,10 @@ public class CmdDropItem : AbstractCommand
 
     private async void SpawnFallbackWorldItem(Vector3 pos)
     {
-        if (_item.Definition.WeaponPrefab != null)
+        var weaponPrefab = _item.Definition.ResolveWeaponPrefab();
+        if (weaponPrefab != null)
         {
-            SpawnWorldItemFromPrefab(_item.Definition.WeaponPrefab, pos, "DroppedWeapon");
+            SpawnWorldItemFromPrefab(weaponPrefab, pos, "DroppedWeapon");
             return;
         }
 

@@ -17,16 +17,16 @@ public class VMHandsIKDriver : MonoBehaviour, IController
     [Range(0f, 1f)] public float RightHandRotationWeight = 1f;
 
     [Header("Elbow Hints (Optional)")]
-    [Tooltip("Used as fallback when the equipped weapon has no WeaponElbowIKConfig component.")]
+    [Tooltip("Used by firearm IK config.")]
     public Transform LeftElbowHint;
-    [Tooltip("Used as fallback when the equipped weapon has no WeaponElbowIKConfig component.")]
+    [Tooltip("Used by firearm IK config.")]
     public Transform RightElbowHint;
 
     private WeaponSystem weaponSystem;
     private WeaponBase cachedWeapon;
     private Transform cachedLeftGrip;
     private Transform cachedRightGrip;
-    private WeaponElbowIKConfig cachedWeaponElbowIKConfig;
+    private SOFirearmConfig cachedFirearmConfig;
     private bool cachedUseLeftHandGripIK;
     private bool cachedUseRightHandGripIK;
     private Transform cachedLeftElbowHint;
@@ -106,7 +106,7 @@ public class VMHandsIKDriver : MonoBehaviour, IController
         cachedWeapon = weapon;
         cachedLeftGrip = null;
         cachedRightGrip = null;
-        cachedWeaponElbowIKConfig = null;
+        cachedFirearmConfig = null;
         cachedUseLeftHandGripIK = false;
         cachedUseRightHandGripIK = false;
         cachedLeftElbowHint = null;
@@ -125,7 +125,7 @@ public class VMHandsIKDriver : MonoBehaviour, IController
             return;
         }
 
-        cachedWeaponElbowIKConfig = root.GetComponent<WeaponElbowIKConfig>();
+        cachedFirearmConfig = cachedWeapon.Config as SOFirearmConfig;
         CacheHandIKTargets(root);
         CacheElbowHintTargets(root);
     }
@@ -137,28 +137,21 @@ public class VMHandsIKDriver : MonoBehaviour, IController
             return;
         }
 
-        if (cachedWeaponElbowIKConfig != null)
+        if (cachedFirearmConfig == null || !cachedFirearmConfig.EnableHandIK)
         {
-            if (cachedWeaponElbowIKConfig.EnableHandIK)
-            {
-                cachedUseLeftHandGripIK = cachedWeaponElbowIKConfig.EnableLeftHandIK;
-                cachedUseRightHandGripIK = cachedWeaponElbowIKConfig.EnableRightHandIK;
-                cachedLeftGrip = cachedWeaponElbowIKConfig.LeftHandIKTarget != null
-                    ? cachedWeaponElbowIKConfig.LeftHandIKTarget
-                    : weaponRoot.GetChild(DefaultLeftHandGripName);
-                cachedRightGrip = cachedWeaponElbowIKConfig.RightHandIKTarget != null
-                    ? cachedWeaponElbowIKConfig.RightHandIKTarget
-                    : weaponRoot.GetChild(DefaultRightHandGripName);
-            }
-
             return;
         }
 
-        // Backward-compatible fallback: auto left-hand IK on, right-hand IK off.
-        cachedUseLeftHandGripIK = true;
-        cachedUseRightHandGripIK = false;
-        cachedLeftGrip = weaponRoot.GetChild(DefaultLeftHandGripName);
-        cachedRightGrip = weaponRoot.GetChild(DefaultRightHandGripName);
+        cachedUseLeftHandGripIK = cachedFirearmConfig.EnableLeftHandIK;
+        cachedUseRightHandGripIK = cachedFirearmConfig.EnableRightHandIK;
+        cachedLeftGrip = ResolveGripTarget(
+            weaponRoot,
+            cachedFirearmConfig.LeftHandIKTargetName,
+            DefaultLeftHandGripName);
+        cachedRightGrip = ResolveGripTarget(
+            weaponRoot,
+            cachedFirearmConfig.RightHandIKTargetName,
+            DefaultRightHandGripName);
     }
 
     private void CacheElbowHintTargets(Transform weaponRoot)
@@ -168,29 +161,20 @@ public class VMHandsIKDriver : MonoBehaviour, IController
             return;
         }
 
-        if (cachedWeaponElbowIKConfig != null)
+        if (cachedFirearmConfig == null || !cachedFirearmConfig.EnableElbowIK)
         {
-            if (cachedWeaponElbowIKConfig.EnableElbowIK)
-            {
-                cachedUseLeftElbowIK = cachedWeaponElbowIKConfig.EnableLeftElbowIK;
-                cachedUseRightElbowIK = cachedWeaponElbowIKConfig.EnableRightElbowIK;
-                cachedLeftElbowHint = LeftElbowHint;
-                cachedRightElbowHint = RightElbowHint;
-            }
-
             return;
         }
 
-        // Backward-compatible fallback: if no per-weapon config exists, use driver-level hint references.
-        cachedUseLeftElbowIK = LeftElbowHint != null;
-        cachedUseRightElbowIK = RightElbowHint != null;
+        cachedUseLeftElbowIK = cachedFirearmConfig.EnableLeftElbowIK;
+        cachedUseRightElbowIK = cachedFirearmConfig.EnableRightElbowIK;
         cachedLeftElbowHint = LeftElbowHint;
         cachedRightElbowHint = RightElbowHint;
     }
 
     private void UpdateDriverElbowHintTransforms(bool hasWeaponEquipped)
     {
-        if (!hasWeaponEquipped || cachedWeapon == null || cachedWeaponElbowIKConfig == null || !cachedWeaponElbowIKConfig.EnableElbowIK)
+        if (!hasWeaponEquipped || cachedWeapon == null || cachedFirearmConfig == null || !cachedFirearmConfig.EnableElbowIK)
         {
             return;
         }
@@ -206,8 +190,8 @@ public class VMHandsIKDriver : MonoBehaviour, IController
             ApplyWeaponRelativeHintPose(
                 LeftElbowHint,
                 weaponRoot,
-                cachedWeaponElbowIKConfig.LeftElbowHintLocalPosition,
-                cachedWeaponElbowIKConfig.LeftElbowHintLocalEulerAngles);
+                cachedFirearmConfig.LeftElbowHintLocalPosition,
+                cachedFirearmConfig.LeftElbowHintLocalEulerAngles);
         }
 
         if (cachedUseRightElbowIK && RightElbowHint != null)
@@ -215,9 +199,33 @@ public class VMHandsIKDriver : MonoBehaviour, IController
             ApplyWeaponRelativeHintPose(
                 RightElbowHint,
                 weaponRoot,
-                cachedWeaponElbowIKConfig.RightElbowHintLocalPosition,
-                cachedWeaponElbowIKConfig.RightElbowHintLocalEulerAngles);
+                cachedFirearmConfig.RightElbowHintLocalPosition,
+                cachedFirearmConfig.RightElbowHintLocalEulerAngles);
         }
+    }
+
+    private static Transform ResolveGripTarget(Transform weaponRoot, string configuredTargetName, string fallbackTargetName)
+    {
+        if (weaponRoot == null)
+        {
+            return null;
+        }
+
+        if (!string.IsNullOrWhiteSpace(configuredTargetName))
+        {
+            var configuredTarget = weaponRoot.GetChild(configuredTargetName);
+            if (configuredTarget != null)
+            {
+                return configuredTarget;
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(fallbackTargetName))
+        {
+            return null;
+        }
+
+        return weaponRoot.GetChild(fallbackTargetName);
     }
 
     private static void ApplyWeaponRelativeHintPose(Transform runtimeHint, Transform weaponRoot, Vector3 localPosition, Vector3 localEulerAngles)

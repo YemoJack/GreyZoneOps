@@ -24,15 +24,19 @@ public class VMHandsAnimatorDriver : MonoBehaviour, IController
 
     private static readonly int MoveSpeedHash = Animator.StringToHash("moveSpeed");
     private static readonly int IsSprintHash = Animator.StringToHash("isSprint");
+    private static readonly int IsGunHash = Animator.StringToHash("isGun");
+    private static readonly int MeleeAttackTriggerHash = Animator.StringToHash("meleeAttack");
     private static readonly int PoseIdHash = Animator.StringToHash("poseId");
     private static readonly int ActionIdHash = Animator.StringToHash("actionId");
     private static readonly int ActionTriggerBoolHash = Animator.StringToHash("actionTrigger");
 
     private IUnRegister moveStateUnregister;
     private IUnRegister aimStateUnregister;
+    private IUnRegister weaponChangedUnregister;
     private IUnRegister weaponFiredUnregister;
     private IUnRegister reloadStartedUnregister;
     private IUnRegister dryFireUnregister;
+    private IUnRegister meleeAttackUnregister;
 
     private bool clearActionTriggerNextFrame;
 
@@ -46,9 +50,12 @@ public class VMHandsAnimatorDriver : MonoBehaviour, IController
     {
         moveStateUnregister = this.RegisterEvent<EventPlayerChangeMoveState>(OnMoveStateChanged);
         aimStateUnregister = this.RegisterEvent<EventFirearmAimChanged>(OnAimStateChanged);
+        weaponChangedUnregister = this.RegisterEvent<EventPlayerChangeWeapon>(OnWeaponChanged);
         weaponFiredUnregister = this.RegisterEvent<EventWeaponFired>(OnWeaponFired);
         reloadStartedUnregister = this.RegisterEvent<EventWeaponReloadStarted>(OnWeaponReloadStarted);
         dryFireUnregister = this.RegisterEvent<EventWeaponDryFire>(OnWeaponDryFire);
+        meleeAttackUnregister = this.RegisterEvent<EventMeleeAttack>(OnMeleeAttack);
+        SyncWeaponIdleState();
     }
 
     private void OnDisable()
@@ -57,12 +64,16 @@ public class VMHandsAnimatorDriver : MonoBehaviour, IController
         moveStateUnregister = null;
         aimStateUnregister?.UnRegister();
         aimStateUnregister = null;
+        weaponChangedUnregister?.UnRegister();
+        weaponChangedUnregister = null;
         weaponFiredUnregister?.UnRegister();
         weaponFiredUnregister = null;
         reloadStartedUnregister?.UnRegister();
         reloadStartedUnregister = null;
         dryFireUnregister?.UnRegister();
         dryFireUnregister = null;
+        meleeAttackUnregister?.UnRegister();
+        meleeAttackUnregister = null;
 
         if (HandsAnimator != null)
         {
@@ -109,9 +120,39 @@ public class VMHandsAnimatorDriver : MonoBehaviour, IController
 
         HandsAnimator.SetFloat(MoveSpeedHash, IdleMoveSpeed);
         HandsAnimator.SetBool(IsSprintHash, false);
+        HandsAnimator.SetBool(IsGunHash, false);
         HandsAnimator.SetInteger(PoseIdHash, DefaultPoseId);
         HandsAnimator.SetInteger(ActionIdHash, 0);
         HandsAnimator.SetBool(ActionTriggerBoolHash, false);
+    }
+
+    private void OnWeaponChanged(EventPlayerChangeWeapon evt)
+    {
+        if (HandsAnimator == null)
+        {
+            return;
+        }
+
+        ApplyIsGunByWeapon(evt.WeaponInstance);
+    }
+
+    private void SyncWeaponIdleState()
+    {
+        if (HandsAnimator == null)
+        {
+            return;
+        }
+
+        var weaponSystem = this.GetSystem<WeaponSystem>();
+        ApplyIsGunByWeapon(weaponSystem != null ? weaponSystem.GetCurrentWeapon() : null);
+    }
+
+    private void ApplyIsGunByWeapon(WeaponBase weapon)
+    {
+        var isGun = weapon != null
+            && weapon.Config != null
+            && weapon.Config.WeaponType == WeaponType.Firearm;
+        HandsAnimator.SetBool(IsGunHash, isGun);
     }
 
     private void OnMoveStateChanged(EventPlayerChangeMoveState evt)
@@ -166,6 +207,16 @@ public class VMHandsAnimatorDriver : MonoBehaviour, IController
     private void OnWeaponDryFire(EventWeaponDryFire evt)
     {
         PlayAction(DryFireActionId);
+    }
+
+    private void OnMeleeAttack(EventMeleeAttack evt)
+    {
+        if (HandsAnimator == null)
+        {
+            return;
+        }
+
+        HandsAnimator.SetTrigger(MeleeAttackTriggerHash);
     }
 
     private void PlayAction(int actionId)

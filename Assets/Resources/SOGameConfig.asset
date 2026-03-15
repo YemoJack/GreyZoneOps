@@ -52,7 +52,7 @@ MonoBehaviour:
   DefaultDoorClosePrompt: Close
   ItemQualityColors:
   - Quality: 0
-    Color: {r: 0.86415094, g: 0.86415094, b: 0.86415094, a: 0.7058824}
+    Color: {r: 0.78113204, g: 0.78113204, b: 0.78113204, a: 0.7058824}
   - Quality: 1
     Color: {r: 0, g: 0.5245282, b: 0.020896569, a: 0.7058824}
   - Quality: 2
@@ -66,8 +66,6 @@ MonoBehaviour:
   DraggingItemAlpha: 0.8
   InventoryHighlightColor: {r: 0.58234185, g: 1, b: 0.2980392, a: 0.78431374}
   InventoryWarningColor: {r: 1, g: 0.24443643, b: 0.19999999, a: 0.78431374}
-  ItemCatalog: {fileID: 11400000, guid: d4c3499b750464b4d88657cb3e39b32f, type: 2}
-  ContainerCatalog: {fileID: 11400000, guid: 4e324b66921bf594a948b01904077455, type: 2}
   DefaultMapId: 0
   AudioCatalog: {fileID: 11400000, guid: c32d081980045eb4f8924ca8e6f0cbfa, type: 2}
   DefaultMasterVolume: 1

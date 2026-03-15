@@ -11,41 +11,59 @@ public class GeneratorWindowTool : Editor
 {
 
     static Dictionary<string, string> methodDic = new Dictionary<string, string>();
-    [MenuItem("GameObject/生成Window脚本(Shift+V) #V", false, 0)]
+
+    [MenuItem("GameObject/一键生成UI脚本(Shift+V) #V", false, 0)]
     static void CreateFindComponentScripts()
     {
-        GameObject obj = Selection.objects.First() as GameObject;//获取到当前选择的物体
-        if (obj == null)
+        if (GeneratorBindComponentTool.TryGetSelectedGameObject(out GameObject obj) == false)
         {
-            Debug.LogError("需要选择 GameObject");
             return;
         }
 
-
-        //设置脚本生成路径
-        if (!Directory.Exists(UISetting.Instance.WindowGeneratorPath))
+        if (GeneratorBindComponentTool.GenerateBindComponentScript(obj, false) == false)
         {
-            Directory.CreateDirectory(UISetting.Instance.WindowGeneratorPath);
+            return;
+        }
+
+        string csContnet = CreateWindoCs(obj.name);
+        string cspath = GetWindowScriptPath(obj.name);
+        Debug.Log("CsConent:\n" + csContnet);
+        UIWindowEditor.SaveScript(csContnet, cspath, methodDic);
+        AssetDatabase.Refresh();
+        Debug.Log("Create Code finish! Bind path:" + GeneratorBindComponentTool.GetBindComponentScriptPath(obj.name) + " Window path:" + cspath);
+    }
+
+    [MenuItem("GameObject/预览Window脚本", false, 1)]
+    static void PreviewWindowScripts()
+    {
+        if (GeneratorBindComponentTool.TryGetSelectedGameObject(out GameObject obj) == false)
+        {
+            return;
+        }
+
+        if (GeneratorBindComponentTool.PrepareWindowObjectData(obj) == false)
+        {
+            return;
         }
 
         //生成CS脚本
         string csContnet = CreateWindoCs(obj.name);
 
         Debug.Log("CsConent:\n" + csContnet);
-        string cspath = UISetting.Instance.WindowGeneratorPath + "/" + obj.name + ".cs";
+        string cspath = GetWindowScriptPath(obj.name);
         UIWindowEditor.ShowWindow(csContnet, cspath, methodDic);
-        //////生成脚本文件
-        //if (File.Exists(cspath))
-        //{
-        //    File.Delete(cspath);
-        //}
-        //StreamWriter writer = File.CreateText(cspath);
-        //writer.Write(csContnet);
-        //writer.Close();
-        //AssetDatabase.Refresh();
-        //Debug.Log("cspath:" + cspath);
-
     }
+
+    private static string GetWindowScriptPath(string windowName)
+    {
+        if (!Directory.Exists(UISetting.Instance.WindowGeneratorPath))
+        {
+            Directory.CreateDirectory(UISetting.Instance.WindowGeneratorPath);
+        }
+
+        return Path.Combine(UISetting.Instance.WindowGeneratorPath, windowName + ".cs");
+    }
+
     /// <summary>
     /// 生成Window脚本
     /// </summary>
@@ -55,7 +73,9 @@ public class GeneratorWindowTool : Editor
     {
         //储存字段名称
         string datalistJson = PlayerPrefs.GetString(GeneratorConfig.OBJDATALIST_KEY);
-        List<EditorObjectData> objDatalist = JsonConvert.DeserializeObject<List<EditorObjectData>>(datalistJson);
+        List<EditorObjectData> objDatalist = string.IsNullOrEmpty(datalistJson)
+            ? new List<EditorObjectData>()
+            : JsonConvert.DeserializeObject<List<EditorObjectData>>(datalistJson) ?? new List<EditorObjectData>();
         methodDic.Clear();
         StringBuilder sb = new StringBuilder();
 

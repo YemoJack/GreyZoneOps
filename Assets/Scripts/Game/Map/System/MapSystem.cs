@@ -432,13 +432,11 @@ public class MapSystem : AbstractSystem, IUpdateSystem
 
     private void SpawnFromMapDefinition(InventoryContainerModel model, SOMapDefinition definition)
     {
-        var containerCatalog = GameSettingManager.Instance?.Config?.ContainerCatalog;
-
         foreach (var entry in definition.sceneContainers)
         {
             if (entry == null || entry.prefab == null) continue;
 
-            var container = ResolveContainer(model, entry, containerCatalog);
+            var container = ResolveContainer(model, entry);
             var pos = entry.position;
             var rot = Quaternion.Euler(entry.rotationEuler);
             var instance = Object.Instantiate(entry.prefab, pos, rot, null);
@@ -470,12 +468,11 @@ public class MapSystem : AbstractSystem, IUpdateSystem
 
     private static InventoryContainer ResolveContainer(
         InventoryContainerModel model,
-        SceneContainerSpawnConfig entry,
-        SOContainerCatalog containerCatalog)
+        SceneContainerSpawnConfig entry)
     {
         if (model == null || entry == null) return null;
 
-        var containerConfig = entry.ResolveContainerConfig(containerCatalog);
+        var containerConfig = entry.ResolveContainerConfig();
         if (containerConfig != null)
         {
             return model.EnsureContainer(containerConfig);

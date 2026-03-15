@@ -11,6 +11,7 @@ public class UIWindowEditor : EditorWindow
     private string filePath;
     private Vector2 scroll = new Vector2();
     private Dictionary<string, string> mMethodDic = new Dictionary<string, string>();
+
     /// <summary>
     /// 显示代码展示窗口
     /// </summary>
@@ -18,38 +19,66 @@ public class UIWindowEditor : EditorWindow
     {
         //创建代码展示窗口
         UIWindowEditor window = (UIWindowEditor)GetWindowWithRect(typeof(UIWindowEditor), new Rect(100, 50, 800, 700), false, "Window生成界面");
-        window.scriptContent = content;
+        window.scriptContent = BuildScriptContent(content, filePath, insterDic);
         window.filePath = filePath;
         //处理代码新增
         window.mMethodDic = insterDic;
-        string originScript = string.Empty;
-        bool isInsterSuccess = false;
-        if (File.Exists(window.filePath)&&insterDic!=null)
-        {
-            originScript = File.ReadAllText(window.filePath);
-            if (string.IsNullOrEmpty(originScript) == false)
-            {
-                foreach (var item in insterDic)
-                {
-                    if (!originScript.Contains(item.Key))
-                    {
-                        int insterIndex = window.GetInserIndex(originScript);
-                        //插入新增的数据
-                        originScript = window.scriptContent = originScript.Insert(insterIndex, item.Value + "\t\t");
-                        isInsterSuccess = true;
-                    }
-                }
-            }
-            if (isInsterSuccess == false)
-            {
-                window.scriptContent = originScript;
-            }
-        }
-
-        originScript = null;
-        insterDic = null;
         window.Show();
     }
+
+    public static string BuildScriptContent(string content, string filePath, Dictionary<string, string> insterDic = null)
+    {
+        if (File.Exists(filePath) == false || insterDic == null)
+        {
+            return content;
+        }
+
+        string originScript = File.ReadAllText(filePath);
+        if (string.IsNullOrEmpty(originScript))
+        {
+            return content;
+        }
+
+        bool isInsterSuccess = false;
+        UIWindowEditor helper = CreateInstance<UIWindowEditor>();
+        foreach (var item in insterDic)
+        {
+            if (originScript.Contains(item.Key))
+            {
+                continue;
+            }
+
+            int insterIndex = helper.GetInserIndex(originScript);
+            if (insterIndex < 0)
+            {
+                insterIndex = helper.GetClassInsertIndex(originScript);
+                if (insterIndex < 0)
+                {
+                    continue;
+                }
+            }
+
+            //插入新增的数据
+            originScript = originScript.Insert(insterIndex, item.Value + "\t\t");
+            isInsterSuccess = true;
+        }
+
+        DestroyImmediate(helper);
+        return isInsterSuccess ? originScript : originScript;
+    }
+
+    public static void SaveScript(string content, string filePath, Dictionary<string, string> insterDic = null)
+    {
+        string script = BuildScriptContent(content, filePath, insterDic);
+        string directory = Path.GetDirectoryName(filePath);
+        if (string.IsNullOrEmpty(directory) == false && Directory.Exists(directory) == false)
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        File.WriteAllText(filePath, script);
+    }
+
     public void OnGUI()
     {
         //绘制ScroView
@@ -93,13 +122,7 @@ public class UIWindowEditor : EditorWindow
     }
     public void ButtonClick()
     {
-
-        if (File.Exists(filePath))
-            File.Delete(filePath);
-        StreamWriter writer = File.CreateText(filePath);
-        writer.Write(scriptContent);
-        writer.Close();
-        writer.Dispose();
+        SaveScript(scriptContent, filePath);
         mMethodDic = null;
         scriptContent = string.Empty;
          
@@ -120,6 +143,11 @@ public class UIWindowEditor : EditorWindow
         //找到UI事件组件下面的第一个public 所在的位置 进行插入
         Regex regex = new Regex("UI组件事件");
         Match match = regex.Match(content);
+        if (match.Success == false)
+        {
+            return -1;
+        }
+
         Regex regex1 = new Regex("public");
         MatchCollection matchColltion = regex1.Matches(content);
 
@@ -133,5 +161,15 @@ public class UIWindowEditor : EditorWindow
         }
         return -1;
 
+    }
+
+    public int GetClassInsertIndex(string content)
+    {
+        if (string.IsNullOrEmpty(content))
+        {
+            return -1;
+        }
+
+        return content.LastIndexOf("}");
     }
 }

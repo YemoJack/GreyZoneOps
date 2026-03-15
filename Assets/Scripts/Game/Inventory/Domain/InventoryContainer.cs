@@ -39,4 +39,31 @@ public class InventoryContainer
         var h = Mathf.Max(1, size.y);
         PartGrids.Add(new InventoryGrid(w, h));
     }
+
+    public bool TryTidyItems(IEnumerable<ItemInstance> items, out List<InventoryGridTidyPlacement> placements)
+    {
+        placements = null;
+        if (!InventoryGrid.TryBuildTidiedPlacements(PartGrids, items, out List<InventoryGridTidyPlacement> tidiedPlacements))
+        {
+            return false;
+        }
+
+        for (int i = 0; i < PartGrids.Count; i++)
+        {
+            PartGrids[i]?.Clear();
+        }
+
+        for (int i = 0; i < tidiedPlacements.Count; i++)
+        {
+            InventoryGridTidyPlacement placement = tidiedPlacements[i];
+            InventoryGrid grid = GetGrid(placement.PartIndex);
+            if (grid == null || !grid.Place(placement.Item, placement.Position, placement.Rotated))
+            {
+                return false;
+            }
+        }
+
+        placements = tidiedPlacements;
+        return true;
+    }
 }

@@ -6,47 +6,105 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
 public class GeneratorBindComponentTool : Editor
 {
+    private const string GeneratorClassNameKey = "GeneratorClassName";
 
     public static List<EditorObjectData> objDataList;//查找对象的数据
 
     [MenuItem("GameObject/生成组件数据脚本(Shift+B) #B", false, 0)]
     static void CreateFindComponentScripts()
     {
-        GameObject obj = Selection.objects.First() as GameObject;//获取到当前选择的物体
+        if (TryGetSelectedGameObject(out GameObject obj) == false)
+        {
+            return;
+        }
+
+        GenerateBindComponentScript(obj, true);
+    }
+
+    public static bool TryGetSelectedGameObject(out GameObject obj)
+    {
+        obj = Selection.objects.FirstOrDefault() as GameObject;
+        if (obj != null)
+        {
+            return true;
+        }
+
+        Debug.LogError("需要选择 GameObject");
+        return false;
+    }
+
+    public static bool PrepareWindowObjectData(GameObject obj)
+    {
         if (obj == null)
         {
             Debug.LogError("需要选择 GameObject");
-            return;
+            return false;
         }
+
         objDataList = new List<EditorObjectData>();
-
-        //设置脚本生成路径
-        if (!Directory.Exists(UISetting.Instance.BindComponentGeneratorPath))
-        {
-            Directory.CreateDirectory(UISetting.Instance.BindComponentGeneratorPath);
-        }
-        //解析窗口组件数据
         if (UISetting.Instance.ParseType == ParseType.Tag)
+        {
             ParseWindowDataByTag(obj.transform, obj.name);
+        }
         else
+        {
             PresWindowNodeData(obj.transform, obj.name);
+        }
 
-
-        //储存字段名称
         string datalistJson = JsonConvert.SerializeObject(objDataList);
         PlayerPrefs.SetString(GeneratorConfig.OBJDATALIST_KEY, datalistJson);
-        //生成CS脚本
-        string csContnet = CreateCS(obj.name);
-        Debug.Log("CsConent:\n" + csContnet);
-        string cspath = UISetting.Instance.BindComponentGeneratorPath + "/" + obj.name + "DataComponent.cs";
-        UIWindowEditor.ShowWindow(csContnet, cspath);
-        EditorPrefs.SetString("GeneratorClassName", obj.name + "DataComponent");
+        return true;
     }
+
+    public static bool GenerateBindComponentScript(GameObject obj, bool showEditor)
+    {
+        if (PrepareWindowObjectData(obj) == false)
+        {
+            return false;
+        }
+
+        string csContnet = CreateCS(obj.name);
+        string cspath = GetBindComponentScriptPath(obj.name);
+        Debug.Log("CsConent:\n" + csContnet);
+        MarkPendingComponentAttach(obj.name);
+
+        if (showEditor)
+        {
+            UIWindowEditor.ShowWindow(csContnet, cspath);
+        }
+        else
+        {
+            UIWindowEditor.SaveScript(csContnet, cspath);
+        }
+
+        return true;
+    }
+
+    public static string GetBindComponentScriptPath(string windowName)
+    {
+        EnsureGeneratorDirectory(UISetting.Instance.BindComponentGeneratorPath);
+        return Path.Combine(UISetting.Instance.BindComponentGeneratorPath, windowName + "DataComponent.cs");
+    }
+
+    public static void MarkPendingComponentAttach(string windowName)
+    {
+        EditorPrefs.SetString(GeneratorClassNameKey, windowName + "DataComponent");
+    }
+
+    private static void EnsureGeneratorDirectory(string path)
+    {
+        if (Directory.Exists(path) == false)
+        {
+            Directory.CreateDirectory(path);
+        }
+    }
+
     /// <summary>
     /// 解析窗口节点数据
     /// </summary>
@@ -61,7 +119,7 @@ public class GeneratorBindComponentTool : Editor
             if (name.Contains("[") && name.Contains("]"))
             {
                 int index = name.IndexOf("]") + 1;
-                string fieldName = name.Substring(index, name.Length - index);//获取字段昵称
+                string fieldName = NormalizeFieldName(name.Substring(index, name.Length - index));//获取字段昵称
                 string fieldType = name.Substring(1, index - 2);//获取字段类型
 
                 objDataList.Add(new EditorObjectData { fieldName = fieldName, fieldType = fieldType, insID = obj.GetInstanceID() });
@@ -77,13 +135,61 @@ public class GeneratorBindComponentTool : Editor
             string tagName = obj.tag;
             if (GeneratorConfig.TAGArr.Contains(tagName))
             {
-                string fieldName = obj.name;//获取字段昵称
+                string fieldName = NormalizeFieldName(obj.name);//获取字段昵称
                 string fieldType = tagName;//获取字段类型
                 objDataList.Add(new EditorObjectData { fieldName = fieldName, fieldType = fieldType, insID = obj.GetInstanceID() });
             }
             ParseWindowDataByTag(trans.GetChild(i), WinName);
         }
     }
+
+    public static string NormalizeFieldName(string rawName)
+    {
+        if (string.IsNullOrWhiteSpace(rawName))
+        {
+            return "AutoField";
+        }
+
+        string[] parts = Regex.Split(rawName.Trim(), @"[^a-zA-Z0-9_]+");
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < parts.Length; i++)
+        {
+            string part = parts[i];
+            if (string.IsNullOrEmpty(part))
+            {
+                continue;
+            }
+
+            if (builder.Length == 0)
+            {
+                builder.Append(char.ToUpperInvariant(part[0]));
+                if (part.Length > 1)
+                {
+                    builder.Append(part.Substring(1));
+                }
+                continue;
+            }
+
+            builder.Append(char.ToUpperInvariant(part[0]));
+            if (part.Length > 1)
+            {
+                builder.Append(part.Substring(1));
+            }
+        }
+
+        if (builder.Length == 0)
+        {
+            builder.Append("AutoField");
+        }
+
+        if (char.IsDigit(builder[0]))
+        {
+            builder.Insert(0, '_');
+        }
+
+        return builder.ToString();
+    }
+
     public static string CreateCS(string name)
     {
         StringBuilder sb = new StringBuilder();
@@ -172,7 +278,7 @@ public class GeneratorBindComponentTool : Editor
     public static void AddComponent2Window()
     {
         //如果当前不是生成数据脚本的回调，就不处理
-        string className = EditorPrefs.GetString("GeneratorClassName");
+        string className = EditorPrefs.GetString(GeneratorClassNameKey);
         if (string.IsNullOrEmpty(className))
         {
             return;
@@ -241,7 +347,7 @@ public class GeneratorBindComponentTool : Editor
         {
             //自动保存预制体
             PrefabUtility.ApplyPrefabInstance(windowObj, InteractionMode.AutomatedAction);
-            EditorPrefs.DeleteKey("GeneratorClassName");
+            EditorPrefs.DeleteKey(GeneratorClassNameKey);
         }
         else
         {

@@ -123,7 +123,11 @@ public class SelectItemWindow : WindowBase
 	#endregion
 
 	#region UI组件事件
-	public void OnRotateBtnButtonClick()
+			 public void OnSplitButtonClick()
+		 {
+		
+		 }
+		public void OnRotateBtnButtonClick()
 	{
 		if (selectedItem == null || selectedItem.Definition == null || !IsItemRotatable(selectedItem))
 		{

@@ -12,17 +12,15 @@ public class SceneContainerSpawnConfig
     public InventoryContainerType fallbackType = InventoryContainerType.LootBox;
     public bool setInteractableLayer = true;
 
-    public ContainerCatalogEntry ResolveContainerConfig(SOContainerCatalog catalog)
+    public SOContainerConfig ResolveContainerConfig()
     {
-        if (catalog != null &&
-            containerConfigId > 0 &&
-            catalog.TryGetRuntimeConfig(containerConfigId, out var runtimeConfig))
+        if (containerConfigId > 0 &&
+            SOContainerConfig.TryLoadConfigById(containerConfigId, out var runtimeConfig))
         {
             return runtimeConfig;
         }
 
-        Debug.LogError("ContainerCatalogEntry is null");
+        Debug.LogError($"SOContainerConfig is null. containerConfigId={containerConfigId}");
         return null;
     }
 }
-

@@ -160,17 +160,27 @@ public class WarehouseWindow : WindowBase, IController, ICanSendEvent, IEquipmen
 
         bool originIsWarehouse = IsWarehouseContainer(draggingOriginId);
         bool targetIsWarehouse = IsWarehouseContainer(id);
+        bool itemStillExistsAsStandalone = false;
 
         bool placed = TryPlaceByContainerId(id, draggingItem, pos, rotated, partIndex, notify: false, syncPersistent: false);
         if (placed)
         {
+            itemStillExistsAsStandalone = draggingItem != null && draggingItem.Count > 0;
+
             if (originIsWarehouse && !targetIsWarehouse)
             {
                 dataCompt?.WarehouseWarehouseContainerView?.RemoveFromPersistentItems(draggingItem);
             }
             else if (!originIsWarehouse && targetIsWarehouse)
             {
-                dataCompt?.WarehouseWarehouseContainerView?.AddToPersistentItems(draggingItem);
+                if (itemStillExistsAsStandalone)
+                {
+                    dataCompt?.WarehouseWarehouseContainerView?.AddToPersistentItems(draggingItem);
+                }
+            }
+            else if (originIsWarehouse && targetIsWarehouse && !itemStillExistsAsStandalone)
+            {
+                dataCompt?.WarehouseWarehouseContainerView?.RemovePersistentItemReference(draggingItem, refreshProgress: false);
             }
 
             draggingItem = null;
@@ -436,7 +446,7 @@ public class WarehouseWindow : WindowBase, IController, ICanSendEvent, IEquipmen
             return false;
         }
 
-        if (targetIsWarehouse)
+        if (targetIsWarehouse && item.Count > 0)
         {
             dataCompt?.WarehouseWarehouseContainerView?.AddToPersistentItems(item);
         }
@@ -466,4 +476,14 @@ public class WarehouseWindow : WindowBase, IController, ICanSendEvent, IEquipmen
         Cursor.visible = visible;
     }
 
+    public void OnTidyButtonClick()
+    {
+        if (draggingItem != null)
+        {
+            ReturnDraggingItemToOrigin();
+        }
+
+        dataCompt?.WarehouseWarehouseContainerView?.TryTidyItems();
+        RefreshAll();
+    }
 }

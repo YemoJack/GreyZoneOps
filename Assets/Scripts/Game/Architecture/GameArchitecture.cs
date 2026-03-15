@@ -38,5 +38,6 @@ public class GameArchitecture : Architecture<GameArchitecture>
         RegisterSystem(new InteractionSystem());
         RegisterSystem(new MapSystem());
         RegisterSystem(new AudioSystem());
+        RegisterSystem(new DevTestSystem());
     }
 }

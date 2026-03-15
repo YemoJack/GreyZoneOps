@@ -76,6 +76,15 @@ public class PlayerProgressSystem : AbstractSystem
         NotifyChanged();
     }
 
+    public void RefreshProgress()
+    {
+        EnsureModel();
+        PlayerProgressSaveData data = progressModel.GetMutableData();
+        RefreshDerivedValues(data);
+        data.Normalize();
+        NotifyChanged();
+    }
+
     private void OnExtractionSucceeded(EventExtractionSucceeded _)
     {
         EnsureModel();

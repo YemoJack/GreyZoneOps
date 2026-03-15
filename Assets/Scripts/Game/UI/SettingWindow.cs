@@ -10,8 +10,11 @@ public class SettingWindow : WindowBase
     public SettingWindowDataComponent dataCompt;
 
     private AudioSystem audioSystem;
+    private DevTestSystem devTestSystem;
     private AudioModel audioModel;
     private bool sliderCallbacksBound;
+    private string currentTestCode = string.Empty;
+    private string lastTestCodeResult = "TestCode commands:\n102\nitem <itemId> [count]\ncontainers\nsave\nload";
 
     public override void OnAwake()
     {
@@ -19,7 +22,12 @@ public class SettingWindow : WindowBase
         dataCompt.InitComponent(this);
 
         audioSystem = this.GetSystem<AudioSystem>();
+        devTestSystem = this.GetSystem<DevTestSystem>();
         audioModel = this.GetModel<AudioModel>();
+        if (devTestSystem != null)
+        {
+            lastTestCodeResult = devTestSystem.GetHelpText();
+        }
         BindSliderCallbacks();
 
         base.OnAwake();
@@ -31,6 +39,7 @@ public class SettingWindow : WindowBase
         IsWindowVisible = true;
         ShowAudioTab();
         RefreshAudioSliders();
+        RefreshTestCodeUi();
     }
 
     public override void OnHide()
@@ -69,6 +78,26 @@ public class SettingWindow : WindowBase
     public void OnCloseButtonClick()
     {
         HideWindow();
+    }
+
+    public void OnTestCodeInputChange(string text)
+    {
+        currentTestCode = text ?? string.Empty;
+    }
+
+    public void OnTestCodeInputEnd(string text)
+    {
+        currentTestCode = text ?? string.Empty;
+    }
+
+    public void OnConfirmCodeButtonClick()
+    {
+        string code = dataCompt?.TestCodeInputField != null ? dataCompt.TestCodeInputField.text : currentTestCode;
+        currentTestCode = code ?? string.Empty;
+        lastTestCodeResult = devTestSystem != null
+            ? devTestSystem.ExecuteTestCode(currentTestCode)
+            : "DevTestSystem not ready.";
+        RefreshTestCodeUi();
     }
 
     private void BindSliderCallbacks()
@@ -178,6 +207,26 @@ public class SettingWindow : WindowBase
         dataCompt.AudioVolumeSlider?.SetValueWithoutNotify(audioModel.MasterVolume);
         dataCompt.MusicVolumeSlider?.SetValueWithoutNotify(audioModel.BgmVolume);
         dataCompt.SoundVolumeSlider?.SetValueWithoutNotify(audioModel.SfxVolume);
+    }
+
+    private void RefreshTestCodeUi()
+    {
+        if (dataCompt == null)
+        {
+            return;
+        }
+
+        if (dataCompt.TestCodeInputField != null && dataCompt.TestCodeInputField.text != currentTestCode)
+        {
+            dataCompt.TestCodeInputField.SetTextWithoutNotify(currentTestCode);
+        }
+
+        if (dataCompt.TestCodeLogText != null)
+        {
+            dataCompt.TestCodeLogText.text = string.IsNullOrWhiteSpace(lastTestCodeResult)
+                ? "Ready."
+                : lastTestCodeResult;
+        }
     }
 
     private void OnMasterVolumeChanged(float value)

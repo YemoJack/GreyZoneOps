@@ -6,12 +6,9 @@ using UnityEngine;
 public class WarehouseContainerView : MonoBehaviour, IController
 {
     public const string RuntimeWarehouseContainerId = "__warehouse_runtime__";
+    private const string WarehouseContainerConfigResKey = "Container_1000";
 
     public RectTransform containerRoot;
-    [Tooltip("Optional override for container prefab name. Leave empty to use Stash config.")]
-    public string containerPrefabNameOverride;
-    [Tooltip("Fallback grid size used when no stash config exists.")]
-    public Vector2Int fallbackGridSize = new Vector2Int(10, 8);
 
     private ContainerView containerView;
     private PersistentInventoryModel persistentModel;
@@ -59,6 +56,50 @@ public class WarehouseContainerView : MonoBehaviour, IController
         RebuildRuntimeContainer();
         ApplyCallbacks();
         RenderAll();
+    }
+
+    public bool TryTidyItems()
+    {
+        if (persistentModel == null)
+        {
+            persistentModel = this.GetModel<PersistentInventoryModel>();
+        }
+
+        EnsureContainerView();
+        if (runtimeContainer == null)
+        {
+            RebuildRuntimeContainer();
+        }
+
+        List<ItemInstance> items = persistentModel?.GetMutableItems();
+        if (items == null || runtimeContainer == null)
+        {
+            return false;
+        }
+
+        if (!runtimeContainer.TryTidyItems(items, out List<InventoryGridTidyPlacement> placements))
+        {
+            Debug.LogWarning("WarehouseContainerView: tidy failed.");
+            return false;
+        }
+
+        CleanupDepletedPersistentItems(items);
+        persistentModel.ClearWarehouseItemPositions();
+        for (int i = 0; i < placements.Count; i++)
+        {
+            InventoryGridTidyPlacement placement = placements[i];
+            placement.Item.Rotated = placement.Rotated;
+            placement.Item.AttachedContainer = null;
+            persistentModel.SetWarehouseItemPosition(placement.Item, placement.PartIndex, placement.Position);
+        }
+
+        if (containerView != null)
+        {
+            containerView.container = runtimeContainer;
+        }
+        ApplyCallbacks();
+        RenderAll();
+        return true;
     }
 
     public void BindCallbacks(
@@ -134,18 +175,24 @@ public class WarehouseContainerView : MonoBehaviour, IController
             return false;
         }
 
-        if (!grid.Place(item, pos, rotated))
+        bool hadPersistentRef = ContainsPersistentItem(item);
+        if (!grid.PlaceOrStack(item, pos, rotated))
         {
             return false;
         }
 
+        ItemPlacement placement = grid.GetPlacement(item);
+        bool itemPlacedAsStandalone = placement != null;
         InventoryContainer attachedContainer = item.AttachedContainer;
-        item.Rotated = rotated;
-        persistentModel?.SetWarehouseItemPosition(item, partIndex, pos);
+        if (itemPlacedAsStandalone)
+        {
+            item.Rotated = rotated;
+            persistentModel?.SetWarehouseItemPosition(item, partIndex, pos);
+        }
 
         // Stash is persisted as a flat item list. If a container item (e.g. backpack/chest rig)
         // enters the warehouse, spill all nested items into the warehouse first, then strip the container link.
-        if (attachedContainer != null)
+        if (itemPlacedAsStandalone && attachedContainer != null)
         {
             if (!SpillContainerItemsIntoWarehouse(attachedContainer))
             {
@@ -160,7 +207,14 @@ public class WarehouseContainerView : MonoBehaviour, IController
 
         if (syncPersistent)
         {
-            AddToPersistentItems(item);
+            if (itemPlacedAsStandalone && !hadPersistentRef)
+            {
+                AddToPersistentItems(item);
+            }
+            else if (!itemPlacedAsStandalone && hadPersistentRef && item.Count <= 0)
+            {
+                RemovePersistentItemReference(item, refreshProgress: false);
+            }
         }
         if (notify)
         {
@@ -213,7 +267,7 @@ public class WarehouseContainerView : MonoBehaviour, IController
 
     public void AddToPersistentItems(ItemInstance item)
     {
-        if (item?.Definition == null)
+        if (item?.Definition == null || item.Count <= 0)
         {
             return;
         }
@@ -233,6 +287,7 @@ public class WarehouseContainerView : MonoBehaviour, IController
         if (!items.Contains(item))
         {
             items.Add(item);
+            this.GetSystem<PlayerProgressSystem>()?.RefreshProgress();
         }
     }
 
@@ -243,20 +298,15 @@ public class WarehouseContainerView : MonoBehaviour, IController
             return;
         }
 
-        if (persistentModel != null)
+        if (RemovePersistentItemReference(item, refreshProgress: true))
         {
-            List<ItemInstance> items = persistentModel.GetMutableItems();
-            if (items != null && items.Remove(item))
-            {
-                persistentModel.RemoveWarehouseItemPosition(item);
-                return;
-            }
+            return;
         }
 
         RemoveFromPersistentItems(item.Definition, Mathf.Max(1, item.Count));
     }
 
-    public void RemoveFromPersistentItems(ItemCatalogEntry definition, int count)
+    public void RemoveFromPersistentItems(SOItemConfig definition, int count)
     {
         RemoveFromPersistentItemsInternal(definition, count);
     }
@@ -265,39 +315,18 @@ public class WarehouseContainerView : MonoBehaviour, IController
     {
         if (containerRoot == null)
         {
+            Debug.LogWarning("WarehouseContainerView: containerRoot is null.");
             return;
         }
 
-        ResolveContainerTemplate(out var containerName, out _);
-        if (string.IsNullOrEmpty(containerName))
-        {
-            return;
-        }
-
-        if (containerView != null &&
-            containerView.container != null &&
-            string.Equals(containerView.container.ContainerName, containerName, StringComparison.Ordinal))
-        {
-            return;
-        }
-
-        if (containerView != null)
-        {
-            Destroy(containerView.gameObject);
-        }
-
-        var prefab = this.GetUtility<IResLoader>()?.LoadSync<GameObject>(containerName);
-        if (prefab == null)
-        {
-            Debug.LogWarning($"WarehouseContainerView: missing container prefab {containerName}.");
-            return;
-        }
-
-        var instance = Instantiate(prefab, containerRoot);
-        containerView = instance.GetComponent<ContainerView>();
         if (containerView == null)
         {
-            Debug.LogWarning("WarehouseContainerView: container prefab missing ContainerView component.");
+            containerView = containerRoot.GetComponentInChildren<ContainerView>(true);
+        }
+
+        if (containerView == null)
+        {
+            Debug.LogWarning("WarehouseContainerView: missing ContainerView under containerRoot.");
             return;
         }
 
@@ -306,7 +335,12 @@ public class WarehouseContainerView : MonoBehaviour, IController
 
     private void RebuildRuntimeContainer()
     {
-        ResolveContainerTemplate(out var containerName, out var gridSizes);
+        if (!TryResolveContainerTemplate(out string containerName, out List<Vector2Int> gridSizes))
+        {
+            runtimeContainer = null;
+            return;
+        }
+
         runtimeContainer = new InventoryContainer(InventoryContainerType.Stash)
         {
             ContainerName = containerName
@@ -345,53 +379,65 @@ public class WarehouseContainerView : MonoBehaviour, IController
         containerView.BindCallbacks(onTryTake, onTryPlace);
     }
 
-    private void ResolveContainerTemplate(out string containerName, out List<Vector2Int> gridSizes)
+    private bool TryResolveContainerTemplate(out string containerName, out List<Vector2Int> gridSizes)
     {
-        containerName = string.IsNullOrEmpty(containerPrefabNameOverride)
-            ? null
-            : containerPrefabNameOverride;
+        containerName = null;
         gridSizes = new List<Vector2Int>();
 
-        var containerCatalog = GameSettingManager.Instance?.Config?.ContainerCatalog;
-        if (containerCatalog != null)
+        SOContainerConfig containerConfig = LoadWarehouseContainerConfig();
+        if (containerConfig == null)
         {
-            var entries = containerCatalog.GetRuntimeConfigs();
-            for (int i = 0; i < entries.Count; i++)
+            Debug.LogWarning($"WarehouseContainerView: failed to load warehouse container config '{WarehouseContainerConfigResKey}'.");
+            return false;
+        }
+
+        containerName = containerConfig.ContainerName;
+        if (containerConfig.PartGridDatas != null)
+        {
+            for (int partIndex = 0; partIndex < containerConfig.PartGridDatas.Count; partIndex++)
             {
-                var entry = entries[i];
-                if (entry == null || entry.ContainerType != InventoryContainerType.Stash)
-                {
-                    continue;
-                }
-
-                if (string.IsNullOrEmpty(containerName))
-                {
-                    containerName = entry.ContainerName;
-                }
-
-                if (entry.PartGridDatas != null)
-                {
-                    for (int partIndex = 0; partIndex < entry.PartGridDatas.Count; partIndex++)
-                    {
-                        var size = entry.PartGridDatas[partIndex].Size;
-                        gridSizes.Add(new Vector2Int(Mathf.Max(1, size.x), Mathf.Max(1, size.y)));
-                    }
-                }
-
-                break;
+                Vector2Int size = containerConfig.PartGridDatas[partIndex].Size;
+                gridSizes.Add(new Vector2Int(Mathf.Max(1, size.x), Mathf.Max(1, size.y)));
             }
         }
 
-        if (string.IsNullOrEmpty(containerName))
+        if (string.IsNullOrEmpty(containerName) || gridSizes.Count == 0)
         {
-            containerName = "PlayerBackpack";
+            Debug.LogWarning($"WarehouseContainerView: warehouse container config '{WarehouseContainerConfigResKey}' is invalid.");
+            return false;
         }
 
-        if (gridSizes.Count == 0)
+        return true;
+    }
+
+    private SOContainerConfig LoadWarehouseContainerConfig()
+    {
+        IResLoader resLoader = this.GetUtility<IResLoader>();
+        if (resLoader == null)
         {
-            gridSizes.Add(new Vector2Int(
-                Mathf.Max(1, fallbackGridSize.x),
-                Mathf.Max(1, fallbackGridSize.y)));
+            return null;
+        }
+
+        return resLoader.LoadSync<SOContainerConfig>(WarehouseContainerConfigResKey);
+    }
+
+    private void CleanupDepletedPersistentItems(List<ItemInstance> items)
+    {
+        if (items == null || persistentModel == null)
+        {
+            return;
+        }
+
+        for (int i = items.Count - 1; i >= 0; i--)
+        {
+            ItemInstance item = items[i];
+            if (item?.Definition != null && item.Count > 0)
+            {
+                continue;
+            }
+
+            persistentModel.RemoveWarehouseItemPosition(item);
+            items.RemoveAt(i);
         }
     }
 
@@ -430,19 +476,24 @@ public class WarehouseContainerView : MonoBehaviour, IController
         }
     }
 
-    private bool TryPlaceToAnyGrid(ItemInstance item, out int partIndex, out Vector2Int pos, out bool rotated)
+    private bool TryPlaceToAnyGrid(
+        InventoryContainer container,
+        ItemInstance item,
+        out int partIndex,
+        out Vector2Int pos,
+        out bool rotated)
     {
         partIndex = -1;
         pos = new Vector2Int(-1, -1);
         rotated = item != null && item.Rotated;
-        if (item == null || runtimeContainer == null)
+        if (item == null || container == null)
         {
             return false;
         }
 
-        for (int i = 0; i < runtimeContainer.PartGrids.Count; i++)
+        for (int i = 0; i < container.PartGrids.Count; i++)
         {
-            InventoryGrid grid = runtimeContainer.PartGrids[i];
+            InventoryGrid grid = container.PartGrids[i];
             if (grid == null)
             {
                 continue;
@@ -463,6 +514,11 @@ public class WarehouseContainerView : MonoBehaviour, IController
         }
 
         return false;
+    }
+
+    private bool TryPlaceToAnyGrid(ItemInstance item, out int partIndex, out Vector2Int pos, out bool rotated)
+    {
+        return TryPlaceToAnyGrid(runtimeContainer, item, out partIndex, out pos, out rotated);
     }
 
     private struct SpilledItemRecord
@@ -620,7 +676,7 @@ public class WarehouseContainerView : MonoBehaviour, IController
         }
     }
 
-    private void RemoveFromPersistentItemsInternal(ItemCatalogEntry definition, int count)
+    private void RemoveFromPersistentItemsInternal(SOItemConfig definition, int count)
     {
         if (definition == null || count <= 0 || persistentModel == null)
         {
@@ -670,6 +726,44 @@ public class WarehouseContainerView : MonoBehaviour, IController
         {
             Debug.LogWarning($"WarehouseContainerView: persistent item count mismatch for {definition.Name}, missing={remaining}.");
         }
+
+        if (remaining != count)
+        {
+            this.GetSystem<PlayerProgressSystem>()?.RefreshProgress();
+        }
+    }
+
+    private bool ContainsPersistentItem(ItemInstance item)
+    {
+        if (item == null || persistentModel == null)
+        {
+            return false;
+        }
+
+        List<ItemInstance> items = persistentModel.GetMutableItems();
+        return items != null && items.Contains(item);
+    }
+
+    public bool RemovePersistentItemReference(ItemInstance item, bool refreshProgress)
+    {
+        if (item?.Definition == null || persistentModel == null)
+        {
+            return false;
+        }
+
+        List<ItemInstance> items = persistentModel.GetMutableItems();
+        if (items == null || items.Remove(item) == false)
+        {
+            return false;
+        }
+
+        persistentModel.RemoveWarehouseItemPosition(item);
+        if (refreshProgress)
+        {
+            this.GetSystem<PlayerProgressSystem>()?.RefreshProgress();
+        }
+
+        return true;
     }
 
     public IArchitecture GetArchitecture()

@@ -8,675 +8,482 @@ using UnityEngine;
 
 public class ItemCatalogOdinWindow : OdinEditorWindow
 {
-    private const string DefaultCatalogAssetPath = "Assets/Art/Data/InventoryConfig/SOItemCatalog.asset";
-    private const string GameConfigAssetPath = "Assets/Resources/SOGameConfig.asset";
-    private const string WeaponConfigFolderPath = "Assets/Art/Data/WeaponConfig";
-    private const string WeaponConfigNamePrefix = "Weapon_";
+    private const string DefaultItemConfigFolderPath = "Assets/Art/Data/InventoryConfig/Item";
+    private const float ToolbarButtonHeight = 28f;
+    private const float CardWidth = 160f;
+    private const float CardHeight = 188f;
+    private const float CardSpacing = 12f;
+    private const float CardPadding = 12f;
 
-    [Serializable]
-    private class WeaponConfigDraft
+    private enum ItemCategoryTab
     {
-        [LabelText("Weapon Name")]
-        public string WeaponName;
-
-        [LabelText("Weapon Type")]
-        public WeaponType WeaponType = WeaponType.Firearm;
-
-        [LabelText("Description")]
-        [MultiLineProperty(3)]
-        public string Discription;
-
-        [LabelText("Weapon Prefab")]
-        public GameObject WeaponPrefab;
-
-        [LabelText("Move Speed Multiplier")]
-        [MinValue(0f)]
-        public float MoveSpeedMultiplier = 1f;
-
-        [LabelText("Run Speed Multiplier")]
-        [MinValue(0f)]
-        public float RunSpeedMultiplier = 1f;
-
-        [LabelText("Impact Effect")]
-        public GameObject ImpactEffect;
+        All,
+        Weapon,
+        Helmet,
+        Armor,
+        Ammo,
+        Medical,
+        ChestRig,
+        Backpack,
+        Collection
     }
+
+    private readonly Dictionary<int, SOItemConfig> itemAssetsById = new Dictionary<int, SOItemConfig>();
+
+    private Vector2 scrollPosition;
+    private ItemCategoryTab activeCategoryTab = ItemCategoryTab.All;
+    private int selectedItemId;
+    private string statusMessage = "Ready.";
+    private string itemConfigFolderPath = DefaultItemConfigFolderPath;
 
     [MenuItem("Tools/GreyZoneOps/Inventory/Item Catalog Editor")]
     private static void OpenWindow()
     {
         var window = GetWindow<ItemCatalogOdinWindow>();
-        window.titleContent = new GUIContent("Item Catalog");
-        window.minSize = new Vector2(760f, 600f);
+        window.titleContent = new GUIContent("Item Config Editor");
+        window.minSize = new Vector2(900f, 620f);
         window.Show();
     }
-
-    [BoxGroup("Catalog"), LabelText("Item Catalog"), OnValueChanged(nameof(OnCatalogChanged))]
-    [SerializeField]
-    private SOItemCatalog itemCatalog;
-
-    [BoxGroup("Catalog"), ReadOnly, ShowInInspector, LabelText("Entry Count")]
-    private int EntryCount => itemCatalog?.Entries?.Count ?? 0;
-
-    [BoxGroup("Catalog"), HorizontalGroup("Catalog/Actions"), Button("Find Default Catalog")]
-    private void FindDefaultCatalog()
-    {
-        itemCatalog = ResolveDefaultCatalog();
-        OnCatalogChanged();
-    }
-
-    [BoxGroup("Catalog"), HorizontalGroup("Catalog/Actions"), EnableIf(nameof(HasCatalog)), Button("Ping Catalog")]
-    private void PingCatalog()
-    {
-        EditorGUIUtility.PingObject(itemCatalog);
-    }
-
-    [TitleGroup("Modify Existing Item"), LabelText("Selected Item"), ValueDropdown(nameof(GetEntryIdOptions))]
-    [OnValueChanged(nameof(OnSelectedItemChanged))]
-    [SerializeField]
-    private int selectedItemId;
-
-    [TitleGroup("Modify Existing Item"), ShowIf(nameof(HasSelectedEntry)), InlineProperty, HideLabel]
-    [SerializeField]
-    private ItemCatalogEntry selectedItemDraft = CreateDefaultItemDraft();
-
-    [TitleGroup("Modify Existing Item"), ShowIf(nameof(ShowSelectedWeaponConfig)), LabelText("Sync Weapon Config")]
-    [SerializeField]
-    private bool syncWeaponConfigOnApply = true;
-
-    [TitleGroup("Modify Existing Item"), ShowIf(nameof(ShowSelectedWeaponConfig)), InlineProperty, HideLabel]
-    [SerializeField]
-    private WeaponConfigDraft selectedWeaponDraft = CreateDefaultWeaponDraft(string.Empty);
-
-    [TitleGroup("Modify Existing Item"), ShowIf(nameof(ShowSelectedWeaponConfig))]
-    [ReadOnly, ShowInInspector, LabelText("Current Weapon Asset")]
-    private SOWeaponConfigBase SelectedWeaponAsset => FindWeaponConfigAsset(selectedItemDraft?.Id ?? 0);
-
-    [TitleGroup("Modify Existing Item"), HorizontalGroup("Modify Existing Item/Actions"), EnableIf(nameof(HasSelectedEntry))]
-    [Button(ButtonSizes.Medium)]
-    private void ReloadSelected()
-    {
-        LoadSelectedDraftFromCatalog();
-        SetStatus("Reloaded selected item from catalog.");
-    }
-
-    [TitleGroup("Modify Existing Item"), HorizontalGroup("Modify Existing Item/Actions"), EnableIf(nameof(HasSelectedEntry))]
-    [Button(ButtonSizes.Medium)]
-    private void ApplyChanges()
-    {
-        if (!TryGetEntryById(selectedItemId, out var target))
-        {
-            SetStatus($"Cannot apply changes. Item id={selectedItemId} does not exist.");
-            return;
-        }
-
-        if (!ValidateDraft(selectedItemDraft, target))
-        {
-            return;
-        }
-
-        CopyItemEntry(selectedItemDraft, target);
-        if (syncWeaponConfigOnApply && target.Category == ItemCategory.Weapon)
-        {
-            UpsertWeaponConfig(target, selectedWeaponDraft);
-        }
-
-        selectedItemId = target.Id;
-        SaveCatalog($"Updated item id={target.Id}.");
-        LoadSelectedDraftFromCatalog();
-    }
-
-    [TitleGroup("Modify Existing Item"), HorizontalGroup("Modify Existing Item/Actions"), EnableIf(nameof(HasSelectedEntry))]
-    [Button(ButtonSizes.Medium)]
-    private void DeleteSelected()
-    {
-        if (!TryGetEntryById(selectedItemId, out var target))
-        {
-            SetStatus($"Cannot delete item. Item id={selectedItemId} does not exist.");
-            return;
-        }
-
-        if (!EditorUtility.DisplayDialog("Delete Item", $"Delete item [{target.Id}] {target.Name}?", "Delete", "Cancel"))
-        {
-            return;
-        }
-
-        itemCatalog.Entries.Remove(target);
-        SaveCatalog($"Deleted item id={target.Id}.");
-
-        selectedItemId = 0;
-        SyncSelectionAfterCatalogChanged();
-    }
-
-    [TitleGroup("Create New Item"), InlineProperty, HideLabel]
-    [SerializeField]
-    private ItemCatalogEntry newItemDraft = CreateDefaultItemDraft();
-
-    [TitleGroup("Create New Item"), ShowIf(nameof(ShowCreateWeaponConfig)), LabelText("Create/Update Weapon Config")]
-    [SerializeField]
-    private bool createWeaponConfigForNewItem = true;
-
-    [TitleGroup("Create New Item"), ShowIf(nameof(ShowCreateWeaponConfig)), InlineProperty, HideLabel]
-    [SerializeField]
-    private WeaponConfigDraft newWeaponDraft = CreateDefaultWeaponDraft(string.Empty);
-
-    [TitleGroup("Create New Item"), HorizontalGroup("Create New Item/Actions"), EnableIf(nameof(HasCatalog))]
-    [Button(ButtonSizes.Medium)]
-    private void SuggestNextId()
-    {
-        newItemDraft.Id = GenerateNextItemId();
-        SetStatus($"Suggested next item id: {newItemDraft.Id}");
-    }
-
-    [TitleGroup("Create New Item"), HorizontalGroup("Create New Item/Actions"), EnableIf(nameof(HasCatalog))]
-    [Button(ButtonSizes.Medium)]
-    private void CreateItem()
-    {
-        if (itemCatalog == null)
-        {
-            SetStatus("Cannot create item. Item catalog is null.");
-            return;
-        }
-
-        if (!ValidateDraft(newItemDraft, null))
-        {
-            return;
-        }
-
-        var entry = CreateDefaultItemDraft();
-        CopyItemEntry(newItemDraft, entry);
-        itemCatalog.Entries.Add(entry);
-
-        if (createWeaponConfigForNewItem && entry.Category == ItemCategory.Weapon)
-        {
-            UpsertWeaponConfig(entry, newWeaponDraft);
-        }
-
-        SaveCatalog($"Created item id={entry.Id}.");
-
-        selectedItemId = entry.Id;
-        LoadSelectedDraftFromCatalog();
-
-        newItemDraft = CreateDefaultItemDraft();
-        CopyItemEntry(entry, newItemDraft);
-        newItemDraft.Id = GenerateNextItemId();
-    }
-
-    [PropertyOrder(99), ShowInInspector, ReadOnly, MultiLineProperty(3), LabelText("Status")]
-    [SerializeField]
-    private string statusMessage = "Ready.";
-
-    private bool HasCatalog => itemCatalog != null;
-
-    private bool HasSelectedEntry => TryGetEntryById(selectedItemId, out _);
-
-    private bool ShowSelectedWeaponConfig => selectedItemDraft != null && selectedItemDraft.Category == ItemCategory.Weapon;
-
-    private bool ShowCreateWeaponConfig => newItemDraft != null && newItemDraft.Category == ItemCategory.Weapon;
 
     protected override void OnEnable()
     {
         base.OnEnable();
-
-        if (selectedItemDraft == null)
-        {
-            selectedItemDraft = CreateDefaultItemDraft();
-        }
-
-        if (newItemDraft == null)
-        {
-            newItemDraft = CreateDefaultItemDraft();
-        }
-
-        if (selectedWeaponDraft == null)
-        {
-            selectedWeaponDraft = CreateDefaultWeaponDraft(string.Empty);
-        }
-
-        if (newWeaponDraft == null)
-        {
-            newWeaponDraft = CreateDefaultWeaponDraft(string.Empty);
-        }
-
-        if (itemCatalog == null)
-        {
-            itemCatalog = ResolveDefaultCatalog();
-        }
-
-        OnCatalogChanged();
+        RefreshItemAssets();
     }
 
-    private void OnCatalogChanged()
+    [OnInspectorGUI, PropertyOrder(-100)]
+    private void DrawWindow()
     {
-        if (itemCatalog == null)
-        {
-            SetStatus("Item catalog is null. Assign one or click Find Default Catalog.");
-            return;
-        }
-
-        if (itemCatalog.Entries == null)
-        {
-            itemCatalog.Entries = new List<ItemCatalogEntry>();
-            EditorUtility.SetDirty(itemCatalog);
-        }
-
-        SyncSelectionAfterCatalogChanged();
-        if (newItemDraft != null && newItemDraft.Id <= 0)
-        {
-            newItemDraft.Id = GenerateNextItemId();
-        }
-
-        SetStatus($"Loaded catalog: {itemCatalog.name}, entries={itemCatalog.Entries.Count}");
+        DrawCategoryTabs();
+        GUILayout.Space(8f);
+        DrawToolbar();
+        GUILayout.Space(10f);
+        DrawCardGrid();
+        GUILayout.Space(10f);
+        DrawStatusBar();
     }
 
-    private void OnSelectedItemChanged()
+    private void DrawCategoryTabs()
     {
-        LoadSelectedDraftFromCatalog();
-    }
-
-    private void SyncSelectionAfterCatalogChanged()
-    {
-        if (itemCatalog == null || itemCatalog.Entries == null || itemCatalog.Entries.Count == 0)
-        {
-            selectedItemId = 0;
-            selectedItemDraft = CreateDefaultItemDraft();
-            selectedWeaponDraft = CreateDefaultWeaponDraft(string.Empty);
-            return;
-        }
-
-        if (!TryGetEntryById(selectedItemId, out _))
-        {
-            var first = GetFirstValidEntry();
-            selectedItemId = first != null ? first.Id : 0;
-        }
-
-        LoadSelectedDraftFromCatalog();
-    }
-
-    private void LoadSelectedDraftFromCatalog()
-    {
-        if (!TryGetEntryById(selectedItemId, out var source))
+        int currentIndex = (int)activeCategoryTab;
+        int nextIndex = GUILayout.Toolbar(currentIndex, BuildCategoryTabLabels());
+        if (nextIndex == currentIndex)
         {
             return;
         }
 
-        if (selectedItemDraft == null)
-        {
-            selectedItemDraft = CreateDefaultItemDraft();
-        }
-
-        CopyItemEntry(source, selectedItemDraft);
-        selectedWeaponDraft = CreateWeaponDraftFromAsset(source.Id, source.Name);
+        activeCategoryTab = (ItemCategoryTab)nextIndex;
+        selectedItemId = GetFirstVisibleItemId();
+        Repaint();
     }
 
-    private IEnumerable<ValueDropdownItem<int>> GetEntryIdOptions()
+    private void DrawToolbar()
     {
-        if (itemCatalog == null || itemCatalog.Entries == null || itemCatalog.Entries.Count == 0)
+        using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
         {
-            return new[] { new ValueDropdownItem<int>("No Item", 0) };
-        }
-
-        var sorted = new List<ItemCatalogEntry>();
-        for (int i = 0; i < itemCatalog.Entries.Count; i++)
-        {
-            var entry = itemCatalog.Entries[i];
-            if (entry != null)
+            using (new EditorGUILayout.HorizontalScope())
             {
-                sorted.Add(entry);
-            }
-        }
-
-        sorted.Sort((a, b) => a.Id.CompareTo(b.Id));
-        var options = new List<ValueDropdownItem<int>>(sorted.Count);
-        for (int i = 0; i < sorted.Count; i++)
-        {
-            var entry = sorted[i];
-            options.Add(new ValueDropdownItem<int>($"[{entry.Id}] {entry.Name}", entry.Id));
-        }
-
-        return options;
-    }
-
-    private ItemCatalogEntry GetFirstValidEntry()
-    {
-        if (itemCatalog?.Entries == null)
-        {
-            return null;
-        }
-
-        for (int i = 0; i < itemCatalog.Entries.Count; i++)
-        {
-            if (itemCatalog.Entries[i] != null)
-            {
-                return itemCatalog.Entries[i];
-            }
-        }
-
-        return null;
-    }
-
-    private bool TryGetEntryById(int itemId, out ItemCatalogEntry entry)
-    {
-        entry = null;
-        if (itemCatalog?.Entries == null || itemId <= 0)
-        {
-            return false;
-        }
-
-        for (int i = 0; i < itemCatalog.Entries.Count; i++)
-        {
-            var candidate = itemCatalog.Entries[i];
-            if (candidate != null && candidate.Id == itemId)
-            {
-                entry = candidate;
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private bool ValidateDraft(ItemCatalogEntry draft, ItemCatalogEntry editingTarget)
-    {
-        if (itemCatalog == null)
-        {
-            SetStatus("Validation failed: Item catalog is null.");
-            return false;
-        }
-
-        if (draft == null)
-        {
-            SetStatus("Validation failed: Draft is null.");
-            return false;
-        }
-
-        if (draft.Id <= 0)
-        {
-            SetStatus("Validation failed: Item Id must be greater than 0.");
-            return false;
-        }
-
-        if (draft.Size.x <= 0 || draft.Size.y <= 0)
-        {
-            SetStatus("Validation failed: Item size must be at least 1x1.");
-            return false;
-        }
-
-        if (draft.MaxStack <= 0)
-        {
-            SetStatus("Validation failed: MaxStack must be greater than 0.");
-            return false;
-        }
-
-        if (HasDuplicateId(draft.Id, editingTarget))
-        {
-            SetStatus($"Validation failed: duplicate Item Id {draft.Id}.");
-            return false;
-        }
-
-        return true;
-    }
-
-    private bool HasDuplicateId(int itemId, ItemCatalogEntry except)
-    {
-        if (itemCatalog?.Entries == null)
-        {
-            return false;
-        }
-
-        for (int i = 0; i < itemCatalog.Entries.Count; i++)
-        {
-            var entry = itemCatalog.Entries[i];
-            if (entry == null || entry == except)
-            {
-                continue;
-            }
-
-            if (entry.Id == itemId)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private int GenerateNextItemId()
-    {
-        int maxId = 0;
-        if (itemCatalog?.Entries != null)
-        {
-            for (int i = 0; i < itemCatalog.Entries.Count; i++)
-            {
-                var entry = itemCatalog.Entries[i];
-                if (entry != null && entry.Id > maxId)
+                if (GUILayout.Button("Create Item", GUILayout.Height(ToolbarButtonHeight), GUILayout.Width(140f)))
                 {
-                    maxId = entry.Id;
+                    OpenCreateWindow();
                 }
+
+                if (GUILayout.Button("Refresh", GUILayout.Height(ToolbarButtonHeight), GUILayout.Width(120f)))
+                {
+                    RefreshItemAssets(selectedItemId);
+                }
+
+                using (new EditorGUI.DisabledScope(!TryGetSelectedVisibleItem(out _)))
+                {
+                    if (GUILayout.Button("Ping Selected", GUILayout.Height(ToolbarButtonHeight), GUILayout.Width(140f)))
+                    {
+                        if (TryGetSelectedVisibleItem(out var selected))
+                        {
+                            EditorGUIUtility.PingObject(selected);
+                        }
+                    }
+                }
+
+                GUILayout.FlexibleSpace();
+                GUILayout.Label($"Visible {GetVisibleItemCount()} / Total {itemAssetsById.Count}", EditorStyles.miniBoldLabel);
+            }
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Label("Folder", GUILayout.Width(44f));
+                EditorGUILayout.SelectableLabel(itemConfigFolderPath, EditorStyles.textField, GUILayout.Height(EditorGUIUtility.singleLineHeight));
+            }
+        }
+    }
+
+    private void DrawCardGrid()
+    {
+        List<SOItemConfig> visibleItems = GetVisibleItemsSorted();
+        if (visibleItems.Count == 0)
+        {
+            EditorGUILayout.HelpBox($"No items in {GetActiveCategoryTabLabel()} tab.", MessageType.Info);
+            return;
+        }
+
+        float availableWidth = Mathf.Max(320f, position.width - 24f);
+        int columnCount = Mathf.Max(1, Mathf.FloorToInt((availableWidth + CardSpacing - CardPadding * 2f) / (CardWidth + CardSpacing)));
+        int rowCount = Mathf.CeilToInt(visibleItems.Count / (float)columnCount);
+        float contentHeight = CardPadding * 2f + rowCount * CardHeight + Mathf.Max(0, rowCount - 1) * CardSpacing;
+
+        scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
+        Rect gridRect = GUILayoutUtility.GetRect(availableWidth, contentHeight, GUILayout.ExpandWidth(true));
+
+        for (int i = 0; i < visibleItems.Count; i++)
+        {
+            int row = i / columnCount;
+            int column = i % columnCount;
+            Rect cardRect = new Rect(
+                gridRect.x + CardPadding + column * (CardWidth + CardSpacing),
+                gridRect.y + CardPadding + row * (CardHeight + CardSpacing),
+                CardWidth,
+                CardHeight);
+
+            DrawItemCard(cardRect, visibleItems[i]);
+        }
+
+        EditorGUILayout.EndScrollView();
+    }
+
+    private void DrawItemCard(Rect rect, SOItemConfig item)
+    {
+        if (item == null)
+        {
+            return;
+        }
+
+        Event evt = Event.current;
+        bool isSelected = item.Id == selectedItemId;
+        Color background = isSelected
+            ? new Color(0.22f, 0.42f, 0.72f, 0.35f)
+            : new Color(0.18f, 0.18f, 0.18f, 1f);
+        Color border = isSelected
+            ? new Color(0.35f, 0.62f, 0.96f, 1f)
+            : new Color(0.30f, 0.30f, 0.30f, 1f);
+
+        EditorGUI.DrawRect(rect, background);
+        DrawBorder(rect, border);
+
+        if (evt.type == EventType.MouseDown && rect.Contains(evt.mousePosition))
+        {
+            selectedItemId = item.Id;
+            Repaint();
+
+            if (evt.button == 0 && evt.clickCount >= 2)
+            {
+                OpenEditWindow(item);
+            }
+
+            evt.Use();
+        }
+
+        Rect iconRect = new Rect(rect.x + 12f, rect.y + 12f, rect.width - 24f, 92f);
+        DrawCardIcon(iconRect, item.Icon);
+
+        Rect idRect = new Rect(rect.x + 12f, rect.y + 114f, rect.width - 24f, 20f);
+        EditorGUI.LabelField(idRect, $"ID {item.Id}", EditorStyles.boldLabel);
+
+        Rect nameRect = new Rect(rect.x + 12f, rect.y + 138f, rect.width - 24f, 38f);
+        GUI.Label(nameRect, string.IsNullOrWhiteSpace(item.Name) ? "<Unnamed Item>" : item.Name, BuildWrappedLabelStyle());
+    }
+
+    private void DrawCardIcon(Rect rect, Sprite icon)
+    {
+        EditorGUI.DrawRect(rect, new Color(0.12f, 0.12f, 0.12f, 1f));
+        DrawBorder(rect, new Color(0.24f, 0.24f, 0.24f, 1f));
+
+        Texture preview = null;
+        if (icon != null)
+        {
+            preview = AssetPreview.GetAssetPreview(icon);
+            if (preview == null)
+            {
+                preview = AssetPreview.GetMiniThumbnail(icon);
             }
         }
 
-        return maxId + 1;
-    }
-
-    private void SaveCatalog(string message)
-    {
-        if (itemCatalog == null)
+        if (preview != null)
         {
-            SetStatus("Save skipped: Item catalog is null.");
+            GUI.DrawTexture(rect, preview, ScaleMode.ScaleToFit, true);
             return;
         }
 
-        itemCatalog.RebuildEntryIndex();
-        EditorUtility.SetDirty(itemCatalog);
-        AssetDatabase.SaveAssets();
-        AssetDatabase.Refresh();
-        SetStatus(message);
+        GUI.Label(rect, "No Icon", BuildCenteredMiniLabelStyle());
     }
 
-    private void UpsertWeaponConfig(ItemCatalogEntry itemEntry, WeaponConfigDraft draft)
+    private void DrawStatusBar()
     {
-        if (itemEntry == null || itemEntry.Id <= 0)
+        EditorGUILayout.HelpBox(statusMessage, MessageType.None);
+    }
+
+    private void OpenCreateWindow()
+    {
+        ItemCategory? presetCategory = null;
+        if (TryMapTabToCategory(activeCategoryTab, out var category))
+        {
+            presetCategory = category;
+        }
+
+        ItemConfigDetailWindow.OpenForCreate(itemConfigFolderPath, presetCategory, HandlePopupSavedOrDeleted);
+    }
+
+    private void OpenEditWindow(SOItemConfig asset)
+    {
+        if (asset == null)
         {
             return;
         }
 
-        if (draft == null)
-        {
-            draft = CreateDefaultWeaponDraft(itemEntry.Name);
-        }
-
-        EnsureFolderExists(WeaponConfigFolderPath);
-
-        var desiredPath = BuildWeaponConfigPath(itemEntry.Id);
-        var config = AssetDatabase.LoadAssetAtPath<SOWeaponConfigBase>(desiredPath);
-        if (config == null)
-        {
-            config = FindWeaponConfigAsset(itemEntry.Id);
-        }
-
-        if (config == null)
-        {
-            config = ScriptableObject.CreateInstance<SOWeaponConfigBase>();
-            AssetDatabase.CreateAsset(config, desiredPath);
-        }
-
-        config.WeaponID = itemEntry.Id;
-        config.WeaponName = string.IsNullOrWhiteSpace(draft.WeaponName) ? itemEntry.Name : draft.WeaponName;
-        config.WeaponType = draft.WeaponType;
-        config.Discription = draft.Discription;
-        config.WeaponPrefab = draft.WeaponPrefab;
-        config.moveSpeedMultiplier = Mathf.Max(0f, draft.MoveSpeedMultiplier);
-        config.runSpeedMultiplier = Mathf.Max(0f, draft.RunSpeedMultiplier);
-        config.impactEffect = draft.ImpactEffect;
-
-        EditorUtility.SetDirty(config);
-        AssetDatabase.SaveAssets();
+        ItemConfigDetailWindow.OpenForEdit(asset, itemConfigFolderPath, HandlePopupSavedOrDeleted);
     }
 
-    private SOWeaponConfigBase FindWeaponConfigAsset(int itemId)
+    private void HandlePopupSavedOrDeleted(int preferredItemId, string message)
     {
-        if (itemId <= 0)
+        RefreshItemAssets(preferredItemId);
+        if (!string.IsNullOrWhiteSpace(message))
         {
-            return null;
+            SetStatus(message);
         }
+    }
 
-        var expectedPath = BuildWeaponConfigPath(itemId);
-        var config = AssetDatabase.LoadAssetAtPath<SOWeaponConfigBase>(expectedPath);
-        if (config != null)
-        {
-            return config;
-        }
+    private void RefreshItemAssets(int preferredItemId = 0)
+    {
+        itemAssetsById.Clear();
 
-        var guids = AssetDatabase.FindAssets($"{WeaponConfigNamePrefix}{itemId} t:SOWeaponConfigBase");
+        string[] guids = AssetDatabase.FindAssets("t:SOItemConfig");
         for (int i = 0; i < guids.Length; i++)
         {
-            var path = AssetDatabase.GUIDToAssetPath(guids[i]);
-            if (string.IsNullOrEmpty(path))
+            string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+            SOItemConfig asset = AssetDatabase.LoadAssetAtPath<SOItemConfig>(path);
+            if (asset == null || asset.Id <= 0)
             {
                 continue;
             }
 
-            var loaded = AssetDatabase.LoadAssetAtPath<SOWeaponConfigBase>(path);
-            if (loaded != null && loaded.WeaponID == itemId)
+            if (!itemAssetsById.ContainsKey(asset.Id))
             {
-                return loaded;
+                itemAssetsById.Add(asset.Id, asset);
             }
         }
 
-        return null;
-    }
-
-    private static string BuildWeaponConfigPath(int itemId)
-    {
-        return $"{WeaponConfigFolderPath}/{WeaponConfigNamePrefix}{itemId}.asset";
-    }
-
-    private WeaponConfigDraft CreateWeaponDraftFromAsset(int itemId, string fallbackWeaponName)
-    {
-        var draft = CreateDefaultWeaponDraft(fallbackWeaponName);
-        if (itemId <= 0)
+        if (preferredItemId > 0 && itemAssetsById.TryGetValue(preferredItemId, out var preferred) && IsVisibleInCurrentTab(preferred))
         {
-            return draft;
+            selectedItemId = preferredItemId;
+        }
+        else if (!TryGetSelectedVisibleItem(out _))
+        {
+            selectedItemId = GetFirstVisibleItemId();
         }
 
-        var config = FindWeaponConfigAsset(itemId);
-        if (config == null)
-        {
-            return draft;
-        }
-
-        draft.WeaponName = string.IsNullOrWhiteSpace(config.WeaponName) ? fallbackWeaponName : config.WeaponName;
-        draft.WeaponType = config.WeaponType;
-        draft.Discription = config.Discription;
-        draft.WeaponPrefab = config.WeaponPrefab;
-        draft.MoveSpeedMultiplier = config.moveSpeedMultiplier;
-        draft.RunSpeedMultiplier = config.runSpeedMultiplier;
-        draft.ImpactEffect = config.impactEffect;
-        return draft;
+        SetStatus($"Loaded {GetVisibleItemCount()} items in {GetActiveCategoryTabLabel()} tab. Total={itemAssetsById.Count}.");
     }
 
-    private static WeaponConfigDraft CreateDefaultWeaponDraft(string defaultWeaponName)
+    private bool TryGetSelectedVisibleItem(out SOItemConfig selected)
     {
-        return new WeaponConfigDraft
+        selected = null;
+        if (!itemAssetsById.TryGetValue(selectedItemId, out var asset) || !IsVisibleInCurrentTab(asset))
         {
-            WeaponName = defaultWeaponName,
-            WeaponType = WeaponType.Firearm,
-            Discription = string.Empty,
-            WeaponPrefab = null,
-            MoveSpeedMultiplier = 1f,
-            RunSpeedMultiplier = 1f,
-            ImpactEffect = null
+            return false;
+        }
+
+        selected = asset;
+        return selected != null;
+    }
+
+    private int GetFirstVisibleItemId()
+    {
+        int bestId = 0;
+        foreach (SOItemConfig item in GetVisibleItemsSorted())
+        {
+            if (bestId == 0 || item.Id < bestId)
+            {
+                bestId = item.Id;
+            }
+        }
+
+        return bestId;
+    }
+
+    private int GetVisibleItemCount()
+    {
+        int count = 0;
+        foreach (var pair in itemAssetsById)
+        {
+            if (IsVisibleInCurrentTab(pair.Value))
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    private List<SOItemConfig> GetVisibleItemsSorted()
+    {
+        var items = new List<SOItemConfig>();
+        foreach (var pair in itemAssetsById)
+        {
+            if (IsVisibleInCurrentTab(pair.Value))
+            {
+                items.Add(pair.Value);
+            }
+        }
+
+        items.Sort((a, b) => a.Id.CompareTo(b.Id));
+        return items;
+    }
+
+    private bool IsVisibleInCurrentTab(SOItemConfig asset)
+    {
+        if (asset == null)
+        {
+            return false;
+        }
+
+        if (!TryMapTabToCategory(activeCategoryTab, out var category))
+        {
+            return true;
+        }
+
+        return asset.Category == category;
+    }
+
+    private string[] BuildCategoryTabLabels()
+    {
+        return new[]
+        {
+            BuildCategoryTabLabel(ItemCategoryTab.All, "All"),
+            BuildCategoryTabLabel(ItemCategoryTab.Weapon, "Weapon"),
+            BuildCategoryTabLabel(ItemCategoryTab.Helmet, "Helmet"),
+            BuildCategoryTabLabel(ItemCategoryTab.Armor, "Armor"),
+            BuildCategoryTabLabel(ItemCategoryTab.Ammo, "Ammo"),
+            BuildCategoryTabLabel(ItemCategoryTab.Medical, "Medical"),
+            BuildCategoryTabLabel(ItemCategoryTab.ChestRig, "ChestRig"),
+            BuildCategoryTabLabel(ItemCategoryTab.Backpack, "Backpack"),
+            BuildCategoryTabLabel(ItemCategoryTab.Collection, "Collection")
         };
     }
 
-    private static ItemCatalogEntry CreateDefaultItemDraft()
+    private string BuildCategoryTabLabel(ItemCategoryTab tab, string label)
     {
-        return new ItemCatalogEntry
+        return $"{label} ({GetCategoryItemCount(tab)})";
+    }
+
+    private int GetCategoryItemCount(ItemCategoryTab tab)
+    {
+        int count = 0;
+        foreach (var pair in itemAssetsById)
         {
-            Id = 1,
-            Name = string.Empty,
-            ResName = string.Empty,
-            Size = Vector2Int.one,
-            Icon = null,
-            MaxStack = 1,
-            Category = ItemCategory.Collection,
-            Quality = ItemQuality.White,
-            Value = 0,
-            ContainerConfigId = -1
+            SOItemConfig asset = pair.Value;
+            if (asset == null)
+            {
+                continue;
+            }
+
+            if (tab == ItemCategoryTab.All)
+            {
+                count++;
+                continue;
+            }
+
+            if (TryMapTabToCategory(tab, out var category) && asset.Category == category)
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    private string GetActiveCategoryTabLabel()
+    {
+        switch (activeCategoryTab)
+        {
+            case ItemCategoryTab.Weapon:
+                return "Weapon";
+            case ItemCategoryTab.Helmet:
+                return "Helmet";
+            case ItemCategoryTab.Armor:
+                return "Armor";
+            case ItemCategoryTab.Ammo:
+                return "Ammo";
+            case ItemCategoryTab.Medical:
+                return "Medical";
+            case ItemCategoryTab.ChestRig:
+                return "ChestRig";
+            case ItemCategoryTab.Backpack:
+                return "Backpack";
+            case ItemCategoryTab.Collection:
+                return "Collection";
+            default:
+                return "All";
+        }
+    }
+
+    private static bool TryMapTabToCategory(ItemCategoryTab tab, out ItemCategory category)
+    {
+        switch (tab)
+        {
+            case ItemCategoryTab.Weapon:
+                category = ItemCategory.Weapon;
+                return true;
+            case ItemCategoryTab.Helmet:
+                category = ItemCategory.helmet;
+                return true;
+            case ItemCategoryTab.Armor:
+                category = ItemCategory.Armor;
+                return true;
+            case ItemCategoryTab.Ammo:
+                category = ItemCategory.Ammo;
+                return true;
+            case ItemCategoryTab.Medical:
+                category = ItemCategory.Medical;
+                return true;
+            case ItemCategoryTab.ChestRig:
+                category = ItemCategory.ChestRig;
+                return true;
+            case ItemCategoryTab.Backpack:
+                category = ItemCategory.Backpack;
+                return true;
+            case ItemCategoryTab.Collection:
+                category = ItemCategory.Collection;
+                return true;
+            default:
+                category = default;
+                return false;
+        }
+    }
+
+    private static GUIStyle BuildWrappedLabelStyle()
+    {
+        var style = new GUIStyle(EditorStyles.label)
+        {
+            wordWrap = true,
+            alignment = TextAnchor.UpperLeft,
+            fontSize = 12
         };
+        return style;
     }
 
-    private static void CopyItemEntry(ItemCatalogEntry source, ItemCatalogEntry target)
+    private static GUIStyle BuildCenteredMiniLabelStyle()
     {
-        if (source == null || target == null)
+        var style = new GUIStyle(EditorStyles.centeredGreyMiniLabel)
         {
-            return;
-        }
-
-        target.Id = source.Id;
-        target.Name = source.Name;
-        target.ResName = source.ResName;
-        target.Size = new Vector2Int(Mathf.Max(1, source.Size.x), Mathf.Max(1, source.Size.y));
-        target.Icon = source.Icon;
-        target.MaxStack = Mathf.Max(1, source.MaxStack);
-        target.Category = source.Category;
-        target.Quality = source.Quality;
-        target.Value = Mathf.Max(0, source.Value);
-        target.ContainerConfigId = source.ContainerConfigId;
+            alignment = TextAnchor.MiddleCenter
+        };
+        return style;
     }
 
-    private static void EnsureFolderExists(string folderPath)
+    private static void DrawBorder(Rect rect, Color color)
     {
-        if (AssetDatabase.IsValidFolder(folderPath))
-        {
-            return;
-        }
-
-        var parts = folderPath.Split('/');
-        if (parts.Length == 0)
-        {
-            return;
-        }
-
-        var current = parts[0];
-        for (int i = 1; i < parts.Length; i++)
-        {
-            var next = $"{current}/{parts[i]}";
-            if (!AssetDatabase.IsValidFolder(next))
-            {
-                AssetDatabase.CreateFolder(current, parts[i]);
-            }
-
-            current = next;
-        }
-    }
-
-    private SOItemCatalog ResolveDefaultCatalog()
-    {
-        var config = AssetDatabase.LoadAssetAtPath<SOGameConfig>(GameConfigAssetPath);
-        if (config != null && config.ItemCatalog != null)
-        {
-            return config.ItemCatalog;
-        }
-
-        var byPath = AssetDatabase.LoadAssetAtPath<SOItemCatalog>(DefaultCatalogAssetPath);
-        if (byPath != null)
-        {
-            return byPath;
-        }
-
-        var guids = AssetDatabase.FindAssets("t:SOItemCatalog");
-        for (int i = 0; i < guids.Length; i++)
-        {
-            var path = AssetDatabase.GUIDToAssetPath(guids[i]);
-            var catalog = AssetDatabase.LoadAssetAtPath<SOItemCatalog>(path);
-            if (catalog != null)
-            {
-                return catalog;
-            }
-        }
-
-        return null;
+        EditorGUI.DrawRect(new Rect(rect.x, rect.y, rect.width, 1f), color);
+        EditorGUI.DrawRect(new Rect(rect.x, rect.yMax - 1f, rect.width, 1f), color);
+        EditorGUI.DrawRect(new Rect(rect.x, rect.y, 1f, rect.height), color);
+        EditorGUI.DrawRect(new Rect(rect.xMax - 1f, rect.y, 1f, rect.height), color);
     }
 
     private void SetStatus(string message)

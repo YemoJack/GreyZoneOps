@@ -9,8 +9,8 @@ public partial class InventorySystem
     public const string DefaultGameSaveKey = "game_save_data";
 
     private PersistentInventoryModel _persistentModel;
-    private readonly Dictionary<int, ItemCatalogEntry> itemDefinitionLookup = new Dictionary<int, ItemCatalogEntry>();
-    private readonly List<ItemCatalogEntry> discoveredItemDefinitions = new List<ItemCatalogEntry>();
+    private readonly Dictionary<int, SOItemConfig> itemDefinitionLookup = new Dictionary<int, SOItemConfig>();
+    private readonly List<SOItemConfig> discoveredItemDefinitions = new List<SOItemConfig>();
     private bool _raidItemsCommitted;
 
     public bool SaveGameData(string key = DefaultGameSaveKey, string filePath = null)
@@ -242,12 +242,6 @@ public partial class InventorySystem
         }
 
         List<ItemSaveData> itemDataList = saveData.Items ?? new List<ItemSaveData>();
-        bool hasAnySavedItem = itemDataList.Count > 0;
-        if (hasAnySavedItem && !TryBuildItemDefinitionLookup())
-        {
-            Debug.LogWarning("InventorySystem: item definition lookup is empty. Cannot load inventory. Please assign SOGameConfig.ItemCatalog.");
-            return false;
-        }
 
         List<ItemInstance> loadedItems = new List<ItemInstance>();
         for (int i = 0; i < itemDataList.Count; i++)
@@ -293,12 +287,6 @@ public partial class InventorySystem
 
         if (!hasLoadout)
         {
-            return false;
-        }
-
-        if (!TryBuildItemDefinitionLookup())
-        {
-            Debug.LogWarning("InventorySystem: item definition lookup is empty. Cannot load player loadout.");
             return false;
         }
 
@@ -497,6 +485,7 @@ public partial class InventorySystem
         if (appendedCount > 0)
         {
             _raidItemsCommitted = true;
+            this.GetSystem<PlayerProgressSystem>()?.RefreshProgress();
         }
     }
 
@@ -576,41 +565,12 @@ public partial class InventorySystem
         itemDefinitionLookup.Clear();
         discoveredItemDefinitions.Clear();
 
-        var config = GameSettingManager.Instance?.Config;
-        if (config != null && config.ItemCatalog != null)
-        {
-            RegisterDefinitionsFromCatalog(config.ItemCatalog);
-        }
-
         RegisterDefinitionsFromCurrentInventory();
 
         return discoveredItemDefinitions.Count > 0;
     }
 
-    private void RegisterDefinitionsFromCatalog(SOItemCatalog catalog)
-    {
-        if (catalog == null)
-        {
-            return;
-        }
-
-        var entries = catalog.GetEntries();
-        if (entries == null)
-        {
-            return;
-        }
-
-        for (int i = 0; i < entries.Count; i++)
-        {
-            var entry = entries[i];
-            if (entry != null)
-            {
-                RegisterDefinitionToLookup(entry);
-            }
-        }
-    }
-
-    private void RegisterDefinitionToLookup(ItemCatalogEntry definition)
+    private void RegisterDefinitionToLookup(SOItemConfig definition)
     {
         if (definition == null)
         {
@@ -698,7 +658,7 @@ public partial class InventorySystem
         }
     }
 
-    private bool TryResolveDefinition(ItemSaveData itemData, out ItemCatalogEntry definition)
+    private bool TryResolveDefinition(ItemSaveData itemData, out SOItemConfig definition)
     {
         definition = null;
         if (itemData == null)
@@ -711,6 +671,18 @@ public partial class InventorySystem
             definition != null)
         {
             return true;
+        }
+
+        if (itemData.DefinitionId > 0 &&
+            SOItemConfig.TryLoadConfigById(itemData.DefinitionId, out definition))
+        {
+            RegisterDefinitionToLookup(definition);
+            return true;
+        }
+
+        if (discoveredItemDefinitions.Count == 0)
+        {
+            TryBuildItemDefinitionLookup();
         }
 
         for (int i = 0; i < discoveredItemDefinitions.Count; i++)
